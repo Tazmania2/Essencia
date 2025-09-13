@@ -9,6 +9,7 @@ describe('PlayerDashboard', () => {
     pointsLocked: false,
     currentCycleDay: 15,
     totalCycleDays: 30,
+    isDataFromCollection: false,
     primaryGoal: {
       name: 'Faturamento',
       percentage: 75,

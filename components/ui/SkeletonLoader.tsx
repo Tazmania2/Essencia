@@ -92,12 +92,12 @@ export const SkeletonDashboard: React.FC<SkeletonDashboardProps> = ({
       </div>
 
       {/* Points card skeleton */}
-      <SkeletonCard className="text-center">
+      <div className="bg-white rounded-lg shadow-lg p-6 text-center">
         <div className="animate-pulse">
           <SkeletonLoader height="3rem" width="60%" className="mx-auto mb-2" />
           <SkeletonLoader height="1rem" width="40%" className="mx-auto" />
         </div>
-      </SkeletonCard>
+      </div>
 
       {/* Cycle info skeleton */}
       <div className="grid grid-cols-2 gap-4">

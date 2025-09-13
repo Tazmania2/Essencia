@@ -26,7 +26,7 @@ export const LazyWrapper: React.FC<LazyWrapperProps> = ({
   });
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref as React.RefObject<HTMLDivElement>} className={className}>
       {isIntersecting ? (
         <Suspense fallback={fallback || <SkeletonLoader height="200px" />}>
           {children}
@@ -82,7 +82,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   });
 
   return (
-    <div ref={ref} className={`${className} ${fill ? 'relative' : ''}`}>
+    <div ref={ref as React.RefObject<HTMLDivElement>} className={`${className} ${fill ? 'relative' : ''}`}>
       {isIntersecting ? (
         <Image
           src={src}

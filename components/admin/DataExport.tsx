@@ -546,8 +546,8 @@ export const DataExport: React.FC<DataExportProps> = ({ className = '' }) => {
       {/* Error Display */}
       {error && (
         <ErrorNotification
-          message={error}
-          onClose={() => setError(null)}
+          error={new Error(error)}
+          onDismiss={() => setError(null)}
         />
       )}
 

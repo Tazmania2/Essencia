@@ -80,6 +80,23 @@ export class UserIdentificationService {
   }
 
   /**
+   * Identify team type from player status
+   */
+  public identifyTeam(playerData: FunifierPlayerStatus): TeamType {
+    const teams = playerData.teams || [];
+    
+    if (teams.length === 0) {
+      return TeamType.CARTEIRA_I; // Default team
+    }
+
+    // Get the primary team (first team in the array)
+    const primaryTeamId = teams[0];
+    const teamType = this.mapTeamIdToType(primaryTeamId);
+
+    return teamType || TeamType.CARTEIRA_I; // Default to CARTEIRA_I if mapping fails
+  }
+
+  /**
    * Extract team information and map to TeamType enum
    */
   public extractTeamInformation(playerData: FunifierPlayerStatus): UserTeamInfo {

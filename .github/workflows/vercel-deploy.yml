@@ -32,6 +32,14 @@ jobs:
       - name: Run tests
         run: npm test
         
+      - name: Validate environment variables
+        run: npm run validate:env
+        env:
+          FUNIFIER_API_KEY: ${{ secrets.FUNIFIER_API_KEY }}
+          FUNIFIER_BASE_URL: ${{ secrets.FUNIFIER_BASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: http://localhost:3000
+        
       - name: Build application
         run: npm run build
         env:

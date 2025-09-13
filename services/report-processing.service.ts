@@ -65,6 +65,59 @@ export class ReportProcessingService {
   }
 
   /**
+   * Static method for validating file format
+   */
+  public static validateFileFormat(file: File): string | null {
+    const instance = ReportProcessingService.getInstance();
+    return instance.validateFileFormat(file);
+  }
+
+  /**
+   * Static method for parsing files
+   */
+  public static async parseFile(file: File): Promise<ParseResult> {
+    const instance = ReportProcessingService.getInstance();
+    return instance.parseFile(file);
+  }
+
+  /**
+   * Static method for generating summary
+   */
+  public static generateSummary(parseResult: ParseResult): string {
+    const instance = ReportProcessingService.getInstance();
+    return instance.generateSummary(parseResult);
+  }
+
+  /**
+   * Process report file (parse and upload)
+   */
+  public async processReportFile(file: File, token: string): Promise<ProcessingResult> {
+    try {
+      // Parse the file first
+      const parseResult = await this.parseFile(file);
+      
+      if (!parseResult.isValid) {
+        return {
+          processed: 0,
+          changes: 0,
+          actionLogsSubmitted: 0,
+          errors: parseResult.errors.map(e => e.message)
+        };
+      }
+
+      // Process the parsed data
+      return await this.processUploadedReport(parseResult.data);
+    } catch (error) {
+      return {
+        processed: 0,
+        changes: 0,
+        actionLogsSubmitted: 0,
+        errors: [error instanceof Error ? error.message : 'Unknown error occurred']
+      };
+    }
+  }
+
+  /**
    * Process uploaded report data and sync with Funifier
    */
   public async processUploadedReport(reportData: any[]): Promise<ProcessingResult> {

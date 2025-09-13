@@ -12,7 +12,11 @@ Use this checklist before deploying to production to ensure everything is proper
 
 ## ✅ Environment Configuration
 
-- [ ] All required environment variables are set
+- [ ] All required environment variables are set:
+  - [ ] `FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e`
+  - [ ] `FUNIFIER_BASE_URL=https://service2.funifier.com/v3`
+  - [ ] `NEXTAUTH_SECRET` (secure 32+ character string)
+  - [ ] `NEXTAUTH_URL` (production domain)
 - [ ] Environment validation passes (`npm run validate:env`)
 - [ ] Production URLs are configured (no localhost)
 - [ ] API keys are production-ready

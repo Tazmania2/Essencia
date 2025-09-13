@@ -17,8 +17,8 @@ export async function GET(
     const token = authHeader.replace('Bearer ', '');
     const playerId = params.id;
 
-    const playerService = new FunifierPlayerService();
-    const playerData = await playerService.getPlayerStatus(playerId, token);
+    const playerService = FunifierPlayerService.getInstance();
+    const playerData = await playerService.getPlayerStatus(playerId);
 
     return NextResponse.json(playerData);
   } catch (error) {

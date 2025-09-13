@@ -249,8 +249,8 @@ export const PlayerSelector: React.FC<PlayerSelectorProps> = ({
       {/* Error Display */}
       {error && (
         <ErrorNotification
-          message={error}
-          onClose={() => setError(null)}
+          error={new Error(error)}
+          onDismiss={() => setError(null)}
         />
       )}
 

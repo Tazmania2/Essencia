@@ -5,6 +5,10 @@
  * Validates that all required environment variables are set
  */
 
+// Load environment variables from .env files
+require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: '.env' });
+
 const requiredEnvVars = [
   'FUNIFIER_API_KEY',
   'FUNIFIER_BASE_URL',

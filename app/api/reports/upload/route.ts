@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const reportService = new ReportProcessingService();
+    const reportService = ReportProcessingService.getInstance();
     const result = await reportService.processReportFile(file, token);
 
     return NextResponse.json(result);

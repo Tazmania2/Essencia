@@ -6,15 +6,18 @@ interface ScreenReaderOnlyProps {
   children: React.ReactNode;
   as?: keyof JSX.IntrinsicElements;
   className?: string;
+  id?: string;
 }
 
 export const ScreenReaderOnly: React.FC<ScreenReaderOnlyProps> = ({
   children,
   as: Component = 'span',
   className = '',
+  id,
 }) => {
   return (
     <Component
+      id={id}
       className={`
         sr-only
         absolute
