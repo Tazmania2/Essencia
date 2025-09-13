@@ -20,6 +20,7 @@
     "monitor:performance": "node scripts/performance-monitor.js",
     "validate:env": "node scripts/validate-env.js",
     "setup:env": "node scripts/setup-env.js",
+    "generate:secret": "node scripts/generate-secret.js",
     "verify:production": "node scripts/verify-production.js",
     "deploy:staging": "vercel --target staging",
     "deploy:production": "vercel --prod"
