@@ -103,7 +103,6 @@
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
 - [x] 5. Adapt existing HTML dashboard and create React components
-
   - [x] 5.1 Convert existing HTML dashboard to React components
     - Convert the existing "ideia basica front.html" to React/Next.js components
     - Maintain the exact visual design and animations from the HTML version
@@ -163,9 +162,6 @@
 
 - [ ] 6. Build admin dashboard components
   - [x] 6.1 Create admin dashboard layout and navigation from scratch
-
-
-
 
     - Design admin interface from scratch using O Boticário design system
     - Create sidebar navigation with player selection and data export sections

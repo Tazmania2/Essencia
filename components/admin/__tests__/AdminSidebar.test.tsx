@@ -5,11 +5,13 @@ import { AuthProvider } from '../../../contexts/AuthContext';
 
 // Mock Next.js router
 jest.mock('next/link', () => {
-  return ({ children, href, onClick }: any) => (
-    <a href={href} onClick={onClick}>
+  const MockLink = ({ children, href, onClick, className, ...props }: any) => (
+    <a href={href} onClick={onClick} className={className} {...props}>
       {children}
     </a>
   );
+  MockLink.displayName = 'MockLink';
+  return MockLink;
 });
 
 jest.mock('next/navigation', () => ({
@@ -122,9 +124,7 @@ describe('AdminSidebar', () => {
     );
 
     const playersLink = screen.getByText('Gerenciar Jogadores').closest('a');
-    expect(playersLink).toHaveClass('bg-gradient-to-r');
-    expect(playersLink).toHaveClass('from-boticario-pink');
-    expect(playersLink).toHaveClass('to-boticario-purple');
+    expect(playersLink).toHaveClass('bg-gradient-to-r', 'from-boticario-pink', 'to-boticario-purple', 'text-white', 'shadow-lg');
   });
 
   it('shows correct navigation descriptions', () => {

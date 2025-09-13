@@ -4,11 +4,13 @@ import { AdminBreadcrumb } from '../AdminBreadcrumb';
 
 // Mock Next.js router
 jest.mock('next/link', () => {
-  return ({ children, href }: any) => (
-    <a href={href}>
+  const MockLink = ({ children, href, className, ...props }: any) => (
+    <a href={href} className={className} {...props}>
       {children}
     </a>
   );
+  MockLink.displayName = 'MockLink';
+  return MockLink;
 });
 
 describe('AdminBreadcrumb', () => {

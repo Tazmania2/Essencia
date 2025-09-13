@@ -119,10 +119,9 @@ describe('AdminSectionHeader', () => {
   it('has correct layout structure', () => {
     render(<AdminSectionHeader title="Test Title" />);
     
-    // Check for flex layout - the outer container has justify-between
-    const outerContainer = screen.getByText('Test Title').closest('.bg-white');
-    const flexContainer = outerContainer?.querySelector('.flex.items-center.justify-between');
-    expect(flexContainer).toBeInTheDocument();
+    // Check for flex layout
+    const flexContainer = screen.getByText('Test Title').closest('.flex.items-center.justify-between');
+    expect(flexContainer).toHaveClass('flex', 'items-center', 'justify-between');
   });
 
   it('applies correct text styling', () => {
