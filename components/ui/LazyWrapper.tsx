@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Suspense, lazy } from 'react';
+import Image from 'next/image';
 import { SkeletonLoader } from './SkeletonLoader';
 import { useIntersectionObserver } from '../../hooks/usePerformance';
 
@@ -56,11 +57,14 @@ export const withLazyLoading = <P extends object>(
 };
 
 // Lazy image component with intersection observer
-interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface LazyImageProps {
   src: string;
   alt: string;
   placeholder?: string;
   className?: string;
+  width?: number;
+  height?: number;
+  fill?: boolean;
 }
 
 export const LazyImage: React.FC<LazyImageProps> = ({
@@ -68,7 +72,9 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   alt,
   placeholder,
   className = '',
-  ...props
+  width,
+  height,
+  fill = false,
 }) => {
   const { ref, isIntersecting } = useIntersectionObserver({
     threshold: 0.1,
@@ -76,22 +82,27 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   });
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={`${className} ${fill ? 'relative' : ''}`}>
       {isIntersecting ? (
-        <img
+        <Image
           src={src}
           alt={alt}
-          className="w-full h-full object-cover"
+          width={width}
+          height={height}
+          fill={fill}
+          className="object-cover"
           loading="lazy"
-          {...props}
         />
       ) : (
         <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
           {placeholder ? (
-            <img
+            <Image
               src={placeholder}
               alt={alt}
-              className="w-full h-full object-cover opacity-50"
+              width={width}
+              height={height}
+              fill={fill}
+              className="object-cover opacity-50"
             />
           ) : (
             <svg
