@@ -48,7 +48,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       />
 
       {/* Main content area */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-64" data-testid="main-content-area">
         {/* Admin Header */}
         <AdminHeader onMenuClick={toggleSidebar} />
 

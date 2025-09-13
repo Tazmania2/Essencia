@@ -1,30 +1,62 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AdminLayout } from '../AdminLayout';
-import { AuthContext } from '../../../contexts/AuthContext';
+import { AuthProvider } from '../../../contexts/AuthContext';
 
-// Mock the auth context
-const mockAuthContext = {
-  user: {
-    id: 'admin-1',
-    userName: 'Admin Test',
-    role: 'admin' as const,
-    name: 'Admin Test'
-  },
-  isAuthenticated: true,
-  isPlayer: false,
-  isAdmin: true,
-  team: null,
-  login: jest.fn(),
-  logout: jest.fn(),
-  loading: false
+// Mock the services
+jest.mock('../../../services/funifier-auth.service', () => ({
+  funifierAuthService: {
+    isAuthenticated: jest.fn(() => true),
+    authenticate: jest.fn(),
+    logout: jest.fn(),
+    refreshAccessToken: jest.fn()
+  }
+}));
+
+jest.mock('../../../services/user-identification.service', () => ({
+  userIdentificationService: {
+    identifyUser: jest.fn()
+  }
+}));
+
+// Mock Next.js router
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn()
+  })
+}));
+
+// Mock localStorage
+const mockLocalStorage = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn()
 };
+Object.defineProperty(window, 'localStorage', {
+  value: mockLocalStorage
+});
 
-const MockAuthProvider = ({ children }: { children: React.ReactNode }) => (
-  <AuthContext.Provider value={mockAuthContext}>
-    {children}
-  </AuthContext.Provider>
-);
+const MockAuthProvider = ({ children }: { children: React.ReactNode }) => {
+  // Mock the localStorage to return a user
+  mockLocalStorage.getItem.mockImplementation((key: string) => {
+    if (key === 'user') {
+      return JSON.stringify({
+        id: 'admin-1',
+        userName: 'Admin Test',
+        role: { isAdmin: true, isPlayer: false },
+        team: null
+      });
+    }
+    if (key === 'username') {
+      return 'admin-test';
+    }
+    return null;
+  });
+
+  return <AuthProvider>{children}</AuthProvider>;
+};
 
 describe('AdminLayout', () => {
   const defaultProps = {
@@ -104,10 +136,10 @@ describe('AdminLayout', () => {
     );
 
     // Find mobile menu button
-    const menuButton = screen.getByRole('button', { name: /menu/i });
+    const menuButton = screen.getByLabelText('Open menu');
     
     // Initially sidebar should be closed (translated)
-    const sidebar = screen.getByText('Admin Panel').closest('div');
+    const sidebar = screen.getByText('Admin Panel').closest('.fixed');
     expect(sidebar).toHaveClass('-translate-x-full');
 
     // Click menu button to open sidebar
@@ -126,7 +158,7 @@ describe('AdminLayout', () => {
       </MockAuthProvider>
     );
 
-    const menuButton = screen.getByRole('button', { name: /menu/i });
+    const menuButton = screen.getByLabelText('Open menu');
     
     // Open sidebar
     fireEvent.click(menuButton);
@@ -138,7 +170,7 @@ describe('AdminLayout', () => {
     fireEvent.click(overlay!);
     
     // Sidebar should be closed
-    const sidebar = screen.getByText('Admin Panel').closest('div');
+    const sidebar = screen.getByText('Admin Panel').closest('.fixed');
     expect(sidebar).toHaveClass('-translate-x-full');
   });
 
@@ -150,8 +182,8 @@ describe('AdminLayout', () => {
     );
 
     // Check main content area has correct responsive padding
-    const mainContent = screen.getByRole('main');
-    expect(mainContent).toHaveClass('lg:pl-64');
+    const mainContentArea = screen.getByTestId('main-content-area');
+    expect(mainContentArea).toHaveClass('lg:pl-64');
   });
 
   it('renders admin header with correct props', () => {

@@ -20,6 +20,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onMenuClick }) => {
             <button
               onClick={onMenuClick}
               className="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              aria-label="Open menu"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -40,7 +41,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onMenuClick }) => {
           {/* Right side - User info and actions */}
           <div className="flex items-center space-x-4">
             {/* Notifications */}
-            <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors relative">
+            <button 
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors relative"
+              aria-label="Notifications"
+            >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM10.07 2.82l3.12 3.12M7.05 5.84l3.12 3.12M4.03 8.86l3.12 3.12M1.01 11.88l3.12 3.12" />
               </svg>

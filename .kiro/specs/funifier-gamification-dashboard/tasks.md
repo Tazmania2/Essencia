@@ -162,7 +162,8 @@
     - _Requirements: 1.1, 1.2, 1.3, 8.1_
 
 - [ ] 6. Build admin dashboard components
-  - [-] 6.1 Create admin dashboard layout and navigation from scratch
+  - [x] 6.1 Create admin dashboard layout and navigation from scratch
+
 
 
 
