@@ -130,10 +130,10 @@ describe('AdminBreadcrumb', () => {
     render(<AdminBreadcrumb items={items} />);
 
     const allLinks = screen.getAllByRole('link');
-    expect(allLinks[0]).toHaveClass('hover:text-boticario-pink'); // Home link
+    expect(allLinks[0]).toHaveClass('text-gray-500', 'hover:text-boticario-pink'); // Home link
     
     const playersLink = screen.getByText('Players');
-    expect(playersLink).toHaveClass('hover:text-boticario-pink');
+    expect(playersLink).toHaveClass('text-gray-500', 'hover:text-boticario-pink');
   });
 
   it('renders multiple items correctly', () => {
