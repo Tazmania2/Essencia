@@ -57,7 +57,7 @@ describe('LoginForm', () => {
 
     const passwordInput = screen.getByLabelText(/senha/i);
     const toggleButtons = screen.getAllByRole('button');
-    const toggleButton = toggleButtons.find(button => button.type === 'button' && button !== screen.getByRole('button', { name: /entrar/i }));
+    const toggleButton = toggleButtons.find(button => (button as HTMLButtonElement).type === 'button' && button !== screen.getByRole('button', { name: /entrar/i }));
 
     expect(passwordInput).toHaveAttribute('type', 'password');
 
