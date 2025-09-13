@@ -22,15 +22,20 @@ export class DashboardService {
   async getDashboardData(playerId: string, token: string): Promise<DashboardData> {
     try {
       // Get player status from Funifier
-      const playerStatus = await this.playerService.getPlayerStatus(playerId, token);
+      const playerStatus = await this.playerService.getPlayerStatus(playerId);
       
       // Identify team type
-      const teamType = this.userIdentificationService.identifyTeam(playerStatus);
+      const teamInfo = this.userIdentificationService.extractTeamInformation(playerStatus);
+      const teamType = teamInfo.teamType;
       
       // Get report data from custom collection
-      const reportData = await this.getLatestReportData(playerId, token);
+      const reportData = await this.getLatestReportData(playerId);
       
       // Process data using appropriate team processor
+      if (!teamType) {
+        throw new Error(`Unable to determine team type for player ${playerId}`);
+      }
+      
       const processor = this.teamProcessorFactory.getProcessor(teamType);
       const playerMetrics = processor.processPlayerData(playerStatus, reportData);
       
@@ -42,21 +47,10 @@ export class DashboardService {
     }
   }
 
-  private async getLatestReportData(playerId: string, token: string): Promise<EssenciaReportRecord | undefined> {
+  private async getLatestReportData(playerId: string): Promise<EssenciaReportRecord | undefined> {
     try {
-      const pipeline = [
-        { $match: { playerId: playerId } },
-        { $sort: { reportDate: -1 } },
-        { $limit: 1 }
-      ];
-
-      const results = await this.databaseService.aggregateCollectionData(
-        FUNIFIER_CONFIG.CUSTOM_COLLECTION,
-        pipeline,
-        token
-      );
-
-      return results.length > 0 ? results[0] : undefined;
+      const result = await this.databaseService.getLatestPlayerReport(playerId);
+      return result || undefined;
     } catch (error) {
       console.warn('Could not fetch report data, using defaults:', error);
       return undefined;

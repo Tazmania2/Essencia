@@ -20,10 +20,10 @@ export const useDashboard = (playerId: string, token: string): UseDashboardResul
 
   // Initialize services
   const dashboardService = new DashboardService(
-    new FunifierPlayerService(),
-    new FunifierDatabaseService(),
-    new TeamProcessorFactory(),
-    new UserIdentificationService()
+    FunifierPlayerService.getInstance(),
+    FunifierDatabaseService.getInstance(),
+    TeamProcessorFactory.getInstance(),
+    UserIdentificationService.getInstance()
   );
 
   const fetchDashboardData = async () => {
