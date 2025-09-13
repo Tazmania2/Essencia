@@ -6,6 +6,7 @@ import {
   FUNIFIER_CONFIG
 } from '../types';
 import { funifierAuthService } from './funifier-auth.service';
+import { errorHandlerService } from './error-handler.service';
 
 export class FunifierPlayerService {
   private static instance: FunifierPlayerService;
@@ -54,7 +55,8 @@ export class FunifierPlayerService {
 
       return playerData;
     } catch (error) {
-      throw this.handlePlayerDataError(error, playerId);
+      const apiError = errorHandlerService.handleFunifierError(error, `player_status:${playerId}`);
+      throw apiError;
     }
   }
 

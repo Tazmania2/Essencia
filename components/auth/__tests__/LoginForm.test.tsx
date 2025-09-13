@@ -83,6 +83,6 @@ describe('LoginForm', () => {
     render(<LoginForm onSubmit={mockOnSubmit} isLoading={false} />);
 
     const submitButton = screen.getByRole('button', { name: /entrar/i });
-    expect(submitButton).toHaveClass('bg-gradient-to-r', 'from-pink-500', 'to-purple-600');
+    expect(submitButton).toHaveClass('bg-gradient-to-r', 'from-[#E91E63]', 'to-[#9C27B0]');
   });
 });

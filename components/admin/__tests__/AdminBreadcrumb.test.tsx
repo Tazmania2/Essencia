@@ -1,17 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '../../../__tests__/test-utils';
 import { AdminBreadcrumb } from '../AdminBreadcrumb';
-
-// Mock Next.js router
-jest.mock('next/link', () => {
-  const MockLink = ({ children, href, className, ...props }: any) => (
-    <a href={href} className={className} {...props}>
-      {children}
-    </a>
-  );
-  MockLink.displayName = 'MockLink';
-  return MockLink;
-});
 
 describe('AdminBreadcrumb', () => {
   it('renders nothing when no items provided', () => {

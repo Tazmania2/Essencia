@@ -136,17 +136,31 @@ A integração utiliza:
 
 ### Vercel (Recomendado)
 
-1. Conecte o repositório ao Vercel
-2. Configure as variáveis de ambiente no dashboard
-3. Deploy automático a cada push na branch main
+O projeto está configurado para deploy automático no Vercel. Consulte o [Guia de Deploy](./DEPLOYMENT.md) para instruções detalhadas.
 
-### Variáveis de Ambiente de Produção
+#### Configuração Rápida
+
+1. **Conectar Repositório**: Importe o projeto no [Vercel Dashboard](https://vercel.com/dashboard)
+2. **Configurar Variáveis**: Adicione as variáveis de ambiente necessárias
+3. **Deploy Automático**: Push para `main` faz deploy automático
+
+#### Variáveis de Ambiente Obrigatórias
 ```env
-FUNIFIER_API_KEY=production_api_key
+FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
-NEXTAUTH_SECRET=production_secret
+NEXTAUTH_SECRET=your_secure_random_string
 NEXTAUTH_URL=https://your-domain.vercel.app
+NODE_ENV=production
 ```
+
+#### Recursos Configurados
+- ✅ **API Routes**: Serverless functions para backend
+- ✅ **Automatic Deployments**: Deploy automático por branch
+- ✅ **Preview Deployments**: Preview para todas as branches
+- ✅ **Environment Variables**: Configuração segura de variáveis
+- ✅ **Build Optimization**: Build otimizado para produção
+
+Para instruções completas, consulte [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## Contribuição
 

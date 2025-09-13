@@ -67,7 +67,7 @@ describe('FunifierAuthService', () => {
 
       await expect(authService.authenticate(mockCredentials)).rejects.toMatchObject({
         type: ErrorType.AUTHENTICATION_ERROR,
-        message: 'Invalid credentials'
+        message: 'Credenciais inválidas ou sessão expirada'
       });
     });
 
@@ -82,7 +82,7 @@ describe('FunifierAuthService', () => {
 
       await expect(authService.authenticate(mockCredentials)).rejects.toMatchObject({
         type: ErrorType.NETWORK_ERROR,
-        message: 'Authentication request timed out'
+        message: 'Tempo limite de conexão excedido'
       });
     });
 
@@ -99,7 +99,7 @@ describe('FunifierAuthService', () => {
 
       await expect(authService.authenticate(mockCredentials)).rejects.toMatchObject({
         type: ErrorType.FUNIFIER_API_ERROR,
-        message: 'Too many authentication attempts'
+        message: 'Muitas requisições. Tente novamente em alguns instantes'
       });
     });
 
@@ -114,7 +114,7 @@ describe('FunifierAuthService', () => {
 
       await expect(authService.authenticate(mockCredentials)).rejects.toMatchObject({
         type: ErrorType.NETWORK_ERROR,
-        message: 'Network error during authentication'
+        message: 'Erro de rede - sem resposta do servidor'
       });
     });
   });
@@ -257,7 +257,7 @@ describe('FunifierAuthService', () => {
 
       await expect(authService.refreshAccessToken()).rejects.toMatchObject({
         type: ErrorType.AUTHENTICATION_ERROR,
-        message: 'Invalid credentials'
+        message: 'Credenciais inválidas ou sessão expirada'
       });
 
       expect(authService.isAuthenticated()).toBe(false);

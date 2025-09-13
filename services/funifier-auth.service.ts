@@ -7,6 +7,7 @@ import {
   ErrorType,
   FUNIFIER_CONFIG
 } from '../types';
+import { errorHandlerService } from './error-handler.service';
 
 export class FunifierAuthService {
   private static instance: FunifierAuthService;
@@ -55,7 +56,8 @@ export class FunifierAuthService {
 
       return access_token;
     } catch (error) {
-      throw this.handleAuthError(error);
+      const apiError = errorHandlerService.handleFunifierError(error, 'authentication');
+      throw apiError;
     }
   }
 
@@ -118,7 +120,8 @@ export class FunifierAuthService {
       return access_token;
     } catch (error) {
       this.clearTokens();
-      throw this.handleAuthError(error);
+      const apiError = errorHandlerService.handleFunifierError(error, 'token_refresh');
+      throw apiError;
     }
   }
 

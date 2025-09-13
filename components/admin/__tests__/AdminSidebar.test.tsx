@@ -1,72 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, mockLocalStorage } from '../../../__tests__/test-utils';
 import { AdminSidebar } from '../AdminSidebar';
-import { AuthProvider } from '../../../contexts/AuthContext';
-
-// Mock Next.js router
-jest.mock('next/link', () => {
-  const MockLink = ({ children, href, onClick, className, ...props }: any) => (
-    <a href={href} onClick={onClick} className={className} {...props}>
-      {children}
-    </a>
-  );
-  MockLink.displayName = 'MockLink';
-  return MockLink;
-});
-
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn()
-  })
-}));
-
-// Mock the services
-jest.mock('../../../services/funifier-auth.service', () => ({
-  funifierAuthService: {
-    isAuthenticated: jest.fn(() => true),
-    authenticate: jest.fn(),
-    logout: jest.fn(),
-    refreshAccessToken: jest.fn()
-  }
-}));
-
-jest.mock('../../../services/user-identification.service', () => ({
-  userIdentificationService: {
-    identifyUser: jest.fn()
-  }
-}));
-
-// Mock localStorage
-const mockLocalStorage = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn()
-};
-Object.defineProperty(window, 'localStorage', {
-  value: mockLocalStorage
-});
-
-const MockAuthProvider = ({ children }: { children: React.ReactNode }) => {
-  // Mock the localStorage to return a user
-  mockLocalStorage.getItem.mockImplementation((key: string) => {
-    if (key === 'user') {
-      return JSON.stringify({
-        id: 'admin-1',
-        userName: 'Admin Test',
-        role: { isAdmin: true, isPlayer: false },
-        team: null
-      });
-    }
-    if (key === 'username') {
-      return 'admin-test';
-    }
-    return null;
-  });
-
-  return <AuthProvider>{children}</AuthProvider>;
-};
 
 describe('AdminSidebar', () => {
   const defaultProps = {
@@ -75,16 +9,19 @@ describe('AdminSidebar', () => {
     currentSection: 'dashboard'
   };
 
+  const testUser = {
+    id: 'admin-1',
+    userName: 'Admin Test',
+    role: { isAdmin: true, isPlayer: false },
+    team: null
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders sidebar header with branding', () => {
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} />, { user: testUser });
 
     expect(screen.getByText('Admin Panel')).toBeInTheDocument();
     expect(screen.getByText('O Boticário')).toBeInTheDocument();
@@ -92,11 +29,7 @@ describe('AdminSidebar', () => {
   });
 
   it('displays user information', () => {
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} />, { user: testUser });
 
     expect(screen.getByText('Admin Test')).toBeInTheDocument();
     expect(screen.getByText('Administrador')).toBeInTheDocument();
@@ -104,11 +37,7 @@ describe('AdminSidebar', () => {
   });
 
   it('renders all navigation items', () => {
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} />, { user: testUser });
 
     expect(screen.getByText('Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Gerenciar Jogadores')).toBeInTheDocument();
@@ -117,22 +46,14 @@ describe('AdminSidebar', () => {
   });
 
   it('highlights active section', () => {
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} currentSection="players" />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} currentSection="players" />, { user: testUser });
 
     const playersLink = screen.getByText('Gerenciar Jogadores').closest('a');
     expect(playersLink).toHaveClass('bg-gradient-to-r', 'from-boticario-pink', 'to-boticario-purple', 'text-white', 'shadow-lg');
   });
 
   it('shows correct navigation descriptions', () => {
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} />, { user: testUser });
 
     expect(screen.getByText('Visão geral do sistema')).toBeInTheDocument();
     expect(screen.getByText('Visualizar e gerenciar dados dos jogadores')).toBeInTheDocument();
@@ -141,20 +62,12 @@ describe('AdminSidebar', () => {
   });
 
   it('applies correct open/closed classes', () => {
-    const { rerender } = render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} isOpen={false} />
-      </MockAuthProvider>
-    );
+    const { rerender } = render(<AdminSidebar {...defaultProps} isOpen={false} />, { user: testUser });
 
     const sidebar = screen.getByText('Admin Panel').closest('.fixed');
     expect(sidebar).toHaveClass('-translate-x-full');
 
-    rerender(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} isOpen={true} />
-      </MockAuthProvider>
-    );
+    rerender(<AdminSidebar {...defaultProps} isOpen={true} />);
 
     expect(sidebar).toHaveClass('translate-x-0');
   });
@@ -162,11 +75,7 @@ describe('AdminSidebar', () => {
   it('calls onClose when close button is clicked', () => {
     const onCloseMock = jest.fn();
     
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} onClose={onCloseMock} />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} onClose={onCloseMock} />, { user: testUser });
 
     const closeButton = screen.getByLabelText('Close menu');
     fireEvent.click(closeButton);
@@ -177,11 +86,7 @@ describe('AdminSidebar', () => {
   it('calls onClose when navigation link is clicked', () => {
     const onCloseMock = jest.fn();
     
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} onClose={onCloseMock} />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} onClose={onCloseMock} />, { user: testUser });
 
     const dashboardLink = screen.getByText('Dashboard').closest('a');
     fireEvent.click(dashboardLink!);
@@ -190,11 +95,7 @@ describe('AdminSidebar', () => {
   });
 
   it('calls logout when logout button is clicked', () => {
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} />, { user: testUser });
 
     const logoutButton = screen.getByText('Sair do Sistema');
     fireEvent.click(logoutButton);
@@ -204,21 +105,13 @@ describe('AdminSidebar', () => {
   });
 
   it('renders navigation section header', () => {
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} />, { user: testUser });
 
     expect(screen.getByText('Navegação Principal')).toBeInTheDocument();
   });
 
   it('shows active indicator for current section', () => {
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} currentSection="dashboard" />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} currentSection="dashboard" />, { user: testUser });
 
     const dashboardLink = screen.getByText('Dashboard').closest('a');
     const activeIndicator = dashboardLink?.querySelector('.w-2.h-2.bg-white.rounded-full');
@@ -226,38 +119,21 @@ describe('AdminSidebar', () => {
   });
 
   it('handles user without userName gracefully', () => {
-    // Mock localStorage to return user without userName
-    mockLocalStorage.getItem.mockImplementation((key: string) => {
-      if (key === 'user') {
-        return JSON.stringify({
-          id: 'admin-1',
-          userName: undefined,
-          role: { isAdmin: true, isPlayer: false },
-          team: null
-        });
-      }
-      if (key === 'username') {
-        return 'admin-test';
-      }
-      return null;
-    });
+    const userWithoutName = {
+      id: 'admin-1',
+      userName: undefined,
+      role: { isAdmin: true, isPlayer: false },
+      team: null
+    };
 
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} />, { user: userWithoutName });
 
-    expect(screen.getByText('Administrador')).toBeInTheDocument();
+    expect(screen.getAllByText('Administrador')).toHaveLength(2); // User name and role
     expect(screen.getByText('A')).toBeInTheDocument(); // Default initial
   });
 
   it('has correct responsive classes', () => {
-    render(
-      <MockAuthProvider>
-        <AdminSidebar {...defaultProps} />
-      </MockAuthProvider>
-    );
+    render(<AdminSidebar {...defaultProps} />, { user: testUser });
 
     const sidebar = screen.getByText('Admin Panel').closest('.fixed');
     expect(sidebar).toHaveClass('lg:translate-x-0', 'lg:static', 'lg:inset-0');

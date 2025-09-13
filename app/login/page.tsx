@@ -35,32 +35,33 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#FCE4EC] via-[#F8BBD9] to-[#E1BEE7] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 border border-pink-100" style={{ boxShadow: '0 10px 25px rgba(233, 30, 99, 0.1)' }}>
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <div className="w-20 h-20 bg-gradient-to-r from-[#E91E63] to-[#9C27B0] rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-[#880E4F] mb-3 font-poppins">
               Dashboard Essência
             </h1>
-            <p className="text-gray-600">
+            <p className="text-[#9C27B0] font-medium">
               Faça login para acessar seu dashboard de gamificação
             </p>
+            <div className="w-16 h-1 bg-gradient-to-r from-[#E91E63] to-[#9C27B0] mx-auto mt-4 rounded-full"></div>
           </div>
 
           {/* Error Message */}
           {(error || authError) && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg shadow-sm">
               <div className="flex items-center">
-                <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-red-700 text-sm">{error || authError}</p>
+                <p className="text-red-700 text-sm font-medium">{error || authError}</p>
               </div>
             </div>
           )}
@@ -70,9 +71,14 @@ export default function LoginPage() {
 
           {/* Footer */}
           <div className="mt-8 text-center">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-[#9C27B0] font-medium">
               © 2024 Grupo Essência - O Boticário
             </p>
+            <div className="mt-2 flex items-center justify-center space-x-2">
+              <div className="w-2 h-2 bg-[#E91E63] rounded-full"></div>
+              <div className="w-2 h-2 bg-[#9C27B0] rounded-full"></div>
+              <div className="w-2 h-2 bg-[#FFD700] rounded-full"></div>
+            </div>
           </div>
         </div>
       </div>

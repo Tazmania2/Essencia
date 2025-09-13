@@ -2,6 +2,7 @@ import { FunifierPlayerService } from './funifier-player.service';
 import { FunifierDatabaseService } from './funifier-database.service';
 import { TeamProcessorFactory } from './team-processor-factory.service';
 import { UserIdentificationService } from './user-identification.service';
+import { dashboardCache, playerDataCache, CacheKeys } from './cache.service';
 import { 
   FunifierPlayerStatus, 
   EssenciaReportRecord, 
@@ -21,8 +22,20 @@ export class DashboardService {
 
   async getDashboardData(playerId: string, token: string): Promise<DashboardData> {
     try {
-      // Get player status from Funifier
-      const playerStatus = await this.playerService.getPlayerStatus(playerId);
+      // Check cache first
+      const cacheKey = CacheKeys.dashboardData(playerId, 'unknown');
+      const cachedData = dashboardCache.get<DashboardData>(cacheKey);
+      
+      if (cachedData) {
+        return cachedData;
+      }
+
+      // Get player status from Funifier (with caching)
+      const playerStatus = await playerDataCache.getOrSet(
+        CacheKeys.playerStatus(playerId),
+        () => this.playerService.getPlayerStatus(playerId),
+        2 * 60 * 1000 // 2 minutes TTL
+      );
       
       // Identify team type
       const teamInfo = this.userIdentificationService.extractTeamInformation(playerStatus);
@@ -40,7 +53,13 @@ export class DashboardService {
       const playerMetrics = processor.processPlayerData(playerStatus, reportData);
       
       // Convert to dashboard format
-      return this.convertTodashboardData(playerMetrics, teamType, reportData);
+      const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData);
+      
+      // Cache the result with team-specific key
+      const teamSpecificCacheKey = CacheKeys.dashboardData(playerId, teamType);
+      dashboardCache.set(teamSpecificCacheKey, dashboardData, 2 * 60 * 1000); // 2 minutes TTL
+      
+      return dashboardData;
     } catch (error) {
       console.error('Error getting dashboard data:', error);
       throw error;

@@ -98,7 +98,7 @@ describe('FunifierPlayerService', () => {
 
       await expect(playerService.getPlayerStatus('nonexistent')).rejects.toMatchObject({
         type: ErrorType.FUNIFIER_API_ERROR,
-        message: 'Player not found'
+        message: 'Recurso não encontrado na API'
       });
     });
 
@@ -113,7 +113,7 @@ describe('FunifierPlayerService', () => {
 
       await expect(playerService.getPlayerStatus('player123')).rejects.toMatchObject({
         type: ErrorType.NETWORK_ERROR,
-        message: 'Player data request timed out'
+        message: 'Tempo limite de conexão excedido'
       });
     });
 
@@ -458,7 +458,7 @@ describe('FunifierPlayerService', () => {
 
       await expect(playerService.getPlayerStatus('player123')).rejects.toMatchObject({
         type: ErrorType.AUTHENTICATION_ERROR,
-        message: 'Authentication failed while fetching player data'
+        message: 'Credenciais inválidas ou sessão expirada'
       });
     });
 
@@ -475,7 +475,7 @@ describe('FunifierPlayerService', () => {
 
       await expect(playerService.getPlayerStatus('player123')).rejects.toMatchObject({
         type: ErrorType.FUNIFIER_API_ERROR,
-        message: 'Funifier server error'
+        message: 'Erro interno do servidor Funifier'
       });
     });
 
@@ -490,7 +490,7 @@ describe('FunifierPlayerService', () => {
 
       await expect(playerService.getPlayerStatus('player123')).rejects.toMatchObject({
         type: ErrorType.NETWORK_ERROR,
-        message: 'Network error while fetching player data'
+        message: 'Erro de rede - sem resposta do servidor'
       });
     });
   });
