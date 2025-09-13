@@ -78,7 +78,6 @@
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
 
 - [x] 4. Create authentication and user management
-
   - [x] 4.1 Implement login component and authentication flow
     - Create login form with username/password inputs
     - Implement authentication with Funifier API
@@ -103,13 +102,9 @@
     - Write integration tests for authentication flow
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-- [-] 5. Adapt existing HTML dashboard and create React components
-
-
+- [x] 5. Adapt existing HTML dashboard and create React components
 
   - [x] 5.1 Convert existing HTML dashboard to React components
-
-
     - Convert the existing "ideia basica front.html" to React/Next.js components
     - Maintain the exact visual design and animations from the HTML version
     - Create reusable components for cards, progress bars, and boost indicators
@@ -118,8 +113,7 @@
     - Write unit tests for converted components
     - _Requirements: 2.1, 8.1, 8.2, 8.3_
 
-  - [-] 5.2 Connect points display to Funifier data
-
+  - [x] 5.2 Connect points display to Funifier data
     - Replace static points value with dynamic data from Funifier player status
     - Implement lock/unlock logic based on catalog_items (E6F0O5f for unlock status)
     - Update card styling dynamically: blue background + green text for unlocked, white background + red text for locked
@@ -128,7 +122,7 @@
     - Write unit tests for points display and status calculations
     - _Requirements: 2.2, 2.3, 3.1, 4.3_
 
-  - [ ] 5.3 Connect cycle information to collection data
+  - [x] 5.3 Connect cycle information to collection data
     - Replace static cycle values with data from custom collection (currentCycleDay, totalCycleDays)
     - Implement fallback to 21 days total when collection data is missing
     - Calculate cycle progress percentage and update progress bar
@@ -137,7 +131,7 @@
     - Write unit tests for cycle calculations with fallback scenarios
     - _Requirements: 2.4, 2.5_
 
-  - [ ] 5.4 Connect goal metrics to collection data with special progress bars
+  - [x] 5.4 Connect goal metrics to collection data with special progress bars
     - Replace static goal percentages with data from custom collection
     - Implement special progress bar logic: 0-50% red (0-33% fill), 50-100% yellow (33-66% fill), 100-150% green (66-100% fill)
     - Connect boost indicators to catalog_items (E6F0WGc, E6K79Mt for secondary boosts)
@@ -147,7 +141,7 @@
     - Write unit tests for goal components and progress bar calculations
     - _Requirements: 3.2, 3.3, 3.4, 3.6, 3.7, 3.8, 4.4, 4.5, 4.6_
 
-  - [ ] 5.5 Create team-specific dashboard variations
+  - [x] 5.5 Create team-specific dashboard variations
     - Duplicate base dashboard for each team type (Carteira I, II, III, IV)
     - Customize goal names and processing logic per team
     - Implement team-specific routing and data processing
@@ -168,7 +162,10 @@
     - _Requirements: 1.1, 1.2, 1.3, 8.1_
 
 - [ ] 6. Build admin dashboard components
-  - [ ] 6.1 Create admin dashboard layout and navigation from scratch
+  - [-] 6.1 Create admin dashboard layout and navigation from scratch
+
+
+
     - Design admin interface from scratch using O Boticário design system
     - Create sidebar navigation with player selection and data export sections
     - Implement responsive layout for admin tools matching player dashboard style

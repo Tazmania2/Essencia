@@ -14,6 +14,7 @@ interface PlayerDashboardProps {
   pointsLocked: boolean;
   currentCycleDay: number;
   totalCycleDays: number;
+  isDataFromCollection: boolean;
   primaryGoal: {
     name: string;
     percentage: number;
@@ -50,6 +51,7 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
   pointsLocked,
   currentCycleDay,
   totalCycleDays,
+  isDataFromCollection,
   primaryGoal,
   secondaryGoal1,
   secondaryGoal2,
@@ -110,7 +112,11 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
         {/* Pontos e Status */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <PointsCard points={totalPoints} isUnlocked={!pointsLocked} />
-          <CycleCard currentDay={currentCycleDay} totalDays={totalCycleDays} />
+          <CycleCard 
+            currentDay={currentCycleDay} 
+            totalDays={totalCycleDays}
+            isDataFromCollection={isDataFromCollection}
+          />
         </div>
 
         {/* Metas */}

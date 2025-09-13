@@ -35,7 +35,7 @@ export class DashboardService {
       const playerMetrics = processor.processPlayerData(playerStatus, reportData);
       
       // Convert to dashboard format
-      return this.convertTodashboardData(playerMetrics, teamType);
+      return this.convertTodashboardData(playerMetrics, teamType, reportData);
     } catch (error) {
       console.error('Error getting dashboard data:', error);
       throw error;
@@ -63,15 +63,20 @@ export class DashboardService {
     }
   }
 
-  private convertTodashboardData(metrics: PlayerMetrics, teamType: TeamType): DashboardData {
+  private convertTodashboardData(metrics: PlayerMetrics, teamType: TeamType, reportData?: EssenciaReportRecord): DashboardData {
     const goalEmojis = this.getGoalEmojis(teamType);
+    
+    // Calculate cycle information with fallbacks
+    const totalCycleDays = reportData?.totalCycleDays || 21; // Default to 21 days
+    const currentCycleDay = reportData?.currentCycleDay || metrics.currentCycleDay;
     
     return {
       playerName: metrics.playerName,
       totalPoints: metrics.totalPoints,
       pointsLocked: metrics.pointsLocked,
-      currentCycleDay: metrics.currentCycleDay,
-      totalCycleDays: metrics.currentCycleDay + metrics.daysUntilCycleEnd,
+      currentCycleDay: currentCycleDay,
+      totalCycleDays: totalCycleDays,
+      isDataFromCollection: !!reportData, // True if we have report data from collection
       primaryGoal: {
         name: metrics.primaryGoal.name,
         percentage: metrics.primaryGoal.percentage,

@@ -26,6 +26,8 @@ describe('PointsCard', () => {
     
     const status = screen.getByText('Desbloqueados');
     expect(status).toHaveClass('text-green-600');
+    
+    expect(screen.getByText('pontos disponíveis')).toBeInTheDocument();
   });
 
   it('applies correct styling for locked points', () => {
@@ -36,6 +38,8 @@ describe('PointsCard', () => {
     
     const status = screen.getByText('Bloqueados');
     expect(status).toHaveClass('text-red-600');
+    
+    expect(screen.getByText('pontos bloqueados')).toBeInTheDocument();
   });
 
   it('formats large numbers correctly', () => {
@@ -43,4 +47,15 @@ describe('PointsCard', () => {
     
     expect(screen.getByText('123.456')).toBeInTheDocument();
   });
-});
+}); 
+ it('shows special note for Carteira II team', () => {
+    render(<PointsCard points={2847} isUnlocked={true} teamType="CARTEIRA_II" />);
+    
+    expect(screen.getByText('* Pontos calculados localmente')).toBeInTheDocument();
+  });
+
+  it('does not show special note for other teams', () => {
+    render(<PointsCard points={2847} isUnlocked={true} teamType="CARTEIRA_I" />);
+    
+    expect(screen.queryByText('* Pontos calculados localmente')).not.toBeInTheDocument();
+  });

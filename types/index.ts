@@ -178,6 +178,7 @@ export interface DashboardData {
   pointsLocked: boolean;
   currentCycleDay: number;
   totalCycleDays: number;
+  isDataFromCollection: boolean;
   primaryGoal: DashboardGoal;
   secondaryGoal1: DashboardGoal & { hasBoost: true };
   secondaryGoal2: DashboardGoal & { hasBoost: true };
