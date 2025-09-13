@@ -4,7 +4,8 @@
 
 
 
-  - [-] 1.1 Initialize Git repository and remote setup
+  - [x] 1.1 Initialize Git repository and remote setup
+
 
 
     - Initialize Git repository in the project folder
@@ -13,6 +14,7 @@
     - Configure .gitignore for Next.js project
     - Add README.md with project description and setup instructions
     - _Requirements: Deployment preparation_
+
 
   - [ ] 1.2 Create Next.js project with TypeScript configuration
     - Create Next.js project with TypeScript configuration
