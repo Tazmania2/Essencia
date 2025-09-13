@@ -1,0 +1,12424 @@
+​
+
+​
+​
+
+​
+​
+
+​
+​
+​
+
+​
+​
+
+​
+​
+​
+​
+
+​
+​
+
+​
+​
+​
+
+Sequência de prompts para gamificação funifier:​
+​
+"Crie um roteiro de entrevista para levantamento de informações para um projeto de
+gamificação da Funifier para "Tema". O objetivo da entrevista é descobrir: o que será
+gamificado, objetivo do negócio, quem são os jogadores, ações desejadas, canais de
+interação e recompensas possíveis. O cliente "Área de Negócio", e o público-alvo são
+"Público-Alvo". O tom deve ser "Tom"."
+Atue como um Head de Pesquisa e Inovação de uma Big Tech. Analise o público-alvo
+descrito abaixo e identifique suas principais dores, desejos e motivações, incluindo
+jobs-to-be-done ocultos. Sugira funcionalidades e recompensas inovadoras que
+poderiam atender essas necessidades de forma engajadora e surpreendente.
+"Atue como um game designer e estrategista de storytelling corporativo. Crie 3 opções
+de narrativa lúdica cativante, alinhadas ao propósito do negócio gamificado e ao perfil
+do público-alvo. As narrativas devem ser originais, motivadoras e capazes de dar
+contexto às mecânicas de jogo posteriormente escolhidas.
+Tema: "Tema"
+"Crie um guia visual para o designer baseado na narrativa Lendas da Areia. Indique
+símbolos, cores, ícones e estilos visuais que representem o enredo e motivem o
+jogador."
+"Atue como um especialista em Octalysis Framework e engajamento. Proponha uma
+combinação estratégica dos 8 coredrives para o projeto. Mostre como cada coredrive
+pode ser aplicado nas diferentes fases da jornada do jogador: Descoberta, Onboarding,
+Primeiros Desafios, Engajamento Contínuo e Mastery.
+
+"Atue como um game designer com experiência em gamificação corporativa.
+Identifique as técnicas de jogos com maior potencial de engajamento. Para cada técnica
+recomendada, quais ações desejadas acionam a técnica, e qual módulo funifier será
+configurado para implementar cada técnica."
+"Verifique se técnicas e coredrives reforçam a narrativa escolhida. Aponte ajustes
+necessários para reforçar o alinhamento entre narrativa, mecânicas e motivação do
+jogador."
+
+"Atue como um escritor de histórias interativas e especialista em design de
+experiências. Escreva um texto narrativo, como se estivesse contando uma história para
+uma pessoa leiga, que narre a jornada do jogador desde o momento em que ele toma
+consciência da gamificação até o final.
+
+​
+
+​
+​
+​
+​
+
+​
+​
+​
+
+​
+
+​
+​
+​
+​
+​
+
+A jornada deve incluir: O primeiro contato e descoberta; Como o jogador entende o
+propósito da gamificação; Como ele começa a interagir e realiza as primeiras ações;
+Como ele evolui nos desafios e se sente durante o processo; Como ele atinge o
+domínio (Mastery) e qual a sensação de conclusão; O texto deve ser fluido, envolvente
+e fácil de entender para quem nunca viu o projeto."
+
+"Atue como um UX/UI designer sênior especializado em jogos e gamificação. Use a
+narrativa baseada no "Tema"
+como base criativa. Crie uma especificação textual para wireframes das telas do
+jogador, garantindo que o layout, os elementos e o fluxo reforcem os elementos lúdicos
+e temáticos da narrativa. Explique como a história está sendo refletida no visual."
+
+Considerando as especificações dos wireframes das principais telas do jogador. Gere
+uma imagem na {horizontal} do design das telas do jogador com base na narrativa
+baseada no "Tema"refletindo os elementos lúdicos e simbólicos dessa história. A
+interface é para "Desktop ou Mobile". O design deve evocar "Sentimento". Utilize cores,
+ícones, ambientação visual e estilos compatíveis com a narrativa.
+​
+​
+​
+Links de interesse Funifier - ​
+https://github.com/funifierinc/funifier-js
+https://api.funifier.com​
+API Funifier INFO
+Player
+São os usuários que interagem com a gamificação. Neste endpoint é possível criar o
+cadastro desses jogadores com quaisquer informações relevantes para estratégia de
+engajamento como por exemplo nome, e-mail, foto, departamento, sexo, localização
+geográfica, telefone, e qualquer outro atributo que seja relevante para o jogador dentro
+do processo de engajamento.
+
+Try
+List Players
+GET {{funifier_server}}/v3/player
+Response
+1
+[
+2
+{
+3
+"_id": "jerry",
+4
+"name": "Jerry",
+5
+"email": "jerry@yourdomain.com",
+6
+"extra": {
+7
+"company": "Tom & Jerry Inc."
+8
+},
+9
+"created": 1694990893810,
+10
+"updated": 1694990893880
+11
+},
+12
+{
+13
+"_id": "tom",
+14
+"name": "Tom",
+15
+"email": "tom@yourdomain.com",
+16
+"extra": {
+17
+"company": "Tom & Jerry Inc."
+18
+},
+19
+"created": 1694990939613,
+20
+"updated": 1694990939619
+21
+}
+22
+]
+
+Try
+Create Player
+POST {{funifier_server}}/v3/player
+Request Body
+1
+{
+2
+"_id": "jerry",
+3
+"name": "Jerry",
+4
+"email": "jerry@yourdomain.com",
+5
+"image": {
+6
+"small": {"url": "https://my.funifier.com/images/funny.png"},
+7
+"medium": {"url": "https://my.funifier.com/images/funny.png"},
+8
+"original": {"url": "https://my.funifier.com/images/funny.png"}
+9
+},
+10
+"teams": ["cartoon"],
+11
+"friends": ["tom", "spike", "quacker"],
+12
+"extra": {
+13
+"country": "USA",
+14
+"company": "Tom & Jerry Inc.",
+15
+"sports": ["soccer", "cycling", "surf"]
+16
+}
+17
+}
+Response
+1
+{
+2
+"name": "Jerry",
+3
+"email": "jerry@yourdomain.com",
+4
+"image": {
+5
+"small": {"url": "https://my.funifier.com/images/funny.png"},
+6
+
+"medium": {"url": "https://my.funifier.com/images/funny.png"},
+7
+"original": {"url": "https://my.funifier.com/images/funny.png"}
+8
+},
+9
+"teams": ["cartoon"],
+10
+"friends": ["tom", "spike", "quacker"],
+11
+"extra": {
+12
+"country": "USA",
+13
+"company": "Tom & Jerry Inc.",
+14
+"sports": ["soccer", "cycling", "surf"]
+15
+},
+16
+"created": 1695216470091,
+17
+"updated": 1695216470091,
+18
+"_id": "jerry"
+19
+}
+Try
+Delete Player
+DELETE {{funifier_server}}/v3/player/:id
+Para excluir um jogador você informa no final do endpoint o id do jogador que deseja
+excluir. Este método irá excluir as ações, conquistas e todas as outras informações
+registradas para este jogador dentro da gamificação.
+
+Try
+Player Status
+GET {{funifier_server}}/v3/player/:id/status
+Retorna as estatísticas básicas do jogador dentro da gamificação. Como por exemplo
+o total de pontos, desafios que já concluiu, nível atual, e itens adquiridos na
+gamificação. Subsitua no endpoint o :id pelo id do jogador. Este status é atualizado
+quando o jogador realiza alguma ação que gera algum tipo de conquista.
+Response
+1
+{
+2
+"name": "Jerry",
+3
+"total_challenges": 0,
+4
+"challenges": {},
+5
+"total_points": 0,
+6
+"point_categories": {},
+7
+"total_catalog_items": 0,
+8
+"catalog_items": {},
+9
+"level_progress": {
+10
+"percent_completed": 0,
+11
+"next_points": 10,
+12
+"next_level": {
+13
+"level": "Apprentice",
+14
+"position": 0,
+15
+"description": "It indicates that you are learning, growing and striving to reach your
+goals.",
+16
+"minPoints": 10,
+17
+"notifications": [],
+18
+"requirements": [],
+19
+"i18n": {},
+20
+"extra": {},
+21
+
+"techniques": [
+22
+"GT85"
+23
+],
+24
+"_id": "L0"
+25
+},
+26
+"total_levels": 1,
+27
+"percent": 0
+28
+},
+29
+"challenge_progress": [],
+30
+"positions": [],
+31
+"time": 1695052411804,
+32
+"extra": {
+33
+"company": "Tom & Jerry Inc."
+34
+},
+35
+"pointCategories": {},
+36
+"_id": "jerry"
+37
+}
+​
+​
+
+Team
+Equipes são grupos de jogadores. Isso permite motivar os jogadores com estímulos
+sociais. Um jogador pode estar em mais de uma equipe se for necessário, e cada
+equipe pode ter um dono, que representa a equipe sempre que necessário.
+Try
+List Teams
+GET {{funifier_server}}/v3/team
+
+Try
+Create Team
+POST {{funifier_server}}/v3/team
+Request Body
+1
+{
+2
+"_id": "sales",
+3
+"name": "Sales",
+4
+"description": "Funifier sales team",
+5
+"image": {
+6
+"small": {"url": "https://my.funifier.com/images/funny.png"},
+7
+"medium": {"url": "https://my.funifier.com/images/funny.png"},
+8
+"original": {"url": "https://my.funifier.com/images/funny.png"}
+9
+},
+10
+"extra": {
+11
+"country": "USA"
+12
+},
+13
+"owner": "john"
+14
+}
+Response
+1
+{
+2
+"name": "Sales",
+3
+"description": "Funifier sales team",
+4
+"image": {
+5
+"small": {
+6
+"url": "https://my.funifier.com/images/funny.png",
+7
+"size": 0,
+8
+"width": 0,
+9
+
+"height": 0,
+10
+"depth": 0
+11
+},
+12
+"medium": {
+13
+"url": "https://my.funifier.com/images/funny.png",
+14
+"size": 0,
+15
+"width": 0,
+16
+"height": 0,
+17
+"depth": 0
+18
+},
+19
+"original": {
+20
+"url": "https://my.funifier.com/images/funny.png",
+21
+"size": 0,
+22
+"width": 0,
+23
+"height": 0,
+24
+"depth": 0
+25
+}
+26
+},
+27
+"extra": {
+28
+"country": "USA"
+29
+},
+30
+"owner": "john",
+31
+"created": 1695135261192,
+32
+"updated": 1695135261192,
+33
+"_id": "sales"
+34
+
+}
+Try
+Delete Team
+DELETE {{funifier_server}}/v3/team/:id
+
+Try
+Add Member
+GET {{funifier_server}}/v3/team/:id/member/add/:player
+Informe na url o id da equipe e o id do jogador. /v3/team/:id/member/add/:player
+Response
+1
+{
+2
+"team": "sales",
+3
+"player": "tom"
+4
+}
+Try
+Remove Member
+GET {{funifier_server}}/v3/team/:id/member/remove/:player
+Informe na url o id da equipe e o id do jogador.
+/v3/team/:team_id/member/remove/:player_id
+
+Try
+List Member Ids
+GET {{funifier_server}}/v3/team/:id/memberids
+Informe na url o id da equipe. /v3/team/:team_id/memberids
+Response
+1
+[
+2
+"tom"
+3
+]
+
+Try
+Team Status
+GET {{funifier_server}}/v3/team/:id/status
+Retorna as estatísticas básicas da equipe dentro da gamificação. Como por exemplo
+o total de pontos, desafios que já concluiu, e itens adquiridos na gamificação.
+Subsitua no endpoint o :id pelo id da equipe.
+Response
+1
+{
+2
+"name": "Sales",
+3
+"image": {
+4
+"small": {
+5
+"url": "https://my.funifier.com/images/funny.png",
+6
+"size": 0,
+7
+"width": 0,
+8
+"height": 0,
+9
+"depth": 0
+10
+},
+11
+"medium": {
+12
+"url": "https://my.funifier.com/images/funny.png",
+13
+"size": 0,
+14
+"width": 0,
+15
+"height": 0,
+16
+"depth": 0
+17
+},
+18
+"original": {
+19
+"url": "https://my.funifier.com/images/funny.png",
+20
+"size": 0,
+21
+"width": 0,
+22
+
+"height": 0,
+23
+"depth": 0
+24
+}
+25
+},
+26
+"total_challenges": 0,
+27
+"challenges": {},
+28
+"total_points": 0,
+29
+"point_categories": {},
+30
+"total_catalog_items": 0,
+31
+"catalog_items": {},
+32
+"challenge_progress": [],
+33
+"positions": [],
+34
+"time": 1695143097017,
+35
+"extra": {
+36
+"country": "USA"
+37
+},
+38
+"pointCategories": {},
+39
+"_id": "sales"
+40
+}
+​
+​
+
+Auth
+Endpoint dedicada a autenticação dos jogadores na gamificação.
+
+Try
+Authenticate
+POST {{funifier_server}}/v3/auth/token
+Request Body
+1
+{
+2
+"apiKey" : "YOUR_API_KEY",
+3
+"grant_type" : "password",
+4
+"username" : "tom",
+5
+"password" : "123"
+6
+}
+Response
+1
+{
+2
+"access_token":
+"eyJhbGciOiJIUzUxMiIsImNhbGciOiJHWklQIn0.H4sIAAAAAAAAAC2LQQ7CMAwE_JzDlRyk7Zf4BGVcQyKZHAUgmiF-DtGcNsZzb6AajnKDgtEpHHC-ZSnzEw--Jw4HTIE
+qEq7NG-6XR3vbFWcmlBeSTU8W-myEvdiN7XLnx9Vjb73Qh2WIc7jgDEiBpCt_kRyhfj
+-AFiJdf6GAAAA.336Oc0RwODrZP_Hnw0p6lGoHUT-dZpSS3ROe2_Lp4NN0J6qFoah
+OPtuR5z78Gf60pu5GzeEK0KZW4wkrp2v1EQ",
+3
+"token_type": "Bearer",
+4
+"expires_in": 1695751444626
+5
+}
+​
+​
+
+Action
+Ação é a declaração do que os jogadores podem fazer na gamificação. Por exemplo,
+“vender”, “comprar”, “comentar”, “compartilhar”, “seguir”, “visitar”, “logar”, “reunir”, “ligar”,
+“estudar”, etc. No contexto de um cenário de vendas, por exemplo, você pode configurar
+uma ação "vender", que pode ter atributos adicionais como "produto" e "valor" da venda.
+
+Try
+List Actions
+GET {{funifier_server}}/v3/action
+Response
+1
+[
+2
+{
+3
+"action": "Sell",
+4
+"attributes": [
+5
+{
+6
+"name": "product",
+7
+"type": "String"
+8
+},
+9
+{
+10
+"name": "price",
+11
+"type": "Number"
+12
+}
+13
+],
+14
+"active": true,
+15
+"_id": "sell"
+16
+},
+17
+{
+18
+"action": "Watch Video",
+19
+"active": true,
+20
+"_id": "watch_video"
+21
+}
+22
+]
+
+Try
+Create Action
+POST {{funifier_server}}/v3/action
+Request Body
+1
+{
+2
+"action": "Sell",
+3
+"attributes": [
+4
+{"name": "product", "type": "String"},
+5
+{"name": "price", "type": "Number"}
+6
+],
+7
+"active": true,
+8
+"_id": "sell"
+9
+}
+Response
+1
+{
+2
+"action": "Sell",
+3
+"attributes": [
+4
+{
+5
+"name": "product",
+6
+"type": "String"
+7
+},
+8
+{
+9
+"name": "price",
+10
+"type": "Number"
+11
+}
+12
+],
+13
+"active": true,
+14
+
+"_id": "sell"
+15
+}
+Try
+Delete Action
+DELETE {{funifier_server}}/v3/action/:id
+
+​
+​
+
+ActionLog
+É o registro de quando uma ação declarada é efetivamente realizada por um jogador,
+incluindo detalhes como quem fez e quando fez; Exemplo: Jogador João comprou no
+dia 16/09/2023 às 14:30, indicando que João realizou a ação de comprar;
+Try
+List ActionLogs
+GET {{funifier_server}}/v3/action/log
+Response
+1
+[
+2
+{
+3
+"_id": "6509e4e28325771ffaa4506e",
+4
+"actionId": "sell",
+5
+"userId": "jerry",
+6
+"time": 1695147234712,
+7
+"attributes": {
+8
+"product": "bike",
+9
+"price": 1200
+10
+}
+11
+},
+12
+{
+13
+"_id": "6509e4d18325771ffaa4505c",
+14
+"actionId": "sell",
+15
+"userId": "tom",
+16
+
+"time": 1695147217658,
+17
+"attributes": {
+18
+"product": "book",
+19
+"price": 25
+20
+}
+21
+}
+22
+]
+Try
+Add ActionLog
+POST {{funifier_server}}/v3/action/log
+Request Body
+1
+{
+2
+"actionId": "sell",
+3
+"userId": "jerry",
+4
+"attributes": {
+5
+"product": "bike",
+6
+"price": 1200
+7
+}
+8
+}
+Response
+1
+{
+2
+"actionId": "sell",
+3
+"userId": "jerry",
+4
+"time": 1695147341932,
+5
+"attributes": {
+6
+"product": "bike",
+7
+"price": 1200
+8
+
+},
+9
+"_id": "6509e54d8325771ffaa4509a"
+10
+}
+
+Try
+Add ActionLog Bulk
+POST {{funifier_server}}/v3/action/log/bulk
+Este método permite enviar vários ActionLogs de uma única vez para evitar múltiplas
+requisições na API.
+Request Body
+1
+[
+2
+{
+3
+"actionId": "sell",
+4
+"userId": "jerry",
+5
+"attributes": { "product": "bike", "price": 1200 }
+6
+},
+7
+{
+8
+"actionId": "sell",
+9
+"userId": "tom",
+10
+"attributes": { "product": "book", "price": 25 }
+11
+}
+12
+]
+Response
+1
+{
+2
+"content_size": 2,
+3
+"total_registered": 2,
+4
+"content": [
+5
+{
+6
+"actionId": "sell",
+7
+"userId": "jerry",
+8
+"time": 1695147549965,
+9
+"attributes": {
+10
+
+"product": "bike",
+11
+"price": 1200
+12
+},
+13
+"_id": "6509e61d8325771ffaa450de"
+14
+},
+15
+{
+16
+"actionId": "sell",
+17
+"userId": "tom",
+18
+"time": 1695147549969,
+19
+"attributes": {
+20
+"product": "book",
+21
+"price": 25
+22
+},
+23
+"_id": "6509e61d8325771ffaa450df"
+24
+}
+25
+]
+26
+}
+Try
+Delete ActionLog
+DELETE {{funifier_server}}/v3/action/log/:id
+
+​
+​
+
+Achievement
+Reconhecimentos que os jogadores recebem ao atingir certos marcos, como completar
+um desafio, subir de nível, ganhar pontos, comprar um item da loja virtua.
+
+Try
+List Achievements
+GET {{funifier_server}}/v3/achievement
+Response
+1
+[
+2
+{
+3
+"_id": "6509e4e28325771ffaa4506f",
+4
+"player": "jerry",
+5
+"total": 1,
+6
+"type": 1,
+7
+"item": "DTqtTl9",
+8
+"time": 1695147234712
+9
+},
+10
+{
+11
+"_id": "6509e4e28325771ffaa45075",
+12
+"player": "jerry",
+13
+"total": 1,
+14
+"type": 1,
+15
+"item": "DTpD4sB",
+16
+"time": 1695147234712
+17
+}
+18
+]
+​
+​
+
+Point
+Pontos são unidades de medida do status do jogador. Uma gamificação pode ter vários
+tipos de pontos diferentes. Em uma gamificação para escola você poderia ter pontos
+para cada disciplina. Por exemplo: Pontos de matemática, história, física, etc. Ao
+configurar os pontos, você declara a categoria do ponto, por exemplo, "xp", "karma",
+"moedas" ou simplesmente "pontos".
+
+Try
+List Points
+GET {{funifier_server}}/v3/point
+Response
+1
+[
+2
+{
+3
+"category": "Exchangeable Coins",
+4
+"shortName": "Coins",
+5
+"extra": {},
+6
+"techniques": [
+7
+"GT75"
+8
+],
+9
+"_id": "coin"
+10
+},
+11
+{
+12
+"category": "Experience Points",
+13
+"shortName": "XP",
+14
+"extra": {},
+15
+"techniques": [
+16
+"GT01"
+17
+],
+18
+"_id": "xp"
+19
+}
+20
+]
+
+Try
+Create Point
+POST {{funifier_server}}/v3/point
+Request Body
+1
+{
+2
+"category": "Experience Points",
+3
+"shortName": "XP",
+4
+"extra": {},
+5
+"techniques": ["GT01"],
+6
+"_id": "xp"
+7
+}
+Response
+1
+{
+2
+"category": "Experience Points",
+3
+"shortName": "XP",
+4
+"extra": {},
+5
+"techniques": [
+6
+"GT01"
+7
+],
+8
+"_id": "xp"
+9
+}
+Try
+Delete Point
+DELETE {{funifier_server}}/v3/point/:id
+Para excluir um ponto você informa no final do endpoint o id do ponto que deseja
+excluir.
+
+​
+​
+
+Challenge
+Challenge são tarefas que os jogadores precisam executar. No desafio configuramos as
+ações que o jogador precisa executar e as conquistas que isso irá gerar para ele. Por
+
+exemplo: Podemos ter um desafio “Faça 10 Vendas para ganhar 25 pontos xp”. No
+desafio configuramos as regras que o jogador precisa cumprir, neste caso completar a
+ação “vender” 10 vezes. E os pontos que ele irá ganhar, neste caso 25 pontos da
+categoria xp.
+
+Try
+List Challenges
+GET {{funifier_server}}/v3/challenge
+Response
+1
+[
+2
+{
+3
+"challenge": "Sell 10 books",
+4
+"description": "Sell 10 books to earn 25 xp and 5 coins",
+5
+"range": 0,
+6
+"active": true,
+7
+"rules": [
+8
+{
+9
+"actionId": "sell",
+10
+"position": 0,
+11
+"operator": 1,
+12
+"timeAmount": 0,
+13
+"timeScale": 0,
+14
+"outOfTime": false,
+15
+"everyAmount": 0,
+16
+"everyScale": 0,
+17
+"filters": [
+18
+{
+19
+"value": "book",
+20
+"operator": 1,
+21
+"param": "product"
+22
+}
+23
+],
+
+24
+"total": 10
+25
+}
+26
+],
+27
+"teamChallenge": false,
+28
+"limitTotal": 0,
+29
+"limitPerType": 0,
+30
+"limitTimeAmount": 0,
+31
+"limitTimeScale": 0,
+32
+"techniques": [
+33
+"GT35"
+34
+],
+35
+"propagateOrigin": true,
+36
+"badge": {
+37
+"small": {
+38
+"url":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/561f0ab5bb67c2102811.png
+",
+39
+"size": 0,
+40
+"width": 0,
+41
+"height": 0,
+42
+"depth": 0
+43
+},
+44
+"medium": {
+45
+"url":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/4021d0d45f7d43213433.png
+",
+46
+"size": 0,
+
+47
+"width": 0,
+48
+"height": 0,
+49
+"depth": 0
+50
+},
+51
+"original": {
+52
+"url":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/8972f3e194e33d720916.",
+53
+"size": 0,
+54
+"width": 0,
+55
+"height": 0,
+56
+"depth": 0
+57
+}
+58
+},
+59
+"hideUntilEarned": false,
+60
+"points": [
+61
+{
+62
+"total": 25,
+63
+"category": "xp",
+64
+"operation": 0,
+65
+"perPlayer": false
+66
+},
+67
+{
+68
+"total": 5,
+69
+"category": "coin",
+70
+"operation": 0,
+71
+
+"perPlayer": false
+72
+}
+73
+],
+74
+"extra": {},
+75
+"rewards": [],
+76
+"i18n": {},
+77
+"created": 1688582377665,
+78
+"updated": 1694978025816,
+79
+"badgeUrl":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/561f0ab5bb67c2102811.png
+",
+80
+"_id": "DTkhJHV"
+81
+}
+82
+]
+
+Try
+Create Challenge
+POST {{funifier_server}}/v3/challenge
+Request Body
+1
+{
+2
+"challenge": "Watch Video", "active": true,
+3
+"description": "Complete this challenge by watching a video, and earn 10 xp",
+4
+"rules": [{"actionId": "watch_video", "operator": 5, "total": 0}],
+5
+"points": [{"total": 10.0, "category": "xp", "operation": 0}],
+6
+"techniques": [ "GT35"]
+7
+}
+Response
+1
+{
+2
+"challenge": "Watch Video",
+3
+"description": "Complete this challenge by watching a video, and earn 10 xp",
+4
+"range": 0,
+5
+"active": true,
+6
+"when": null,
+7
+"rules": [
+8
+{
+9
+"actionId": "watch_video",
+10
+"position": 0,
+11
+"operator": 5,
+12
+"timeAmount": 0,
+13
+"timeScale": 0,
+14
+"outOfTime": false,
+15
+"everyAmount": 0,
+16
+
+"everyScale": 0,
+17
+"filters": null,
+18
+"attribute": null,
+19
+"total": 0,
+20
+"entity": null,
+21
+"aggregate": null,
+22
+"prepared": null,
+23
+"_id": null
+24
+}
+25
+],
+26
+"teamChallenge": false,
+27
+"limitTotal": 0,
+28
+"limitPerType": 0,
+29
+"limitTimeAmount": 0,
+30
+"limitTimeScale": 0,
+31
+"techniques": [
+32
+"GT35"
+33
+],
+34
+"join": null,
+35
+"trackFullProgress": null,
+36
+"propagateOrigin": null,
+37
+"badge": null,
+38
+"hideUntilEarned": false,
+39
+"points": [
+40
+{
+41
+
+"total": 10,
+42
+"category": "xp",
+43
+"operation": 0,
+44
+"value": null,
+45
+"perPlayer": false
+46
+}
+47
+],
+48
+"notifications": null,
+49
+"requirements": null,
+50
+"tags": null,
+51
+"principals": null,
+52
+"extra": {},
+53
+"rewards": [],
+54
+"i18n": {},
+55
+"created": 1695219916252,
+56
+"updated": 1695219916252,
+57
+"available": null,
+58
+"badgeUrl": null,
+59
+"_id": "DTo8dS3"
+60
+}
+Try
+Delete Challenge
+DELETE {{funifier_server}}/v3/challenge/:id
+Para excluir um challenge você informa no final do endpoint o id do challenge que deseja excluir.
+
+​
+
+Level
+
+​
+
+Level é um sistema de evolução para o jogador. Por exemplo: Nas artes marciais, as
+faixas que vão da cor branca até a cor preta representam um sistema de níveis. Você
+pode ter um número ilimitado de níveis na gamificação. Para cada nível você define a
+quantidade mínima de pontos para chegar no nível e também pode definir outros
+requisitos para alcançar o nível.
+Try
+List Levels
+GET {{funifier_server}}/v3/level
+Response
+1
+[
+2
+{
+3
+"level": "Apprentice",
+4
+"position": 0,
+5
+"description": "It indicates that you are learning, growing and striving to reach your
+goals.",
+6
+"minPoints": 10,
+7
+"notifications": [],
+8
+"requirements": [],
+9
+"i18n": {},
+10
+"extra": {},
+11
+"techniques": [
+12
+"GT85"
+13
+],
+14
+"_id": "L0"
+15
+}
+16
+]
+
+Try
+Create Level
+POST {{funifier_server}}/v3/level
+Request Body
+1
+{
+2
+"level": "Apprentice",
+3
+"position": 0,
+4
+"description": "It indicates that you are learning, growing and striving to reach your
+goals.",
+5
+"minPoints": 10,
+6
+"notifications": [],
+7
+"requirements": [],
+8
+"i18n": {},
+9
+"extra": {},
+10
+"techniques": ["GT85"],
+11
+"_id": "L0"
+12
+}
+Response
+1
+{
+2
+"level": "Apprentice",
+3
+"position": 0,
+4
+"description": "It indicates that you are learning, growing and striving to reach your
+goals.",
+5
+"minPoints": 10,
+6
+"image": null,
+7
+"notifications": [],
+8
+"requirements": [],
+9
+"i18n": {},
+10
+
+"extra": {},
+11
+"techniques": [
+12
+"GT85"
+13
+],
+14
+"point": null,
+15
+"_id": "L0"
+16
+}
+Try
+Delete Level
+DELETE {{funifier_server}}/v3/level/:id
+
+Try
+List Config
+GET {{funifier_server}}/v3/database/level_config
+Response
+1
+[
+2
+{
+3
+"_id": "global",
+4
+"pointCategory": "xp"
+5
+}
+6
+]
+
+Try
+Update Config
+PUT {{funifier_server}}/v3/database/level_config
+Level config define a categoria de ponto global para o sistema de níveis. Suponha
+que você Queira montar um sistema de níveis baseado no tipo de ponto XP apenas.
+Neste caso você pode configurar o level config definindo este pointCategory
+específico. Caso ele não esteja definido, o comportamento padrão do sistema de
+nível é apurar a quantidade total de todos os tipos de pontos.
+Request Body
+1
+{
+2
+"_id": "global",
+3
+"pointCategory": "xp"
+4
+}
+Response
+1
+{
+2
+"pointCategory": "xp",
+3
+"_id": "global"
+4
+}
+Try
+Update Positions
+PUT {{funifier_server}}/v3/level/position
+Este endpoint atualiza todas as posições de todos os níveis de acordo com a
+quantidade de pontos mínimos definidos para cada um.
+Response
+1
+{
+2
+"status": "OK"
+3
+}
+​
+​
+
+Leaderboard
+Leaderboard é uma classificar jogadores com base em resultados. Por exemplo: Um
+ranking que mostra os 10 jogadores com mais pontos acumulados na semana atual,
+ordenados de quem tem mais pontos para quem tem menos pontos. Para configurar um
+ranking você informa o título do ranking; a operação de como calcular os líderes; e o
+período de apuração.
+
+Try
+List Leaderboards
+GET {{funifier_server}}/v3/leaderboard
+Response
+1
+[
+2
+{
+3
+"title": "Top Players",
+4
+"description": "Players with the most points xp in the week",
+5
+"principalType": 0,
+6
+"operation": {
+7
+"type": 3,
+8
+"achievement_type": 0,
+9
+"item": "xp",
+10
+"filters": [],
+11
+"sort": -1,
+12
+"sub": false
+13
+},
+14
+"period": {
+15
+"type": 0,
+16
+"timeAmount": 1,
+17
+"timeScale": 6
+18
+},
+19
+"techniques": [
+20
+"GT03"
+21
+],
+22
+"_id": "DTjTvZ5"
+23
+}
+
+24
+]
+
+Try
+Create Leaderboard
+POST {{funifier_server}}/v3/leaderboard
+Request Body
+1
+{
+2
+"title": "Top Players",
+3
+"description": "Players with the most points xp in the week",
+4
+"principalType": 0,
+5
+"operation": {
+6
+"type": 3,
+7
+"achievement_type": 0,
+8
+"item": "xp",
+9
+"filters": [],
+10
+"sort": -1,
+11
+"sub": false
+12
+},
+13
+"period": { "type": 0, "timeAmount": 1, "timeScale": 6 },
+14
+"techniques": ["GT03"],
+15
+"_id": "DTjTvZ5"
+16
+}
+Response
+1
+{
+2
+"title": "Top Players",
+3
+"description": "Players with the most points xp in the week",
+4
+"principalType": 0,
+5
+"operation": {
+6
+"type": 3,
+7
+
+"achievement_type": 0,
+8
+"item": "xp",
+9
+"filters": [],
+10
+"sort": -1,
+11
+"sub": false
+12
+},
+13
+"period": {
+14
+"type": 0,
+15
+"timeAmount": 1,
+16
+"timeScale": 6
+17
+},
+18
+"techniques": [
+19
+"GT03"
+20
+],
+21
+"_id": "DTjTvZ5"
+22
+}
+Try
+Delete Leaderboard
+DELETE {{funifier_server}}/v3/leaderboard/:id
+
+Try
+Leaders Aggregate
+POST {{funifier_server}}/v3/leaderboard/DTjTvZ5/leader/aggregate?period=&live=true
+Retorna a lista de líderes de um leaderboard. Você pode informar uma lista de
+comandos agreguete para enriquecer os dados dos líderes caso necessário. Além
+disso na URL você pode informar 2 parâmetros. O período de apuração dos líderes.
+Caso o período não seja informado ele utiliza o período padrão configurado no
+ranking. E o segundo parágrafo disponível é o live. Que indica se o ranking deve ser
+calculado em tempo real. Por padrão os líderes do leaderboard é calculado de tempo
+em tempo e o Funifier mantêm o resultado dos líderes em cache para otimizar a
+velocidade de entrega do resultado.
+Request Body
+1
+[]
+Response
+1
+[
+2
+{
+3
+"_id": "tom_D0zCMvq",
+4
+"total": 30,
+5
+"position": 1,
+6
+"move": "up",
+7
+"player": "tom",
+8
+"name": "Tom",
+9
+"extra": {
+10
+"cache": "D0zCMvq"
+11
+},
+12
+"boardId": "DTjTvZ5"
+13
+},
+14
+{
+15
+"_id": "jerry_D0zCMvq",
+16
+"total": 30,
+17
+"position": 2,
+18
+
+"move": "up",
+19
+"player": "jerry",
+20
+"name": "Jerry",
+21
+"image": "https://my.funifier.com/images/funny.png",
+22
+"extra": {
+23
+"cache": "D0zCMvq"
+24
+},
+25
+"boardId": "DTjTvZ5"
+26
+}
+27
+]
+Try
+Reset Leaders Cache
+GET {{funifier_server}}/v3/leaderboard/reset
+Limpa o cache de resultado de líderes de todos os leaderboards.
+Response
+1
+{
+2
+"status": "OK"
+3
+}
+​
+​
+
+Virtual Good
+Virtual goods é um módulo para configurar lojas onde os jogadores podem adquirir itens
+físicos ou virtuais dentro da gamificação. Por exemplo: Uma loja virtual onde os
+jogadores podem trocar pontos por souvenirs; Para configurar um item você informa o
+nome, descrição, quantidade disponível do item, requisitos para comprar o item e
+também pode definir um limite de quantos deste item o jogador pode comprar. Por
+exemplo: uma camiseta, que custa 15 pontos “moedas”, e pode ser comprada apenas
+uma vez por mês por cada jogador.
+
+Try
+List Catalogs
+GET {{funifier_server}}/v3/virtualgoods/catalog
+Response
+1
+[
+2
+{
+3
+"catalog": "Gifts",
+4
+"extra": {},
+5
+"created": 1688576863947,
+6
+"i18n": {},
+7
+"_id": "gifts"
+8
+}
+9
+]
+Try
+Create Catalog
+POST {{funifier_server}}/v3/virtualgoods/catalog
+Request Body
+1
+{
+2
+"catalog": "Gifts",
+3
+"extra": {},
+4
+"i18n": {},
+5
+"_id": "gifts"
+6
+}
+Response
+1
+{
+2
+"catalog": "Gifts",
+3
+"extra": {},
+4
+"created": 1695222753875,
+5
+"i18n": {},
+
+6
+"_id": "gifts"
+7
+}
+Try
+Delete Catalog
+DELETE {{funifier_server}}/v3/virtualgoods/catalog/:id
+
+Try
+List Items
+GET {{funifier_server}}/v3/virtualgoods/item
+Response
+1
+[
+2
+{
+3
+"catalogId": "gifts",
+4
+"name": "Bike",
+5
+"description": "Eletric bike",
+6
+"amount": -1,
+7
+"active": true,
+8
+"created": 1688579902963,
+9
+"extra": {},
+10
+"requires": [],
+11
+"rewards": [],
+12
+"notifications": [],
+13
+"i18n": {},
+14
+"techniques": [
+15
+"GT08"
+16
+],
+17
+"owned": 5,
+18
+
+"_id": "DTj7lVn"
+19
+}
+20
+]
+Try
+Create Item
+POST {{funifier_server}}/v3/virtualgoods/item
+Request Body
+1
+{
+2
+"catalogId": "gifts",
+3
+"name": "Bike",
+4
+"description": "Eletric bike",
+5
+"amount": -1,
+6
+"active": true,
+7
+"created": 1688579902963,
+8
+"extra": {},
+9
+"requires": [],
+10
+"rewards": [],
+11
+"notifications": [],
+12
+"i18n": {},
+13
+"techniques": ["GT08"],
+14
+"_id": "DTj7lVn"
+15
+}
+Response
+1
+{
+2
+"catalogId": "gifts",
+3
+"name": "Bike",
+4
+"description": "Eletric bike",
+5
+
+"amount": -1,
+6
+"active": true,
+7
+"created": 1688579902963,
+8
+"extra": {},
+9
+"requires": [],
+10
+"rewards": [],
+11
+"notifications": [],
+12
+"i18n": {},
+13
+"techniques": [
+14
+"GT08"
+15
+],
+16
+"owned": 0,
+17
+"_id": "DTj7lVn"
+18
+}
+Try
+Delete Item
+DELETE {{funifier_server}}/v3/virtualgoods/item/:id
+
+Try
+Create Purchase
+POST {{funifier_server}}/v3/virtualgoods/purchase
+Para comprar um item do catálogo você informa o ID do jogador que está
+comprando, o item que está sendo comprado e a quantidade. Se a compra for bem
+sucedida será retornado o status OK e um campo achievements com a lista de
+créditos e débitos feitos nesta transação de compra. { "achievements": [ { "player":
+"tom", "total": -1, "type": 0, "item": "coin", "time": 1695223594778, "_id":
+"650b0f2a8325771ffaa5bcfc" }, { "player": "tom", "total": 1, "type": 2, "item": "DTj7lVn",
+"time": 1695223594778, "_id": "650b0f2a8325771ffaa5bcfb" } ], "status": "OK" } Caso
+o jogador não consiga realizar a compra por qualquer motivo será retornado o status
+UNAUTHORIZED e um campo restrictions com as razões da falha na compra. {
+"restrictions": [ "insufficient_requirements", "item_out_of_time", "limit_exceeded",
+"principal_not_allowed" ], "status": "UNAUTHORIZED" }
+Request Body
+1
+{
+2
+"player": "tom",
+3
+"item": "DTj7lVn",
+4
+"total": 1
+5
+}
+Response
+1
+{
+2
+"milliseconds": {
+3
+"init": 6,
+4
+"debits": 2,
+5
+"credits": 4,
+6
+"verify": 2,
+7
+"trigger": 4,
+8
+"notify": 0,
+9
+"status": 43
+10
+},
+11
+"achievements": [
+12
+{
+
+13
+"player": "tom",
+14
+"total": -1,
+15
+"type": 0,
+16
+"item": "coin",
+17
+"time": 1695223594778,
+18
+"extra": {
+19
+"origin": "650b0f2a8325771ffaa5bcfb"
+20
+},
+21
+"_id": "650b0f2a8325771ffaa5bcfc"
+22
+},
+23
+{
+24
+"player": "tom",
+25
+"total": 1,
+26
+"type": 0,
+27
+"item": "xp",
+28
+"time": 1695223594778,
+29
+"extra": {
+30
+"origin": "650b0f2a8325771ffaa5bcfb"
+31
+},
+32
+"_id": "650b0f2a8325771ffaa5bcfd"
+33
+},
+34
+{
+35
+"player": "tom",
+36
+"total": 1,
+37
+"type": 2,
+
+38
+"item": "DTj7lVn",
+39
+"time": 1695223594778,
+40
+"_id": "650b0f2a8325771ffaa5bcfb"
+41
+}
+42
+],
+43
+"restrictions": [],
+44
+"status": "OK"
+45
+}
+Try
+Delete Purchase
+DELETE {{funifier_server}}/v3/virtualgoods/purchase
+Ao excluir uma compra todos os débitos e créditos da transação serão desfeitos.
+Request Body
+1
+{
+2
+"_id": "650b0f2a8325771ffaa5bcfb"
+3
+}
+Response
+1
+{
+2
+"_id": "650b0f2a8325771ffaa5bcfb"
+3
+}
+​
+​
+
+Lottery
+Módulo para configurar sorteios. Quando o sorteio é realizado as recompensas são
+dadas a um número de vencedores selecionado de forma aleatória. Por exemplo: Um
+sorteio de uma viagem para Cancún, onde temos apenas um ganhador, e o sorteio será
+realizado em uma data estipulada pelo administrador. Para participar do sorteio você
+acumula cupons do sorteio, que podem ser conquistados por exemplo realizando algum
+desafio específico.
+
+Try
+List Lottery
+GET {{funifier_server}}/v3/lottery
+Response
+1
+[
+2
+{
+3
+"title": "Travel to Cancun",
+4
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+5
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+6
+"tags": [],
+7
+"drawDate": 1690824650503,
+8
+"autoExecute": true,
+9
+"choiceMethod": "random_ticket",
+10
+"maxWinners": 1,
+11
+"maxPerPlayer": 1,
+12
+"notifications": [],
+13
+"extra": {},
+14
+"techniques": [
+15
+"GT74"
+16
+],
+17
+"createdDate": 1688578277583,
+18
+"rewards": [
+19
+{
+20
+"total": 1,
+21
+"type": 2,
+22
+
+"item": "flight_ticket",
+23
+"operation": 0,
+24
+"extra": {},
+25
+"restrict": false,
+26
+"perPlayer": false
+27
+}
+28
+],
+29
+"_id": "DTj0x5z"
+30
+}
+31
+]
+
+Try
+Create Lottery
+POST {{funifier_server}}/v3/lottery
+Request Body
+1
+{
+2
+"title": "Travel to Cancun",
+3
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+4
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+5
+"drawDate": 1690824650503,
+6
+"autoExecute": true,
+7
+"choiceMethod": "random_ticket",
+8
+"maxWinners": 1,
+9
+"maxPerPlayer": 1,
+10
+"notifications": [],
+11
+"extra": {},
+12
+"techniques": ["GT74"],
+13
+"createdDate": 1688578277583,
+14
+"rewards": [
+15
+{
+16
+"total": 1,
+17
+"type": 2,
+18
+"item": "flight_ticket"
+19
+}
+20
+],
+21
+"_id": "DTj0x5z"
+22
+
+}
+Response
+1
+{
+2
+"title": "Travel to Cancun",
+3
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+4
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+5
+"tags": [],
+6
+"drawDate": 1690824650503,
+7
+"autoExecute": true,
+8
+"choiceMethod": "random_ticket",
+9
+"maxWinners": 1,
+10
+"maxPerPlayer": 1,
+11
+"notifications": [],
+12
+"link": null,
+13
+"extra": {},
+14
+"principals": null,
+15
+"folder": null,
+16
+"techniques": [
+17
+"GT74"
+18
+],
+19
+"executedDate": null,
+20
+"createdDate": 1688578277583,
+21
+"rewards": [
+22
+{
+23
+
+"total": 1,
+24
+"type": 2,
+25
+"item": "flight_ticket",
+26
+"operation": 0,
+27
+"extra": {},
+28
+"period": null,
+29
+"folder": null,
+30
+"restrict": false,
+31
+"perPlayer": false
+32
+}
+33
+],
+34
+"_id": "DTj0x5z"
+35
+}
+Try
+Delete Lottery
+DELETE {{funifier_server}}/v3/lottery/:id
+
+Try
+List Tickets
+GET {{funifier_server}}/v3/lottery/ticket?lottery=DTj0x5z
+Response
+1
+[
+2
+{
+3
+"lottery": "DTj0x5z",
+4
+"player": "tom",
+5
+"value": "123456",
+6
+"created": 1695229525625,
+7
+"random": 5635418,
+8
+"used": true,
+9
+"_id": "650b26558325771ffaa5e417"
+10
+},
+11
+{
+12
+"lottery": "DTj0x5z",
+13
+"player": "tom",
+14
+"created": 1695229573866,
+15
+"random": 4169853,
+16
+"_id": "650b26858325771ffaa5e441"
+17
+}
+18
+]
+
+Try
+Create Ticket
+POST {{funifier_server}}/v3/lottery/ticket
+Request Body
+1
+{
+2
+"lottery":"DTj0x5z",
+3
+"player":"tom"
+4
+}
+Response
+1
+{
+2
+"lottery": "DTj0x5z",
+3
+"player": "tom",
+4
+"created": 1695229573866,
+5
+"random": 4169853,
+6
+"_id": "650b26858325771ffaa5e441"
+7
+}
+Try
+Delete Ticket
+DELETE {{funifier_server}}/v3/lottery/ticket/:id
+
+Try
+Execute Lottery
+GET {{funifier_server}}/v3/lottery/DTj0x5z/execute
+Response
+1
+{
+2
+"tickets": [
+3
+{
+4
+"lottery": "DTj0x5z",
+5
+"player": "tom",
+6
+"created": 1695229573866,
+7
+"random": 4169853,
+8
+"used": true,
+9
+"_id": "650b26858325771ffaa5e441"
+10
+}
+11
+],
+12
+"lottery": {
+13
+"title": "Travel to Cancun",
+14
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+15
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+16
+"tags": [],
+17
+"drawDate": 1690824650503,
+18
+"autoExecute": false,
+19
+"choiceMethod": "random_ticket",
+20
+"maxWinners": 1,
+21
+"maxPerPlayer": 1,
+22
+
+"notifications": [],
+23
+"extra": {},
+24
+"techniques": [
+25
+"GT74"
+26
+],
+27
+"createdDate": 1688578277583,
+28
+"rewards": [
+29
+{
+30
+"total": 1,
+31
+"type": 2,
+32
+"item": "flight_ticket",
+33
+"operation": 0,
+34
+"extra": {},
+35
+"restrict": false,
+36
+"perPlayer": false
+37
+}
+38
+],
+39
+"_id": "DTj0x5z"
+40
+}
+41
+}
+
+Try
+Rollback Execution
+DELETE {{funifier_server}}/v3/lottery/DTj0x5z/execute
+Response
+1
+{
+2
+"lottery": {
+3
+"title": "Travel to Cancun",
+4
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+5
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+6
+"tags": [],
+7
+"drawDate": 1690824650503,
+8
+"autoExecute": true,
+9
+"choiceMethod": "random_ticket",
+10
+"maxWinners": 1,
+11
+"maxPerPlayer": 1,
+12
+"notifications": [],
+13
+"extra": {},
+14
+"techniques": [
+15
+"GT74"
+16
+],
+17
+"executedDate": 1695229613714,
+18
+"createdDate": 1688578277583,
+19
+"rewards": [
+20
+{
+21
+"total": 1,
+22
+
+"type": 2,
+23
+"item": "flight_ticket",
+24
+"operation": 0,
+25
+"extra": {},
+26
+"restrict": false,
+27
+"perPlayer": false
+28
+}
+29
+],
+30
+"_id": "DTj0x5z"
+31
+},
+32
+"message": "Execution Rollback Done"
+33
+}
+Try
+List Winners
+GET {{funifier_server}}/v3/lottery/winner?lottery=DTj0x5z
+Response
+1
+[
+2
+{
+3
+"player": "tom",
+4
+"total": 1,
+5
+"type": 5,
+6
+"item": "DTj0x5z",
+7
+"time": 1695229965503,
+8
+"extra": {
+9
+"ticket": "650b26858325771ffaa5e441",
+10
+"player_name": "Tom",
+11
+"player_image": null
+
+12
+},
+13
+"_id": "650b280d8325771ffaa5edfe"
+14
+}
+15
+]
+
+Try
+List Participants
+GET {{funifier_server}}/v3/lottery/participants?lottery=DTj0x5z
+Response
+1
+{
+2
+"winners": [
+3
+{
+4
+"player": "tom",
+5
+"total": 1,
+6
+"type": 5,
+7
+"item": "DTj0x5z",
+8
+"time": 1695229965503,
+9
+"extra": {
+10
+"ticket": "650b26858325771ffaa5e441"
+11
+},
+12
+"_id": "650b280d8325771ffaa5edfe"
+13
+}
+14
+],
+15
+"total_tickets": 2,
+16
+"total_winners": 1,
+17
+"total_participants": 1,
+18
+"lottery": {
+19
+"title": "Travel to Cancun",
+20
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+21
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+22
+
+"tags": [],
+23
+"drawDate": 1690824650503,
+24
+"autoExecute": false,
+25
+"choiceMethod": "random_ticket",
+26
+"maxWinners": 1,
+27
+"maxPerPlayer": 1,
+28
+"notifications": [],
+29
+"extra": {},
+30
+"techniques": [
+31
+"GT74"
+32
+],
+33
+"executedDate": 1695229965527,
+34
+"createdDate": 1688578277583,
+35
+"rewards": [
+36
+{
+37
+"total": 1,
+38
+"type": 2,
+39
+"item": "flight_ticket",
+40
+"operation": 0,
+41
+"extra": {},
+42
+"restrict": false,
+43
+"perPlayer": false
+44
+}
+45
+],
+46
+"_id": "DTj0x5z"
+47
+
+},
+48
+"participants": [
+49
+{
+50
+"tickets": 2,
+51
+"_id": "tom"
+52
+}
+53
+]
+54
+}
+​
+​
+
+Competition
+Módulo para promover a disputa entre dois ou mais jogadores em um determinado
+período para avaliar quais jogadores alcançam os melhores resultados. Uma
+competição pode estipular o número máximo de participantes e o número máximo de
+vencedores. Além disso, o critério de classificação dos competidores deve ser definido
+assim que a competição é criada. Os jogadores interessados devem se registrar na
+competição para participar e serem considerados na apuração dos vencedores. Como
+recompensa, os vencedores de uma competição ganham o título de vencedor da
+competição com sua respectiva posição na classificação, e também podem ganhar
+outros prêmios como pontos, itens da loja virtual, cupons para sorteio etc.
+
+Try
+List Competitions
+GET {{funifier_server}}/v3/competition
+Response
+1
+[
+2
+{
+3
+"title": "Sales Race",
+4
+"description": "Leads the competition who has the highest amount of closed sales in
+the month.",
+5
+"period": {
+6
+"type": 0,
+7
+"timeAmount": 0,
+8
+"timeScale": 0,
+9
+"startDate": 1693526400000,
+10
+"endDate": 1698796799999,
+11
+"expression": "-0M-;+1M+"
+12
+},
+13
+"maxWinners": 1,
+14
+"maxPlayers": 100,
+15
+"minScore": 0,
+16
+"operation": {
+17
+"type": 1,
+18
+"achievement_type": 0,
+19
+"item": "sell",
+20
+"filters": [],
+21
+"sort": -1,
+22
+"sub": false
+23
+
+},
+24
+"requires": [
+25
+{
+26
+"total": 10,
+27
+"type": 0,
+28
+"item": "coin",
+29
+"operation": 1,
+30
+"extra": {},
+31
+"restrict": false,
+32
+"perPlayer": false
+33
+}
+34
+],
+35
+"rewards": [
+36
+{
+37
+"total": 100,
+38
+"type": 0,
+39
+"item": "xp",
+40
+"operation": 0,
+41
+"extra": {
+42
+"position_start": 1,
+43
+"position_ends": 3
+44
+},
+45
+"restrict": false,
+46
+"perPlayer": false
+47
+}
+48
+
+],
+49
+"notifications": [],
+50
+"active": true,
+51
+"teamCompetition": false,
+52
+"autoExecute": false,
+53
+"extra": {},
+54
+"techniques": [
+55
+"GT26"
+56
+],
+57
+"created": 1688578848312,
+58
+"updated": 1695303694755,
+59
+"now": 1695303704256,
+60
+"_id": "race"
+61
+}
+62
+]
+
+Try
+Create Competition
+POST {{funifier_server}}/v3/competition
+Request Body
+1
+{
+2
+"title": "Sales Race",
+3
+"description": "Leads the competition who has the highest amount of closed sales in
+the month.",
+4
+"period": {
+5
+"expression": "-0M-;+1M+"
+6
+},
+7
+"maxWinners": 1,
+8
+"maxPlayers": 100,
+9
+"minScore": 0,
+10
+"operation": {
+11
+"type": 1,
+12
+"achievement_type": 0,
+13
+"item": "sell",
+14
+"filters": [],
+15
+"sort": -1,
+16
+"sub": false
+17
+},
+18
+"requires": [
+19
+{
+20
+"total": 10,
+21
+"type": 0,
+22
+"item": "coin",
+23
+
+"operation": 1,
+24
+"extra": {},
+25
+"restrict": false,
+26
+"perPlayer": false
+27
+}
+28
+],
+29
+"rewards": [
+30
+{
+31
+"total": 100,
+32
+"type": 0,
+33
+"item": "xp",
+34
+"operation": 0,
+35
+"extra": {
+36
+"position_start": 1,
+37
+"position_ends": 3
+38
+},
+39
+"restrict": false,
+40
+"perPlayer": false
+41
+}
+42
+],
+43
+"notifications": [],
+44
+"active": true,
+45
+"teamCompetition": false,
+46
+"autoExecute": true,
+47
+"extra": {},
+48
+
+"techniques": ["GT26"],
+49
+"_id": "race"
+50
+}
+Response
+1
+{
+2
+"title": "Sales Race",
+3
+"description": "Leads the competition who has the highest amount of closed sales in
+the month.",
+4
+"period": {
+5
+"type": 0,
+6
+"timeAmount": 0,
+7
+"timeScale": 0,
+8
+"startDate": 1693526400000,
+9
+"endDate": 1698796799999,
+10
+"expression": "-0M-;+1M+"
+11
+},
+12
+"maxWinners": 1,
+13
+"maxPlayers": 100,
+14
+"minScore": 0,
+15
+"operation": {
+16
+"type": 1,
+17
+"achievement_type": 0,
+18
+"item": "sell",
+19
+"filters": [],
+20
+"sort": -1,
+21
+"sub": false
+22
+
+},
+23
+"requires": [
+24
+{
+25
+"total": 10,
+26
+"type": 0,
+27
+"item": "coin",
+28
+"operation": 1,
+29
+"extra": {},
+30
+"restrict": false,
+31
+"perPlayer": false
+32
+}
+33
+],
+34
+"rewards": [
+35
+{
+36
+"total": 100,
+37
+"type": 0,
+38
+"item": "xp",
+39
+"operation": 0,
+40
+"extra": {
+41
+"position_start": 1,
+42
+"position_ends": 3
+43
+},
+44
+"restrict": false,
+45
+"perPlayer": false
+46
+}
+47
+
+],
+48
+"notifications": [],
+49
+"active": true,
+50
+"teamCompetition": false,
+51
+"autoExecute": true,
+52
+"extra": {},
+53
+"techniques": [
+54
+"GT26"
+55
+],
+56
+"created": 1695304003885,
+57
+"updated": 1695304003885,
+58
+"_id": "race"
+59
+}
+Try
+Delete Competition
+DELETE {{funifier_server}}/v3/competition/race
+
+Try
+List Joins
+GET {{funifier_server}}/v3/competition/join?competition=race
+Response
+1
+[]
+
+Try
+Create Join
+POST {{funifier_server}}/v3/competition/join
+Para se entrar em uma competição é preciso criar um join. Se o join for aceito será
+retornado o status OK. {"status": "OK"} Caso o jogador não consiga entrar na
+competição por qualquer motivo será retornado o status UNAUTHORIZED e um
+campo restrictions com as razões da recusa. { "restrictions":
+["insufficient_requirements"], "status": "UNAUTHORIZED" }
+Request Body
+1
+{
+2
+"competition":"race",
+3
+"player":"jerry"
+4
+}
+Response
+1
+{
+2
+"join": {
+3
+"competition": "race",
+4
+"player": "jerry",
+5
+"created": 1695304642612,
+6
+"_id": "650c4bc28325771ffaa763cb"
+7
+},
+8
+"status": "OK"
+9
+}
+Try
+Delete Join
+DELETE {{funifier_server}}/v3/competition/join
+Request Body
+1
+{
+2
+"competition":"race",
+3
+"player":"tom"
+4
+}
+
+Try
+List Leaders
+POST {{funifier_server}}/v3/competition/leader/aggregate?id=race
+Request Body
+1
+[]
+Response
+1
+[
+2
+{
+3
+"player": "tom",
+4
+"total": 4,
+5
+"position": 1
+6
+},
+7
+{
+8
+"player": "jerry",
+9
+"total": 3,
+10
+"position": 2
+11
+}
+12
+]
+
+Try
+Execute Competition
+GET {{funifier_server}}/v3/competition/race/execute
+Response
+1
+{
+2
+"winners": [
+3
+{
+4
+"player": "tom",
+5
+"total": 1,
+6
+"type": 9,
+7
+"item": "race",
+8
+"time": 1695304844450,
+9
+"extra": {
+10
+"total": 4,
+11
+"position": 1
+12
+},
+13
+"_id": "650c4c8c8325771ffaa7644f"
+14
+}
+15
+],
+16
+"competition": {
+17
+"title": "Sales Race",
+18
+"description": "Leads the competition who has the highest amount of closed sales in
+the month.",
+19
+"period": {
+20
+"type": 0,
+21
+"timeAmount": 0,
+22
+"timeScale": 0,
+23
+
+"startDate": 1693526400000,
+24
+"endDate": 1698796799999,
+25
+"expression": "-0M-;+1M+"
+26
+},
+27
+"maxWinners": 1,
+28
+"maxPlayers": 100,
+29
+"minScore": 0,
+30
+"operation": {
+31
+"type": 1,
+32
+"achievement_type": 0,
+33
+"item": "sell",
+34
+"filters": [],
+35
+"sort": -1,
+36
+"sub": false
+37
+},
+38
+"requires": [],
+39
+"rewards": [
+40
+{
+41
+"total": 100,
+42
+"type": 0,
+43
+"item": "xp",
+44
+"operation": 0,
+45
+"extra": {
+46
+"position_start": 1,
+47
+"position_ends": 3
+48
+
+},
+49
+"restrict": false,
+50
+"perPlayer": false
+51
+}
+52
+],
+53
+"notifications": [],
+54
+"active": true,
+55
+"teamCompetition": false,
+56
+"autoExecute": false,
+57
+"extra": {},
+58
+"techniques": [
+59
+"GT26"
+60
+],
+61
+"created": 1695304003885,
+62
+"updated": 1695304463197,
+63
+"_id": "race"
+64
+}
+65
+}
+
+Try
+Rollback Execute
+DELETE {{funifier_server}}/v3/competition/race/execute
+Response
+1
+{
+2
+"competition": {
+3
+"title": "Sales Race",
+4
+"description": "Leads the competition who has the highest amount of closed sales in
+the month.",
+5
+"period": {
+6
+"type": 0,
+7
+"timeAmount": 0,
+8
+"timeScale": 0,
+9
+"startDate": 1693526400000,
+10
+"endDate": 1698796799999,
+11
+"expression": "-0M-;+1M+"
+12
+},
+13
+"maxWinners": 1,
+14
+"maxPlayers": 100,
+15
+"minScore": 0,
+16
+"operation": {
+17
+"type": 1,
+18
+"achievement_type": 0,
+19
+"item": "sell",
+20
+"filters": [],
+21
+"sort": -1,
+22
+"sub": false
+23
+
+},
+24
+"requires": [],
+25
+"rewards": [
+26
+{
+27
+"total": 100,
+28
+"type": 0,
+29
+"item": "xp",
+30
+"operation": 0,
+31
+"extra": {
+32
+"position_start": 1,
+33
+"position_ends": 3
+34
+},
+35
+"restrict": false,
+36
+"perPlayer": false
+37
+}
+38
+],
+39
+"notifications": [],
+40
+"active": true,
+41
+"teamCompetition": false,
+42
+"autoExecute": false,
+43
+"extra": {},
+44
+"techniques": [
+45
+"GT26"
+46
+],
+47
+"created": 1695304003885,
+48
+
+"updated": 1695304463197,
+49
+"executed": 1695304844450,
+50
+"_id": "race"
+51
+},
+52
+"message": "Execution Rollback Done"
+53
+}
+​
+​
+
+Swap
+Módulo que permite que jogadores troquem com outros jogadores itens conquistados
+dentro da gamificação. Por exemplo, um jogador pode oferecer aos outros jogadores
+uma camiseta, em troca de uma bola e mais 10 moedas. O jogador pode ainda aceitar
+contra propostas de outros jogadores. Este módulo pode ser usado, por exemplo, para
+criar um mercado de troca de figurinhas. Este módulo é um pouco diferente dos outros,
+pois o administrador não é o responsável por configurar a troca, mas sim os próprios
+jogadores.
+
+Try
+List Swaps
+GET {{funifier_server}}/v3/database/swap
+Response
+1
+[
+2
+{
+3
+"_id": "64a5af5ad8dcca49bcf7e65f",
+4
+"seller": "john",
+5
+"extra": {},
+6
+"rewards": [
+7
+{
+8
+"total": 1,
+9
+"type": 2,
+10
+"item": "DTjVpVA",
+11
+"operation": 0,
+12
+"extra": {},
+13
+"folder": "gifts",
+14
+"restrict": false,
+15
+"perPlayer": false
+16
+}
+17
+],
+18
+"created": 1688579930448,
+19
+"requires": [
+20
+{
+21
+"total": 1,
+22
+"type": 2,
+23
+"item": "DTj7lVn",
+
+24
+"operation": 0,
+25
+"extra": {},
+26
+"folder": "gifts",
+27
+"restrict": false,
+28
+"perPlayer": false
+29
+}
+30
+]
+31
+}
+32
+]
+
+Try
+Create Swap
+POST {{funifier_server}}/v3/swap
+Request Body
+1
+{
+2
+"seller":"tom",
+3
+"rewards":[
+4
+{
+5
+"total":1,
+6
+"type":2,
+7
+"item":"DTj7lVn"
+8
+}
+9
+],
+10
+"requires":[
+11
+{
+12
+"total":2,
+13
+"type":0,
+14
+"item":"coin"
+15
+}
+16
+]
+17
+}
+Response
+1
+{
+2
+"achievements": [
+3
+{
+4
+"player": "tom",
+5
+"total": -1,
+6
+
+"type": 2,
+7
+"item": "DTj7lVn",
+8
+"time": 1695311864300,
+9
+"extra": {
+10
+"swap": "650c67f88325771ffaa78a24",
+11
+"swap_role": "seller"
+12
+},
+13
+"_id": "650c67f88325771ffaa78a25"
+14
+}
+15
+],
+16
+"swap": {
+17
+"seller": "tom",
+18
+"extra": {},
+19
+"rewards": [
+20
+{
+21
+"total": 1,
+22
+"type": 2,
+23
+"item": "DTj7lVn",
+24
+"operation": 0,
+25
+"extra": {},
+26
+"restrict": false,
+27
+"perPlayer": false
+28
+}
+29
+],
+30
+"created": 1695311864298,
+31
+
+"requires": [
+32
+{
+33
+"total": 2,
+34
+"type": 0,
+35
+"item": "coin",
+36
+"operation": 0,
+37
+"extra": {},
+38
+"restrict": false,
+39
+"perPlayer": false
+40
+}
+41
+],
+42
+"_id": "650c67f88325771ffaa78a24"
+43
+},
+44
+"restrictions": [],
+45
+"status": "OK"
+46
+}
+
+Try
+Delete Swap
+DELETE {{funifier_server}}/v3/swap/650c64148325771ffaa7871f
+Response
+1
+{
+2
+"achievements": [],
+3
+"swap": {
+4
+"seller": "tom",
+5
+"extra": {},
+6
+"rewards": [
+7
+{
+8
+"total": 1,
+9
+"type": 2,
+10
+"item": "DTj7lVn",
+11
+"operation": 0,
+12
+"extra": {},
+13
+"restrict": false,
+14
+"perPlayer": false
+15
+}
+16
+],
+17
+"created": 1695310868363,
+18
+"requires": [
+19
+{
+20
+"total": 2,
+21
+"type": 0,
+22
+"item": "coin",
+23
+"operation": 0,
+
+24
+"extra": {},
+25
+"restrict": false,
+26
+"perPlayer": false
+27
+}
+28
+],
+29
+"_id": "650c64148325771ffaa7871f"
+30
+},
+31
+"restrictions": [],
+32
+"status": "OK"
+33
+}
+
+Try
+Acquire Swap
+POST {{funifier_server}}/v3/swap/acquire
+Método utilizado para um jogador (comprador) fazer a troca, com o jogador que criou o
+swap (vendedor). Se a troca for bem sucedida será retornado o status OK e um campo
+achievements com a lista de créditos e débitos feitos nesta transação. {"status": "OK"}
+Caso o jogador não consiga realizar a troca por qualquer motivo será retornado o status
+UNAUTHORIZED e um campo restrictions com as razões da falha. { "achievements" : [ ],
+"restrictions" : [ "swap_does_not_exist" ], "status" : "UNAUTHORIZED" }
+Request Body
+1
+{
+2
+"buyer":"jerry",
+3
+"swap":"650c67f88325771ffaa78a24"
+4
+}
+Response
+1
+{
+2
+"achievements": [
+3
+{
+4
+"player": "jerry",
+5
+"total": -2,
+6
+"type": 0,
+7
+"item": "coin",
+8
+"time": 1695311879902,
+9
+"extra": {
+10
+"swap": "650c67f88325771ffaa78a24",
+11
+"swap_role": "buyer"
+12
+},
+13
+"_id": "650c68078325771ffaa78a26"
+14
+},
+15
+{
+16
+
+"player": "jerry",
+17
+"total": 1,
+18
+"type": 2,
+19
+"item": "DTj7lVn",
+20
+"time": 1695311879904,
+21
+"extra": {
+22
+"swap": "650c67f88325771ffaa78a24",
+23
+"swap_role": "buyer"
+24
+},
+25
+"_id": "650c68078325771ffaa78a27"
+26
+}
+27
+],
+28
+"swap": {
+29
+"seller": "tom",
+30
+"buyer": "jerry",
+31
+"extra": {},
+32
+"rewards": [
+33
+{
+34
+"total": 1,
+35
+"type": 2,
+36
+"item": "DTj7lVn",
+37
+"operation": 0,
+38
+"extra": {},
+39
+"restrict": false,
+40
+"perPlayer": false
+41
+
+}
+42
+],
+43
+"created": 1695311864298,
+44
+"requires": [
+45
+{
+46
+"total": 2,
+47
+"type": 0,
+48
+"item": "coin",
+49
+"operation": 0,
+50
+"extra": {},
+51
+"restrict": false,
+52
+"perPlayer": false
+53
+}
+54
+],
+55
+"acquired": 1695311879898,
+56
+"_id": "650c67f88325771ffaa78a24"
+57
+},
+58
+"restrictions": [],
+59
+"status": "OK"
+60
+}
+
+Try
+Receive Swap
+POST {{funifier_server}}/v3/swap/receive
+Método utilizado para o jogador (vendedor) que criou o swap receber as recompensas da
+troca feita com o jogador (comprador).
+Request Body
+1
+{
+2
+"swap":"650c67f88325771ffaa78a24"
+3
+}
+Response
+1
+{
+2
+"achievements": [
+3
+{
+4
+"player": "tom",
+5
+"total": 2,
+6
+"type": 0,
+7
+"item": "coin",
+8
+"time": 1695311888659,
+9
+"extra": {
+10
+"swap": "650c67f88325771ffaa78a24",
+11
+"swap_role": "seller"
+12
+},
+13
+"_id": "650c68108325771ffaa78a31"
+14
+}
+15
+],
+16
+"swap": {
+17
+"seller": "tom",
+18
+"buyer": "jerry",
+19
+
+"extra": {},
+20
+"rewards": [
+21
+{
+22
+"total": 1,
+23
+"type": 2,
+24
+"item": "DTj7lVn",
+25
+"operation": 0,
+26
+"extra": {},
+27
+"restrict": false,
+28
+"perPlayer": false
+29
+}
+30
+],
+31
+"created": 1695311864298,
+32
+"requires": [
+33
+{
+34
+"total": 2,
+35
+"type": 0,
+36
+"item": "coin",
+37
+"operation": 0,
+38
+"extra": {},
+39
+"restrict": false,
+40
+"perPlayer": false
+41
+}
+42
+],
+43
+"acquired": 1695311879898,
+44
+
+"_id": "650c67f88325771ffaa78a24"
+45
+},
+46
+"restrictions": [],
+47
+"status": "OK"
+48
+}
+Try
+List Counter Offers
+POST {{funifier_server}}/v3/database/swap_counter_offer/aggregate
+Request Body
+1
+[
+2
+{"$match":{
+3
+"swap":"650c683c8325771ffaa78a3f"
+4
+}}
+5
+]
+Response
+1
+[]
+Try
+Create Counter Offer
+POST {{funifier_server}}/v3/swap/counter/offer
+Request Body
+1
+{
+2
+"swap":"650c683c8325771ffaa78a3f",
+3
+"buyer":"jerry",
+4
+"offer":[
+5
+{
+6
+"total":1,
+7
+"type":0,
+8
+"item":"coin"
+9
+}
+
+10
+]
+11
+}
+Try
+Delete Counter Offer
+DELETE {{funifier_server}}/v3/swap/counter/offer/650c68e78325771ffaa78aa1
+Request Body
+1
+{
+2
+"swap":"650c683c8325771ffaa78a3f",
+3
+"buyer":"jerry",
+4
+"offer":[
+5
+{
+6
+"total":1,
+7
+"type":0,
+8
+"item":"coin"
+9
+}
+10
+]
+11
+}
+Try
+Accept Counter Offer
+POST {{funifier_server}}/v3/swap/counter/offer/accept
+Request Body
+1
+{"offer":"650c69aa8325771ffaa78b1b"}
+
+Try
+Receive Counter Offer
+POST {{funifier_server}}/v3/swap/counter/offer/receive
+Request Body
+1
+{"swap":"650c683c8325771ffaa78a3f"}
+Response
+1
+{
+2
+"errorMessage": null,
+3
+"errorCode": 500,
+4
+"documentation": "http://doc.funifier.com"
+5
+}
+​
+​
+
+Question
+Módulo para criar perguntas para os jogadores. A apresentação da pergunta pode se
+dar no formato tradicional com a pergunta e as opções de resposta abaixo, mas também
+em formatos de mini games como por exemplo, um caça palavras, uma cruzadinha, etc.
+Cada pergunta pode apresentar texto, imagens, conteúdos audiovisuais, e as respostas
+podem ser de múltipla escolha, verdadeiro ou falso, dissertação, etc.
+
+Try
+List Questions
+GET {{funifier_server}}/v3/question
+Response
+1
+[
+2
+{
+3
+"_id": "64a5b2c2d8dcca49bcf7eb6e",
+4
+"type": "MULTIPLE_CHOICE",
+5
+"title": "Visual Components",
+6
+"question": "In Funifier, what is the small visual components that can be added to a
+web page to display feedbacks?",
+7
+"grade": 1,
+8
+"choices": [
+9
+{
+10
+"answer": "1",
+11
+"label": "Points",
+12
+"grade": 0,
+13
+"extra": {}
+14
+},
+15
+{
+16
+"answer": "2",
+17
+"label": "Badges",
+18
+"grade": 0,
+19
+"extra": {}
+20
+},
+21
+{
+22
+"answer": "3",
+23
+
+"label": "Challenges",
+24
+"grade": 0,
+25
+"extra": {}
+26
+},
+27
+{
+28
+"answer": "4",
+29
+"label": "Leaderboards",
+30
+"grade": 0,
+31
+"extra": {}
+32
+},
+33
+{
+34
+"answer": "5",
+35
+"label": "Widgets",
+36
+"grade": 1,
+37
+"extra": {}
+38
+}
+39
+],
+40
+"i18n": {},
+41
+"techniques": [
+42
+"GT05"
+43
+],
+44
+"select": "one_answer",
+45
+"answerNumbering": "uppercase_letters",
+46
+"shuffle": false,
+47
+"feedbacks": [],
+48
+
+"extra": {},
+49
+"created": 1695318347157,
+50
+"updated": 1695318347157,
+51
+"requires": []
+52
+}
+53
+]
+
+Try
+Create Question
+POST {{funifier_server}}/v3/question
+Request Body
+1
+{
+2
+"_id": "64a5b2c2d8dcca49bcf7eb6e",
+3
+"type": "MULTIPLE_CHOICE",
+4
+"title": "Visual Components",
+5
+"question": "In Funifier, what is the small visual components that can be added to a
+web page to display feedbacks?",
+6
+"grade": 1,
+7
+"choices": [
+8
+{"answer": "1", "label": "Points", "grade": 0, "extra": {}},
+9
+{"answer": "2", "label": "Badges", "grade": 0, "extra": {}},
+10
+{"answer": "3", "label": "Challenges", "grade": 0, "extra": {}},
+11
+{"answer": "4", "label": "Leaderboards", "grade": 0, "extra": {}},
+12
+{"answer": "5", "label": "Widgets", "grade": 1, "extra": {}}
+13
+],
+14
+"techniques": ["GT05"],
+15
+"select": "one_answer",
+16
+"answerNumbering": "uppercase_letters",
+17
+"shuffle": false,
+18
+"feedbacks": [],
+19
+"extra": {}
+20
+}
+Response
+1
+{
+2
+"question": {
+
+3
+"type": "MULTIPLE_CHOICE",
+4
+"title": "Visual Components",
+5
+"question": "In Funifier, what is the small visual components that can be added to a
+web page to display feedbacks?",
+6
+"grade": 1,
+7
+"choices": [
+8
+{
+9
+"answer": "1",
+10
+"label": "Points",
+11
+"grade": 0,
+12
+"extra": {}
+13
+},
+14
+{
+15
+"answer": "2",
+16
+"label": "Badges",
+17
+"grade": 0,
+18
+"extra": {}
+19
+},
+20
+{
+21
+"answer": "3",
+22
+"label": "Challenges",
+23
+"grade": 0,
+24
+"extra": {}
+25
+},
+26
+{
+27
+
+"answer": "4",
+28
+"label": "Leaderboards",
+29
+"grade": 0,
+30
+"extra": {}
+31
+},
+32
+{
+33
+"answer": "5",
+34
+"label": "Widgets",
+35
+"grade": 1,
+36
+"extra": {}
+37
+}
+38
+],
+39
+"i18n": {},
+40
+"techniques": [
+41
+"GT05"
+42
+],
+43
+"select": "one_answer",
+44
+"answerNumbering": "uppercase_letters",
+45
+"shuffle": false,
+46
+"feedbacks": [],
+47
+"extra": {},
+48
+"created": 1695318347157,
+49
+"updated": 1695318347157,
+50
+"requires": [],
+51
+"_id": "64a5b2c2d8dcca49bcf7eb6e"
+52
+
+},
+53
+"exceptions": []
+54
+}
+Try
+Delete Question
+DELETE {{funifier_server}}/v3/question/64a5b2c2d8dcca49bcf7eb6e
+Response
+1
+""
+
+Try
+List Question Logs
+GET {{funifier_server}}/v3/question/log?question=64a5b2c2d8dcca49bcf7eb6e
+Response
+1
+[
+2
+{
+3
+"player": "tom",
+4
+"question": "64a5b2c2d8dcca49bcf7eb6e",
+5
+"answer": [
+6
+"5"
+7
+],
+8
+"percent": 1,
+9
+"grade": 1,
+10
+"time": 1695318517211,
+11
+"_id": "650c81f58325771ffaa7bbc4"
+12
+}
+13
+]
+
+Try
+Create Question Log
+POST {{funifier_server}}/v3/question/log
+Request Body
+1
+{
+2
+"question":"64a5b2c2d8dcca49bcf7eb6e",
+3
+"answer":["5"],
+4
+"player":"tom"
+5
+}
+Response
+1
+{
+2
+"log": {
+3
+"player": "tom",
+4
+"question": "64a5b2c2d8dcca49bcf7eb6e",
+5
+"answer": [
+6
+"5"
+7
+],
+8
+"percent": 1,
+9
+"grade": 1,
+10
+"time": 1695318555401,
+11
+"_id": "650c821b8325771ffaa7bbd5"
+12
+}
+13
+}
+Try
+Delete Question Log
+DELETE {{funifier_server}}/v3/question/log/650c821b8325771ffaa7bbd5
+
+​
+​
+
+Quiz
+Módulo para agrupar várias perguntas em um bloco único a ser respondido pelos
+jogadores. Como por exemplo uma prova que tem várias perguntas. O administrador
+
+pode definir que uma prova vale 10 pontos, e quando o jogador responde a prova o
+FUNIFIER calcula o percentual de acerto, e a nota final do jogador. Estes questionários
+também podem ser apresentados na forma de mini games, como uma corrida espacial
+por exemplo
+Try
+List Quiz
+GET {{funifier_server}}/v3/database/quiz
+Response
+1
+[
+2
+{
+3
+"_id": "650c82fe8325771ffaa7bd33",
+4
+"title": "Funifier Exam",
+5
+"description": "Test your knowledge about the best gamification platform in the
+world.",
+6
+"grade": 10,
+7
+"i18n": {},
+8
+"extra": {},
+9
+"created": 1695318782638,
+10
+"updated": 1695318782638,
+11
+"feedbacks": [],
+12
+"questionNumbering": "uppercase_letters",
+13
+"showGradeBeforeFinish": false,
+14
+"shuffle": false
+15
+}
+16
+]
+
+Try
+Create Quiz
+POST {{funifier_server}}/v3/quiz
+Request Body
+1
+{
+2
+"_id": "650c82fe832",
+3
+"title": "Funifier Exam",
+4
+"description": "Test your knowledge about the best gamification platform in the
+world.",
+5
+"grade": 10,
+6
+"i18n": {},
+7
+"extra": {},
+8
+"feedbacks": [],
+9
+"questionNumbering": "uppercase_letters",
+10
+"showGradeBeforeFinish": false,
+11
+"shuffle": false
+12
+}
+Response
+1
+{
+2
+"title": "Funifier Exam",
+3
+"description": "Test your knowledge about the best gamification platform in the
+world.",
+4
+"grade": 10,
+5
+"i18n": {},
+6
+"extra": {},
+7
+"created": 1695400976152,
+8
+"updated": 1695400976152,
+9
+"feedbacks": [],
+10
+
+"questionNumbering": "uppercase_letters",
+11
+"showGradeBeforeFinish": false,
+12
+"shuffle": false,
+13
+"_id": "650c82fe832"
+14
+}
+Try
+Delete Quiz
+DELETE {{funifier_server}}/v3/quiz/650c82fe832
+Response
+1
+""
+
+Try
+List Quiz Questions
+GET {{funifier_server}}/v3/quiz/650c82fe832/question
+Response
+1
+[
+2
+{
+3
+"quiz": "650c82fe832",
+4
+"type": "MULTIPLE_CHOICE",
+5
+"title": "Best Platform",
+6
+"question": "What is the best gamification platform?",
+7
+"grade": 1,
+8
+"choices": [
+9
+{
+10
+"answer": "1",
+11
+"label": "Funifier",
+12
+"grade": 1,
+13
+"extra": {}
+14
+},
+15
+{
+16
+"answer": "2",
+17
+"label": "Points",
+18
+"grade": 0,
+19
+"extra": {}
+20
+},
+21
+{
+22
+"answer": "3",
+23
+"label": "Badges",
+
+24
+"grade": 0,
+25
+"extra": {}
+26
+},
+27
+{
+28
+"answer": "4",
+29
+"label": "Leaderboards",
+30
+"grade": 0,
+31
+"extra": {}
+32
+}
+33
+],
+34
+"i18n": {},
+35
+"select": "one_answer",
+36
+"shuffle": false,
+37
+"feedbacks": [],
+38
+"extra": {},
+39
+"created": 1695401177814,
+40
+"updated": 1695401177814,
+41
+"requires": [],
+42
+"_id": "650dc4d98325771ffaa93e5e"
+43
+}
+44
+]
+
+Try
+Create Quiz Question
+POST {{funifier_server}}/v3/question
+Request Body
+1
+{
+2
+"quiz":"650c82fe832",
+3
+"type":"MULTIPLE_CHOICE",
+4
+"title":"Best Platform",
+5
+"question":"What is the best gamification platform?",
+6
+"grade":1,
+7
+"choices":[
+8
+{"answer":"1","label":"Funifier","grade":1,"extra":{},"gradePercent":100,"gradeCheck":tr
+ue},
+9
+{"answer":"2","label":"Points","grade":0,"extra":{},"gradePercent":0},
+10
+{"answer":"3","label":"Badges","grade":0,"extra":{},"gradePercent":0},
+11
+{"answer":"4","label":"Leaderboards","grade":0,"extra":{},"gradePercent":0}
+12
+],
+13
+"i18n":{},
+14
+"select":"one_answer",
+15
+"shuffle":false
+16
+}
+Response
+1
+{
+2
+"question": {
+3
+"quiz": "650c82fe832",
+4
+"type": "MULTIPLE_CHOICE",
+5
+"title": "Best Platform",
+6
+
+"question": "What is the best gamification platform?",
+7
+"grade": 1,
+8
+"choices": [
+9
+{
+10
+"answer": "1",
+11
+"label": "Funifier",
+12
+"grade": 1,
+13
+"extra": {}
+14
+},
+15
+{
+16
+"answer": "2",
+17
+"label": "Points",
+18
+"grade": 0,
+19
+"extra": {}
+20
+},
+21
+{
+22
+"answer": "3",
+23
+"label": "Badges",
+24
+"grade": 0,
+25
+"extra": {}
+26
+},
+27
+{
+28
+"answer": "4",
+29
+"label": "Leaderboards",
+30
+"grade": 0,
+31
+
+"extra": {}
+32
+}
+33
+],
+34
+"i18n": {},
+35
+"select": "one_answer",
+36
+"shuffle": false,
+37
+"feedbacks": [],
+38
+"extra": {},
+39
+"created": 1695401363337,
+40
+"updated": 1695401363337,
+41
+"requires": [],
+42
+"_id": "650dc5938325771ffaa9403e"
+43
+},
+44
+"exceptions": []
+45
+}
+Try
+Start Quiz
+POST {{funifier_server}}/v3/quiz/start
+Request Body
+1
+{
+2
+"quiz":"650c82fe832",
+3
+"player":"tom"
+4
+}
+
+Try
+Answer Quiz Questions
+POST {{funifier_server}}/v3/question/log/bulk
+Request Body
+1
+[
+2
+{
+3
+"quiz":"650c82fe832",
+4
+"quiz_log":"650dc6168325771ffaa94098",
+5
+"question":"650dc4d98325771ffaa93e5e",
+6
+"answer":["1"],
+7
+"player":"tom"
+8
+}
+9
+]
+Try
+Finish Quiz
+POST {{funifier_server}}/v3/quiz/finish
+Request Body
+1
+{
+2
+"quiz_log": "650dc6168325771ffaa94098"
+3
+}
+​
+​
+
+Mystery Box
+Módulo para configurar prêmios aleatórios. O jogador não sabe o prêmio que irá ganhar.
+Por exemplo: uma raspadinha onde o jogador só descobre se ganhou algum prêmio ou
+não depois de raspar a cartela; um jogo de cara ou coroa, onde existe 50% de chance
+para cada opção; uma roda da fortuna, onde existem várias opções, algumas com
+prêmios legais e outras nem tanto. Você configura este módulo informando um título
+para caixa surpresa, as opções possíveis e a probabilidade de cada opção a ser
+escolhida pela plataforma, e as combinações vencedoras com seus respectivos
+prêmios.
+
+Try
+List Mystery Boxes
+GET {{funifier_server}}/v3/mystery
+Response
+1
+[
+2
+{
+3
+"title": "Heads or Tails",
+4
+"options": [
+5
+{
+6
+"title": "Heads",
+7
+"value": "heads",
+8
+"probability": 0.5
+9
+},
+10
+{
+11
+"title": "Tails",
+12
+"value": "tails",
+13
+"probability": 0.5
+14
+}
+15
+],
+16
+"columns": 1,
+17
+"requirements": [],
+18
+"win_chart": [
+19
+{
+20
+"combination": [
+21
+"heads"
+22
+],
+23
+"orderSensitive": false,
+
+24
+"reward": {
+25
+"total": 1,
+26
+"type": 0,
+27
+"item": "coin",
+28
+"operation": 0,
+29
+"extra": {},
+30
+"restrict": false,
+31
+"perPlayer": false
+32
+},
+33
+"isolated": false
+34
+}
+35
+],
+36
+"extra": {},
+37
+"techniques": [
+38
+"GT72"
+39
+],
+40
+"_id": "64a5b464d8dcca49bcf7edd0"
+41
+}
+42
+]
+
+Try
+Create Mystery
+POST {{funifier_server}}/v3/mystery
+Request Body
+1
+{
+2
+"title": "Heads or Tails",
+3
+"options": [
+4
+{"title": "Heads", "value": "heads", "probability": 0.5},
+5
+{"title": "Tails", "value": "tails", "probability": 0.5}
+6
+],
+7
+"columns": 1,
+8
+"requirements": [],
+9
+"win_chart": [
+10
+{
+11
+"combination": ["heads"],
+12
+"orderSensitive": false,
+13
+"reward": {
+14
+"total": 1,
+15
+"type": 0,
+16
+"item": "coin"
+17
+}
+18
+}
+19
+],
+20
+"techniques": ["GT72"],
+21
+"_id": "64a5b464d8dcca49bcf7edd0"
+22
+}
+Response
+1
+
+{
+2
+"title": "Heads or Tails",
+3
+"options": [
+4
+{
+5
+"title": "Heads",
+6
+"value": "heads",
+7
+"probability": 0.5
+8
+},
+9
+{
+10
+"title": "Tails",
+11
+"value": "tails",
+12
+"probability": 0.5
+13
+}
+14
+],
+15
+"columns": 1,
+16
+"requirements": [],
+17
+"win_chart": [
+18
+{
+19
+"combination": [
+20
+"heads"
+21
+],
+22
+"orderSensitive": false,
+23
+"reward": {
+24
+"total": 1,
+25
+"type": 0,
+26
+
+"item": "coin",
+27
+"operation": 0,
+28
+"extra": {},
+29
+"restrict": false,
+30
+"perPlayer": false
+31
+},
+32
+"isolated": false
+33
+}
+34
+],
+35
+"extra": {},
+36
+"techniques": [
+37
+"GT72"
+38
+],
+39
+"_id": "64a5b464d8dcca49bcf7edd0"
+40
+}
+Try
+Delete Mystery
+DELETE {{funifier_server}}/v3/mystery/64a5b464d8dcca49bcf7edd0
+Response
+1
+""
+
+Try
+Evaluate MysteryBox
+GET {{funifier_server}}/v3/mystery/evaluate/64a5b464d8dcca49bcf7edd0?player=tom
+Response
+1
+{
+2
+"milliseconds": 2,
+3
+"requirements": {
+4
+"milliseconds": 0,
+5
+"status": "OK"
+6
+},
+7
+"limit": {
+8
+"milliseconds": 0,
+9
+"status": "OK"
+10
+},
+11
+"exists": {
+12
+"status": "OK"
+13
+},
+14
+"limit_wins": {
+15
+"milliseconds": 0,
+16
+"status": "OK"
+17
+},
+18
+"params": {
+19
+"server_time": 1695409754940,
+20
+"player": "tom"
+21
+},
+22
+"limit_attempts": {
+23
+"milliseconds": 0,
+
+24
+"status": "OK"
+25
+},
+26
+"attempts": {
+27
+"milliseconds": 0,
+28
+"status": "OK"
+29
+}
+30
+}
+
+Try
+Execute MysteryBox
+GET {{funifier_server}}/v3/mystery/execute/64a5b464d8dcca49bcf7edd0?player=tom
+Response
+1
+{
+2
+"mystery": "64a5b464d8dcca49bcf7edd0",
+3
+"player": "tom",
+4
+"time": "2023-09-22T19:09:40Z",
+5
+"result": [
+6
+"heads"
+7
+],
+8
+"status": "WIN",
+9
+"achievements": [
+10
+{
+11
+"player": "tom",
+12
+"total": 1,
+13
+"type": 6,
+14
+"item": "64a5b464d8dcca49bcf7edd0",
+15
+"time": 1695409780541,
+16
+"_id": "650de6748325771ffaa985a4"
+17
+},
+18
+{
+19
+"player": "tom",
+20
+"total": 1,
+21
+"type": 0,
+22
+"item": "coin",
+23
+"time": 1695409780541,
+
+24
+"extra": {
+25
+"origin_item": "64a5b464d8dcca49bcf7edd0",
+26
+"origin": "650de6748325771ffaa985a4",
+27
+"origin_type": 6
+28
+},
+29
+"_id": "650de6748325771ffaa985a5"
+30
+}
+31
+]
+32
+}
+​
+​
+
+Folder
+Módulo para criar pastas virtuais onde você pode incluir qualquer coisa. As pastas
+podem ser utilizadas, por exemplo, para construir um curso online, composto de
+módulos, onde cada módulo possui um conjunto de aulas, e cada aula possui um
+conjunto de conteúdos. Uma das capacidades deste módulo é monitorar o progresso do
+jogador dentro dessa árvore de diretórios e conteúdos. É possível, por exemplo, saber
+que um jogador já completou 50% de um curso. E ao progredir podemos registrar logs
+de ações, que acionam as técnicas de jogos. E assim podemos, por exemplo, criar
+desafios que são concluídos quando o jogador completar um curso.
+Try
+List Folders
+GET {{funifier_server}}/v3/database/folder
+Response
+1
+[
+2
+{
+3
+"_id": "D0MlHOS",
+4
+"title": "Gamification",
+5
+"extra": {}
+6
+}
+7
+]
+
+Try
+Create Folder
+POST {{funifier_server}}/v3/folder
+Request Body
+1
+{
+2
+"title":"CoreDrives",
+3
+"parent":"D0MmmNf"
+4
+}
+Response
+1
+{
+2
+"title" : "CoreDrives",
+3
+"parent" : "D0MmmNf",
+4
+"extra" : { },
+5
+"_id" : "D0MmBbT"
+6
+}
+Try
+Delete Folder
+DELETE {{funifier_server}}/v3/folder/D0MlHOS
+
+Try
+Breadcrumb
+POST {{funifier_server}}/v3/folder/breadcrumb
+Request Body
+1
+{
+2
+"folder":"CD1"
+3
+}
+Response
+1
+[
+2
+{
+3
+"title": "Gamification",
+4
+"extra": {},
+5
+"_id": "D0MmmNf"
+6
+},
+7
+{
+8
+"parent": "D0MmmNf",
+9
+"title": "CoreDrives",
+10
+"extra": {},
+11
+"_id": "D0MmBbT"
+12
+},
+13
+{
+14
+"parent": "D0MmBbT",
+15
+"title": "Epic Meaning & Calling",
+16
+"extra": {},
+17
+"_id": "CD1"
+18
+}
+19
+]
+
+Try
+List ContentType
+GET {{funifier_server}}/v3/database/folder_content_type
+Response
+1
+[
+2
+{
+3
+"_id": "650dea458325771ffaa987b0",
+4
+"input": "formulary",
+5
+"form": [
+6
+{
+7
+"name": "title",
+8
+"type": "string",
+9
+"title": "Title",
+10
+"dropdown": {
+11
+"type": "",
+12
+"static": [],
+13
+"dynamic": {}
+14
+}
+15
+},
+16
+{
+17
+"name": "content",
+18
+"type": "text",
+19
+"title": "Content",
+20
+"dropdown": {
+21
+"type": "",
+22
+"static": [],
+23
+"dynamic": {}
+
+24
+}
+25
+}
+26
+],
+27
+"created": 1695410756428,
+28
+"title": "Text",
+29
+"updated": 1695410756428,
+30
+"entity": "text__c"
+31
+}
+32
+]
+
+Try
+Create ContentType
+PUT {{funifier_server}}/v3/database/folder_content_type
+Request Body
+1
+{
+2
+"_id": "text",
+3
+"input": "formulary",
+4
+"form": [
+5
+{
+6
+"name": "title",
+7
+"type": "string",
+8
+"title": "Title",
+9
+"dropdown": {
+10
+"type": "",
+11
+"static": [],
+12
+"dynamic": {}
+13
+}
+14
+},
+15
+{
+16
+"name": "content",
+17
+"type": "text",
+18
+"title": "Content",
+19
+"dropdown": {
+20
+"type": "",
+21
+"static": [],
+22
+"dynamic": {}
+23
+}
+
+24
+}
+25
+],
+26
+"created": 1695410756428,
+27
+"title": "Text",
+28
+"updated": 1695410756428,
+29
+"entity": "text__c"
+30
+}
+​
+​
+
+Database
+Permite acessar as coleções do banco de dados da gamificação. Cada gamficação tem
+o seu próprio banco de dados. Deste módulo é possível descobrir quais são as coleções
+existentes no banco de dados, realizar consultas, alteração e exclusão de dados das
+coleções.
+
+Try
+List Collections
+GET {{funifier_server}}/v3/database/collections
+Lista o nome de todas as coleções existentes no banco de dados da gamificação.
+Response
+1
+[
+2
+"achievement",
+3
+"action",
+4
+"action_log",
+5
+"car__c",
+6
+"catalog",
+7
+"catalog_item",
+8
+"challenge",
+9
+"challenge_progress",
+10
+"competition",
+11
+"join_log",
+12
+"leader",
+13
+"leaderboard",
+14
+"level",
+15
+"level_config",
+16
+"lottery",
+17
+"lottery_ticket",
+18
+"mystery_box",
+19
+"mystery_box_log",
+20
+"notification",
+21
+"player",
+22
+"player_status",
+23
+
+"point_category",
+24
+"prepared_aggregate",
+25
+"principal",
+26
+"question",
+27
+"req__c",
+28
+"req_folder__c",
+29
+"scheduler",
+30
+"scheduler_log",
+31
+"security",
+32
+"studio_filter_log__c",
+33
+"studio_page",
+34
+"swap",
+35
+"team",
+36
+"team_player",
+37
+"technique_field",
+38
+"trigger",
+39
+"trigger_log",
+40
+"upload",
+41
+"widget_log",
+42
+"widget_v3"
+43
+]
+
+Try
+List Data
+GET {{funifier_server}}/v3/database/:collection
+Lista os dados da coleção estipulada. O nome da coleção é informado no final da url.
+Response
+1
+[
+2
+{
+3
+"_id": "6553e49815865a7a732f5fc7",
+4
+"year": 2010,
+5
+"fuel": "gasoline",
+6
+"price": 50000,
+7
+"name": "Civic",
+8
+"description": "Honda Civic",
+9
+"brand": "honda"
+10
+}
+11
+]
+
+Try
+Create Data
+POST {{funifier_server}}/v3/database/:collection
+Cria um novo registro em uma coleção.
+Request Body
+1
+{
+2
+"year": 2010,
+3
+"fuel": "gasoline",
+4
+"price": 50000,
+5
+"name": "Civic",
+6
+"description": "Honda Civic",
+7
+"brand": "honda"
+8
+}
+Response
+1
+{
+2
+"year": 2010,
+3
+"fuel": "gasoline",
+4
+"price": 50000,
+5
+"name": "Civic",
+6
+"description": "Honda Civic",
+7
+"_id": "6553e49815865a7a732f5fc7",
+8
+"brand": "honda"
+9
+}
+
+Try
+Update Data
+PUT {{funifier_server}}/v3/database/:collection
+Request Body
+1
+{
+2
+"_id": "6553e49815865a7a732f5fc7",
+3
+"year": 2010,
+4
+"fuel": "gasoline",
+5
+"price": 50000,
+6
+"name": "Civic",
+7
+"description": "Honda Civic",
+8
+"brand": "honda"
+9
+}
+Response
+1
+{
+2
+"year": 2010,
+3
+"fuel": "gasoline",
+4
+"price": 50000,
+5
+"name": "Civic",
+6
+"description": "Honda Civic",
+7
+"_id": "6553e49815865a7a732f5fc7",
+8
+"brand": "honda"
+9
+}
+
+Try
+Delete Data
+DELETE {{funifier_server}}/v3/database/:collection?q=_id:'contend_id'
+Permite excluir um ou mais registros de uma coleção no banco de dados. Basta
+informar na url o parâmetro q com a expressão de pesquisa dos registros que devem
+ser excluídos.
+Response
+1
+""
+
+Try
+Aggregate Data
+POST {{funifier_server}}/v3/database/:collection/aggregate?strict=true
+Permite enviar uma lista de comandos aggregate na sintaxe do mongodb para ser
+executado no banco de dados. Na url você informa o nome da coleção e no corpo
+você envia a lista com os comandos aggregate.
+Request Body
+1
+[
+2
+{"$match":{ "actionId":"sell", "userId":"jerry", "attributes.price":{"$gte":10} }},
+3
+{"$limit": 1}
+4
+]
+Response
+1
+[
+2
+{
+3
+"_id": "6509e4e28325771ffaa4506e",
+4
+"actionId": "sell",
+5
+"userId": "jerry",
+6
+"time": {
+7
+"$date": "2023-09-19T18:13:54.712Z"
+8
+},
+9
+"attributes": {
+10
+"product": "bike",
+11
+
+"price": 1200
+12
+}
+13
+}
+14
+]
+Try
+Create Bulk Data
+POST {{funifier_server}}/v3/database/:collection/bulk
+Permite inserir vários registros em uma coleção de uma única vez. Ao invés de inserir
+vários registros um a um, use este endpoint para enviar uma lista com todos os
+objetos que devem ser inseridos ou atualizados no banco de dados.
+Request Body
+1
+[
+2
+{
+3
+"_id": "6553e49815865a7a732f5fc7",
+4
+"year": 2010,
+5
+"fuel": "gasoline",
+6
+"price": 60000,
+7
+"name": "Honda Civic",
+8
+"description": "Honda Civic",
+9
+"brand": "honda"
+10
+},
+11
+{
+12
+"_id": "6553e49815865a7a732f5fc8",
+13
+"year": 2012,
+14
+"fuel": "gasoline",
+15
+"price": 70000,
+16
+"name": "Toyota Corola",
+17
+"description": "Toyota Corola",
+18
+
+"brand": "toyota"
+19
+}
+20
+]
+Response
+1
+{
+2
+"total": 2
+3
+}
+Try
+List Index
+GET {{funifier_server}}/v3/database/:collection/index
+Lista os índices de uma determinada coleção.
+Response
+1
+[
+2
+{
+3
+"v": 2,
+4
+"key": {
+5
+"_id": 1
+6
+},
+7
+"name": "_id_"
+8
+}
+9
+]
+
+Try
+Create Index
+POST {{funifier_server}}/v3/database/:collection/index
+Cria um novo índice em uma determinada coleção.
+Request Body
+1
+{"fuel":1}
+Response
+1
+[
+2
+{
+3
+"v": 2,
+4
+"key": {
+5
+"_id": 1
+6
+},
+7
+"name": "_id_"
+8
+},
+9
+{
+10
+"v": 2,
+11
+"key": {
+12
+"fuel": 1
+13
+},
+14
+"name": "fuel_1"
+15
+}
+16
+]
+
+Try
+Delete Index
+DELETE {{funifier_server}}/v3/database/:collection/index/:index_name
+Exclui um índice de uma determinada coleção.
+Response
+1
+[
+2
+{
+3
+"v": 2,
+4
+"key": {
+5
+"_id": 1
+6
+},
+7
+"name": "_id_"
+8
+}
+9
+]
+​
+​
+
+Player
+São os usuários que interagem com a gamificação. Neste endpoint é possível criar o
+cadastro desses jogadores com quaisquer informações relevantes para estratégia de
+engajamento como por exemplo nome, e-mail, foto, departamento, sexo, localização
+geográfica, telefone, e qualquer outro atributo que seja relevante para o jogador dentro
+do processo de engajamento.
+
+Try
+List Players
+GET {{funifier_server}}/v3/player
+Response
+1
+[
+2
+{
+3
+"_id": "jerry",
+4
+"name": "Jerry",
+5
+"email": "jerry@yourdomain.com",
+6
+"extra": {
+7
+"company": "Tom & Jerry Inc."
+8
+},
+9
+"created": 1694990893810,
+10
+"updated": 1694990893880
+11
+},
+12
+{
+13
+"_id": "tom",
+14
+"name": "Tom",
+15
+"email": "tom@yourdomain.com",
+16
+"extra": {
+17
+"company": "Tom & Jerry Inc."
+18
+},
+19
+"created": 1694990939613,
+20
+"updated": 1694990939619
+21
+}
+22
+]
+
+Try
+Create Player
+POST {{funifier_server}}/v3/player
+Request Body
+1
+{
+2
+"_id": "jerry",
+3
+"name": "Jerry",
+4
+"email": "jerry@yourdomain.com",
+5
+"image": {
+6
+"small": {"url": "https://my.funifier.com/images/funny.png"},
+7
+"medium": {"url": "https://my.funifier.com/images/funny.png"},
+8
+"original": {"url": "https://my.funifier.com/images/funny.png"}
+9
+},
+10
+"teams": ["cartoon"],
+11
+"friends": ["tom", "spike", "quacker"],
+12
+"extra": {
+13
+"country": "USA",
+14
+"company": "Tom & Jerry Inc.",
+15
+"sports": ["soccer", "cycling", "surf"]
+16
+}
+17
+}
+Response
+1
+{
+2
+"name": "Jerry",
+3
+"email": "jerry@yourdomain.com",
+4
+"image": {
+5
+"small": {"url": "https://my.funifier.com/images/funny.png"},
+6
+
+"medium": {"url": "https://my.funifier.com/images/funny.png"},
+7
+"original": {"url": "https://my.funifier.com/images/funny.png"}
+8
+},
+9
+"teams": ["cartoon"],
+10
+"friends": ["tom", "spike", "quacker"],
+11
+"extra": {
+12
+"country": "USA",
+13
+"company": "Tom & Jerry Inc.",
+14
+"sports": ["soccer", "cycling", "surf"]
+15
+},
+16
+"created": 1695216470091,
+17
+"updated": 1695216470091,
+18
+"_id": "jerry"
+19
+}
+Try
+Delete Player
+DELETE {{funifier_server}}/v3/player/:id
+Para excluir um jogador você informa no final do endpoint o id do jogador que deseja
+excluir. Este método irá excluir as ações, conquistas e todas as outras informações
+registradas para este jogador dentro da gamificação.
+
+Try
+Player Status
+GET {{funifier_server}}/v3/player/:id/status
+Retorna as estatísticas básicas do jogador dentro da gamificação. Como por exemplo
+o total de pontos, desafios que já concluiu, nível atual, e itens adquiridos na
+gamificação. Subsitua no endpoint o :id pelo id do jogador. Este status é atualizado
+quando o jogador realiza alguma ação que gera algum tipo de conquista.
+Response
+1
+{
+2
+"name": "Jerry",
+3
+"total_challenges": 0,
+4
+"challenges": {},
+5
+"total_points": 0,
+6
+"point_categories": {},
+7
+"total_catalog_items": 0,
+8
+"catalog_items": {},
+9
+"level_progress": {
+10
+"percent_completed": 0,
+11
+"next_points": 10,
+12
+"next_level": {
+13
+"level": "Apprentice",
+14
+"position": 0,
+15
+"description": "It indicates that you are learning, growing and striving to reach your
+goals.",
+16
+"minPoints": 10,
+17
+"notifications": [],
+18
+"requirements": [],
+19
+"i18n": {},
+20
+"extra": {},
+21
+
+"techniques": [
+22
+"GT85"
+23
+],
+24
+"_id": "L0"
+25
+},
+26
+"total_levels": 1,
+27
+"percent": 0
+28
+},
+29
+"challenge_progress": [],
+30
+"positions": [],
+31
+"time": 1695052411804,
+32
+"extra": {
+33
+"company": "Tom & Jerry Inc."
+34
+},
+35
+"pointCategories": {},
+36
+"_id": "jerry"
+37
+}
+​
+​
+
+Team
+Equipes são grupos de jogadores. Isso permite motivar os jogadores com estímulos
+sociais. Um jogador pode estar em mais de uma equipe se for necessário, e cada
+equipe pode ter um dono, que representa a equipe sempre que necessário.
+Try
+List Teams
+GET {{funifier_server}}/v3/team
+
+Try
+Create Team
+POST {{funifier_server}}/v3/team
+Request Body
+1
+{
+2
+"_id": "sales",
+3
+"name": "Sales",
+4
+"description": "Funifier sales team",
+5
+"image": {
+6
+"small": {"url": "https://my.funifier.com/images/funny.png"},
+7
+"medium": {"url": "https://my.funifier.com/images/funny.png"},
+8
+"original": {"url": "https://my.funifier.com/images/funny.png"}
+9
+},
+10
+"extra": {
+11
+"country": "USA"
+12
+},
+13
+"owner": "john"
+14
+}
+Response
+1
+{
+2
+"name": "Sales",
+3
+"description": "Funifier sales team",
+4
+"image": {
+5
+"small": {
+6
+"url": "https://my.funifier.com/images/funny.png",
+7
+"size": 0,
+8
+"width": 0,
+9
+
+"height": 0,
+10
+"depth": 0
+11
+},
+12
+"medium": {
+13
+"url": "https://my.funifier.com/images/funny.png",
+14
+"size": 0,
+15
+"width": 0,
+16
+"height": 0,
+17
+"depth": 0
+18
+},
+19
+"original": {
+20
+"url": "https://my.funifier.com/images/funny.png",
+21
+"size": 0,
+22
+"width": 0,
+23
+"height": 0,
+24
+"depth": 0
+25
+}
+26
+},
+27
+"extra": {
+28
+"country": "USA"
+29
+},
+30
+"owner": "john",
+31
+"created": 1695135261192,
+32
+"updated": 1695135261192,
+33
+"_id": "sales"
+34
+
+}
+Try
+Delete Team
+DELETE {{funifier_server}}/v3/team/:id
+
+Try
+Add Member
+GET {{funifier_server}}/v3/team/:id/member/add/:player
+Informe na url o id da equipe e o id do jogador. /v3/team/:id/member/add/:player
+Response
+1
+{
+2
+"team": "sales",
+3
+"player": "tom"
+4
+}
+Try
+Remove Member
+GET {{funifier_server}}/v3/team/:id/member/remove/:player
+Informe na url o id da equipe e o id do jogador.
+/v3/team/:team_id/member/remove/:player_id
+
+Try
+List Member Ids
+GET {{funifier_server}}/v3/team/:id/memberids
+Informe na url o id da equipe. /v3/team/:team_id/memberids
+Response
+1
+[
+2
+"tom"
+3
+]
+
+Try
+Team Status
+GET {{funifier_server}}/v3/team/:id/status
+Retorna as estatísticas básicas da equipe dentro da gamificação. Como por exemplo
+o total de pontos, desafios que já concluiu, e itens adquiridos na gamificação.
+Subsitua no endpoint o :id pelo id da equipe.
+Response
+1
+{
+2
+"name": "Sales",
+3
+"image": {
+4
+"small": {
+5
+"url": "https://my.funifier.com/images/funny.png",
+6
+"size": 0,
+7
+"width": 0,
+8
+"height": 0,
+9
+"depth": 0
+10
+},
+11
+"medium": {
+12
+"url": "https://my.funifier.com/images/funny.png",
+13
+"size": 0,
+14
+"width": 0,
+15
+"height": 0,
+16
+"depth": 0
+17
+},
+18
+"original": {
+19
+"url": "https://my.funifier.com/images/funny.png",
+20
+"size": 0,
+21
+"width": 0,
+22
+
+"height": 0,
+23
+"depth": 0
+24
+}
+25
+},
+26
+"total_challenges": 0,
+27
+"challenges": {},
+28
+"total_points": 0,
+29
+"point_categories": {},
+30
+"total_catalog_items": 0,
+31
+"catalog_items": {},
+32
+"challenge_progress": [],
+33
+"positions": [],
+34
+"time": 1695143097017,
+35
+"extra": {
+36
+"country": "USA"
+37
+},
+38
+"pointCategories": {},
+39
+"_id": "sales"
+40
+}
+​
+​
+
+Auth
+Endpoint dedicada a autenticação dos jogadores na gamificação.
+
+Try
+Authenticate
+POST {{funifier_server}}/v3/auth/token
+Request Body
+1
+{
+2
+"apiKey" : "YOUR_API_KEY",
+3
+"grant_type" : "password",
+4
+"username" : "tom",
+5
+"password" : "123"
+6
+}
+Response
+1
+{
+2
+"access_token":
+"eyJhbGciOiJIUzUxMiIsImNhbGciOiJHWklQIn0.H4sIAAAAAAAAAC2LQQ7CMAwE_JzDlRyk7Zf4BGVcQyKZHAUgmiF-DtGcNsZzb6AajnKDgtEpHHC-ZSnzEw--Jw4HTIE
+qEq7NG-6XR3vbFWcmlBeSTU8W-myEvdiN7XLnx9Vjb73Qh2WIc7jgDEiBpCt_kRyhfj
+-AFiJdf6GAAAA.336Oc0RwODrZP_Hnw0p6lGoHUT-dZpSS3ROe2_Lp4NN0J6qFoah
+OPtuR5z78Gf60pu5GzeEK0KZW4wkrp2v1EQ",
+3
+"token_type": "Bearer",
+4
+"expires_in": 1695751444626
+5
+}
+​
+​
+
+Action
+Ação é a declaração do que os jogadores podem fazer na gamificação. Por exemplo,
+“vender”, “comprar”, “comentar”, “compartilhar”, “seguir”, “visitar”, “logar”, “reunir”, “ligar”,
+“estudar”, etc. No contexto de um cenário de vendas, por exemplo, você pode configurar
+uma ação "vender", que pode ter atributos adicionais como "produto" e "valor" da venda.
+
+Try
+List Actions
+GET {{funifier_server}}/v3/action
+Response
+1
+[
+2
+{
+3
+"action": "Sell",
+4
+"attributes": [
+5
+{
+6
+"name": "product",
+7
+"type": "String"
+8
+},
+9
+{
+10
+"name": "price",
+11
+"type": "Number"
+12
+}
+13
+],
+14
+"active": true,
+15
+"_id": "sell"
+16
+},
+17
+{
+18
+"action": "Watch Video",
+19
+"active": true,
+20
+"_id": "watch_video"
+21
+}
+22
+]
+
+Try
+Create Action
+POST {{funifier_server}}/v3/action
+Request Body
+1
+{
+2
+"action": "Sell",
+3
+"attributes": [
+4
+{"name": "product", "type": "String"},
+5
+{"name": "price", "type": "Number"}
+6
+],
+7
+"active": true,
+8
+"_id": "sell"
+9
+}
+Response
+1
+{
+2
+"action": "Sell",
+3
+"attributes": [
+4
+{
+5
+"name": "product",
+6
+"type": "String"
+7
+},
+8
+{
+9
+"name": "price",
+10
+"type": "Number"
+11
+}
+12
+],
+13
+"active": true,
+14
+
+"_id": "sell"
+15
+}
+Try
+Delete Action
+DELETE {{funifier_server}}/v3/action/:id
+
+​
+​
+
+ActionLog
+É o registro de quando uma ação declarada é efetivamente realizada por um jogador,
+incluindo detalhes como quem fez e quando fez; Exemplo: Jogador João comprou no
+dia 16/09/2023 às 14:30, indicando que João realizou a ação de comprar;
+Try
+List ActionLogs
+GET {{funifier_server}}/v3/action/log
+Response
+1
+[
+2
+{
+3
+"_id": "6509e4e28325771ffaa4506e",
+4
+"actionId": "sell",
+5
+"userId": "jerry",
+6
+"time": 1695147234712,
+7
+"attributes": {
+8
+"product": "bike",
+9
+"price": 1200
+10
+}
+11
+},
+12
+{
+13
+"_id": "6509e4d18325771ffaa4505c",
+14
+"actionId": "sell",
+15
+"userId": "tom",
+16
+
+"time": 1695147217658,
+17
+"attributes": {
+18
+"product": "book",
+19
+"price": 25
+20
+}
+21
+}
+22
+]
+Try
+Add ActionLog
+POST {{funifier_server}}/v3/action/log
+Request Body
+1
+{
+2
+"actionId": "sell",
+3
+"userId": "jerry",
+4
+"attributes": {
+5
+"product": "bike",
+6
+"price": 1200
+7
+}
+8
+}
+Response
+1
+{
+2
+"actionId": "sell",
+3
+"userId": "jerry",
+4
+"time": 1695147341932,
+5
+"attributes": {
+6
+"product": "bike",
+7
+"price": 1200
+8
+
+},
+9
+"_id": "6509e54d8325771ffaa4509a"
+10
+}
+
+Try
+Add ActionLog Bulk
+POST {{funifier_server}}/v3/action/log/bulk
+Este método permite enviar vários ActionLogs de uma única vez para evitar múltiplas
+requisições na API.
+Request Body
+1
+[
+2
+{
+3
+"actionId": "sell",
+4
+"userId": "jerry",
+5
+"attributes": { "product": "bike", "price": 1200 }
+6
+},
+7
+{
+8
+"actionId": "sell",
+9
+"userId": "tom",
+10
+"attributes": { "product": "book", "price": 25 }
+11
+}
+12
+]
+Response
+1
+{
+2
+"content_size": 2,
+3
+"total_registered": 2,
+4
+"content": [
+5
+{
+6
+"actionId": "sell",
+7
+"userId": "jerry",
+8
+"time": 1695147549965,
+9
+"attributes": {
+10
+
+"product": "bike",
+11
+"price": 1200
+12
+},
+13
+"_id": "6509e61d8325771ffaa450de"
+14
+},
+15
+{
+16
+"actionId": "sell",
+17
+"userId": "tom",
+18
+"time": 1695147549969,
+19
+"attributes": {
+20
+"product": "book",
+21
+"price": 25
+22
+},
+23
+"_id": "6509e61d8325771ffaa450df"
+24
+}
+25
+]
+26
+}
+Try
+Delete ActionLog
+DELETE {{funifier_server}}/v3/action/log/:id
+
+​
+​
+
+Achievement
+Reconhecimentos que os jogadores recebem ao atingir certos marcos, como completar
+um desafio, subir de nível, ganhar pontos, comprar um item da loja virtua.
+
+Try
+List Achievements
+GET {{funifier_server}}/v3/achievement
+Response
+1
+[
+2
+{
+3
+"_id": "6509e4e28325771ffaa4506f",
+4
+"player": "jerry",
+5
+"total": 1,
+6
+"type": 1,
+7
+"item": "DTqtTl9",
+8
+"time": 1695147234712
+9
+},
+10
+{
+11
+"_id": "6509e4e28325771ffaa45075",
+12
+"player": "jerry",
+13
+"total": 1,
+14
+"type": 1,
+15
+"item": "DTpD4sB",
+16
+"time": 1695147234712
+17
+}
+18
+]
+​
+​
+
+Point
+Pontos são unidades de medida do status do jogador. Uma gamificação pode ter vários
+tipos de pontos diferentes. Em uma gamificação para escola você poderia ter pontos
+para cada disciplina. Por exemplo: Pontos de matemática, história, física, etc. Ao
+configurar os pontos, você declara a categoria do ponto, por exemplo, "xp", "karma",
+"moedas" ou simplesmente "pontos".
+
+Try
+List Points
+GET {{funifier_server}}/v3/point
+Response
+1
+[
+2
+{
+3
+"category": "Exchangeable Coins",
+4
+"shortName": "Coins",
+5
+"extra": {},
+6
+"techniques": [
+7
+"GT75"
+8
+],
+9
+"_id": "coin"
+10
+},
+11
+{
+12
+"category": "Experience Points",
+13
+"shortName": "XP",
+14
+"extra": {},
+15
+"techniques": [
+16
+"GT01"
+17
+],
+18
+"_id": "xp"
+19
+}
+20
+]
+
+Try
+Create Point
+POST {{funifier_server}}/v3/point
+Request Body
+1
+{
+2
+"category": "Experience Points",
+3
+"shortName": "XP",
+4
+"extra": {},
+5
+"techniques": ["GT01"],
+6
+"_id": "xp"
+7
+}
+Response
+1
+{
+2
+"category": "Experience Points",
+3
+"shortName": "XP",
+4
+"extra": {},
+5
+"techniques": [
+6
+"GT01"
+7
+],
+8
+"_id": "xp"
+9
+}
+Try
+Delete Point
+DELETE {{funifier_server}}/v3/point/:id
+Para excluir um ponto você informa no final do endpoint o id do ponto que deseja
+excluir.
+
+​
+​
+
+Challenge
+Challenge são tarefas que os jogadores precisam executar. No desafio configuramos as
+ações que o jogador precisa executar e as conquistas que isso irá gerar para ele. Por
+
+exemplo: Podemos ter um desafio “Faça 10 Vendas para ganhar 25 pontos xp”. No
+desafio configuramos as regras que o jogador precisa cumprir, neste caso completar a
+ação “vender” 10 vezes. E os pontos que ele irá ganhar, neste caso 25 pontos da
+categoria xp.
+
+Try
+List Challenges
+GET {{funifier_server}}/v3/challenge
+Response
+1
+[
+2
+{
+3
+"challenge": "Sell 10 books",
+4
+"description": "Sell 10 books to earn 25 xp and 5 coins",
+5
+"range": 0,
+6
+"active": true,
+7
+"rules": [
+8
+{
+9
+"actionId": "sell",
+10
+"position": 0,
+11
+"operator": 1,
+12
+"timeAmount": 0,
+13
+"timeScale": 0,
+14
+"outOfTime": false,
+15
+"everyAmount": 0,
+16
+"everyScale": 0,
+17
+"filters": [
+18
+{
+19
+"value": "book",
+20
+"operator": 1,
+21
+"param": "product"
+22
+}
+23
+],
+
+24
+"total": 10
+25
+}
+26
+],
+27
+"teamChallenge": false,
+28
+"limitTotal": 0,
+29
+"limitPerType": 0,
+30
+"limitTimeAmount": 0,
+31
+"limitTimeScale": 0,
+32
+"techniques": [
+33
+"GT35"
+34
+],
+35
+"propagateOrigin": true,
+36
+"badge": {
+37
+"small": {
+38
+"url":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/561f0ab5bb67c2102811.png
+",
+39
+"size": 0,
+40
+"width": 0,
+41
+"height": 0,
+42
+"depth": 0
+43
+},
+44
+"medium": {
+45
+"url":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/4021d0d45f7d43213433.png
+",
+46
+"size": 0,
+
+47
+"width": 0,
+48
+"height": 0,
+49
+"depth": 0
+50
+},
+51
+"original": {
+52
+"url":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/8972f3e194e33d720916.",
+53
+"size": 0,
+54
+"width": 0,
+55
+"height": 0,
+56
+"depth": 0
+57
+}
+58
+},
+59
+"hideUntilEarned": false,
+60
+"points": [
+61
+{
+62
+"total": 25,
+63
+"category": "xp",
+64
+"operation": 0,
+65
+"perPlayer": false
+66
+},
+67
+{
+68
+"total": 5,
+69
+"category": "coin",
+70
+"operation": 0,
+71
+
+"perPlayer": false
+72
+}
+73
+],
+74
+"extra": {},
+75
+"rewards": [],
+76
+"i18n": {},
+77
+"created": 1688582377665,
+78
+"updated": 1694978025816,
+79
+"badgeUrl":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/561f0ab5bb67c2102811.png
+",
+80
+"_id": "DTkhJHV"
+81
+}
+82
+]
+
+Try
+Create Challenge
+POST {{funifier_server}}/v3/challenge
+Request Body
+1
+{
+2
+"challenge": "Watch Video", "active": true,
+3
+"description": "Complete this challenge by watching a video, and earn 10 xp",
+4
+"rules": [{"actionId": "watch_video", "operator": 5, "total": 0}],
+5
+"points": [{"total": 10.0, "category": "xp", "operation": 0}],
+6
+"techniques": [ "GT35"]
+7
+}
+Response
+1
+{
+2
+"challenge": "Watch Video",
+3
+"description": "Complete this challenge by watching a video, and earn 10 xp",
+4
+"range": 0,
+5
+"active": true,
+6
+"when": null,
+7
+"rules": [
+8
+{
+9
+"actionId": "watch_video",
+10
+"position": 0,
+11
+"operator": 5,
+12
+"timeAmount": 0,
+13
+"timeScale": 0,
+14
+"outOfTime": false,
+15
+"everyAmount": 0,
+16
+
+"everyScale": 0,
+17
+"filters": null,
+18
+"attribute": null,
+19
+"total": 0,
+20
+"entity": null,
+21
+"aggregate": null,
+22
+"prepared": null,
+23
+"_id": null
+24
+}
+25
+],
+26
+"teamChallenge": false,
+27
+"limitTotal": 0,
+28
+"limitPerType": 0,
+29
+"limitTimeAmount": 0,
+30
+"limitTimeScale": 0,
+31
+"techniques": [
+32
+"GT35"
+33
+],
+34
+"join": null,
+35
+"trackFullProgress": null,
+36
+"propagateOrigin": null,
+37
+"badge": null,
+38
+"hideUntilEarned": false,
+39
+"points": [
+40
+{
+41
+
+"total": 10,
+42
+"category": "xp",
+43
+"operation": 0,
+44
+"value": null,
+45
+"perPlayer": false
+46
+}
+47
+],
+48
+"notifications": null,
+49
+"requirements": null,
+50
+"tags": null,
+51
+"principals": null,
+52
+"extra": {},
+53
+"rewards": [],
+54
+"i18n": {},
+55
+"created": 1695219916252,
+56
+"updated": 1695219916252,
+57
+"available": null,
+58
+"badgeUrl": null,
+59
+"_id": "DTo8dS3"
+60
+}
+Try
+Delete Challenge
+DELETE {{funifier_server}}/v3/challenge/:id
+Para excluir um challenge você informa no final do endpoint o id do challenge que deseja excluir.
+
+​
+
+Level
+
+​
+
+Level é um sistema de evolução para o jogador. Por exemplo: Nas artes marciais, as
+faixas que vão da cor branca até a cor preta representam um sistema de níveis. Você
+pode ter um número ilimitado de níveis na gamificação. Para cada nível você define a
+quantidade mínima de pontos para chegar no nível e também pode definir outros
+requisitos para alcançar o nível.
+Try
+List Levels
+GET {{funifier_server}}/v3/level
+Response
+1
+[
+2
+{
+3
+"level": "Apprentice",
+4
+"position": 0,
+5
+"description": "It indicates that you are learning, growing and striving to reach your
+goals.",
+6
+"minPoints": 10,
+7
+"notifications": [],
+8
+"requirements": [],
+9
+"i18n": {},
+10
+"extra": {},
+11
+"techniques": [
+12
+"GT85"
+13
+],
+14
+"_id": "L0"
+15
+}
+16
+]
+
+Try
+Create Level
+POST {{funifier_server}}/v3/level
+Request Body
+1
+{
+2
+"level": "Apprentice",
+3
+"position": 0,
+4
+"description": "It indicates that you are learning, growing and striving to reach your
+goals.",
+5
+"minPoints": 10,
+6
+"notifications": [],
+7
+"requirements": [],
+8
+"i18n": {},
+9
+"extra": {},
+10
+"techniques": ["GT85"],
+11
+"_id": "L0"
+12
+}
+Response
+1
+{
+2
+"level": "Apprentice",
+3
+"position": 0,
+4
+"description": "It indicates that you are learning, growing and striving to reach your
+goals.",
+5
+"minPoints": 10,
+6
+"image": null,
+7
+"notifications": [],
+8
+"requirements": [],
+9
+"i18n": {},
+10
+
+"extra": {},
+11
+"techniques": [
+12
+"GT85"
+13
+],
+14
+"point": null,
+15
+"_id": "L0"
+16
+}
+Try
+Delete Level
+DELETE {{funifier_server}}/v3/level/:id
+
+Try
+List Config
+GET {{funifier_server}}/v3/database/level_config
+Response
+1
+[
+2
+{
+3
+"_id": "global",
+4
+"pointCategory": "xp"
+5
+}
+6
+]
+
+Try
+Update Config
+PUT {{funifier_server}}/v3/database/level_config
+Level config define a categoria de ponto global para o sistema de níveis. Suponha
+que você Queira montar um sistema de níveis baseado no tipo de ponto XP apenas.
+Neste caso você pode configurar o level config definindo este pointCategory
+específico. Caso ele não esteja definido, o comportamento padrão do sistema de
+nível é apurar a quantidade total de todos os tipos de pontos.
+Request Body
+1
+{
+2
+"_id": "global",
+3
+"pointCategory": "xp"
+4
+}
+Response
+1
+{
+2
+"pointCategory": "xp",
+3
+"_id": "global"
+4
+}
+Try
+Update Positions
+PUT {{funifier_server}}/v3/level/position
+Este endpoint atualiza todas as posições de todos os níveis de acordo com a
+quantidade de pontos mínimos definidos para cada um.
+Response
+1
+{
+2
+"status": "OK"
+3
+}
+​
+​
+
+Leaderboard
+Leaderboard é uma classificar jogadores com base em resultados. Por exemplo: Um
+ranking que mostra os 10 jogadores com mais pontos acumulados na semana atual,
+ordenados de quem tem mais pontos para quem tem menos pontos. Para configurar um
+ranking você informa o título do ranking; a operação de como calcular os líderes; e o
+período de apuração.
+
+Try
+List Leaderboards
+GET {{funifier_server}}/v3/leaderboard
+Response
+1
+[
+2
+{
+3
+"title": "Top Players",
+4
+"description": "Players with the most points xp in the week",
+5
+"principalType": 0,
+6
+"operation": {
+7
+"type": 3,
+8
+"achievement_type": 0,
+9
+"item": "xp",
+10
+"filters": [],
+11
+"sort": -1,
+12
+"sub": false
+13
+},
+14
+"period": {
+15
+"type": 0,
+16
+"timeAmount": 1,
+17
+"timeScale": 6
+18
+},
+19
+"techniques": [
+20
+"GT03"
+21
+],
+22
+"_id": "DTjTvZ5"
+23
+}
+
+24
+]
+
+Try
+Create Leaderboard
+POST {{funifier_server}}/v3/leaderboard
+Request Body
+1
+{
+2
+"title": "Top Players",
+3
+"description": "Players with the most points xp in the week",
+4
+"principalType": 0,
+5
+"operation": {
+6
+"type": 3,
+7
+"achievement_type": 0,
+8
+"item": "xp",
+9
+"filters": [],
+10
+"sort": -1,
+11
+"sub": false
+12
+},
+13
+"period": { "type": 0, "timeAmount": 1, "timeScale": 6 },
+14
+"techniques": ["GT03"],
+15
+"_id": "DTjTvZ5"
+16
+}
+Response
+1
+{
+2
+"title": "Top Players",
+3
+"description": "Players with the most points xp in the week",
+4
+"principalType": 0,
+5
+"operation": {
+6
+"type": 3,
+7
+
+"achievement_type": 0,
+8
+"item": "xp",
+9
+"filters": [],
+10
+"sort": -1,
+11
+"sub": false
+12
+},
+13
+"period": {
+14
+"type": 0,
+15
+"timeAmount": 1,
+16
+"timeScale": 6
+17
+},
+18
+"techniques": [
+19
+"GT03"
+20
+],
+21
+"_id": "DTjTvZ5"
+22
+}
+Try
+Delete Leaderboard
+DELETE {{funifier_server}}/v3/leaderboard/:id
+
+Try
+Leaders Aggregate
+POST {{funifier_server}}/v3/leaderboard/DTjTvZ5/leader/aggregate?period=&live=true
+Retorna a lista de líderes de um leaderboard. Você pode informar uma lista de
+comandos agreguete para enriquecer os dados dos líderes caso necessário. Além
+disso na URL você pode informar 2 parâmetros. O período de apuração dos líderes.
+Caso o período não seja informado ele utiliza o período padrão configurado no
+ranking. E o segundo parágrafo disponível é o live. Que indica se o ranking deve ser
+calculado em tempo real. Por padrão os líderes do leaderboard é calculado de tempo
+em tempo e o Funifier mantêm o resultado dos líderes em cache para otimizar a
+velocidade de entrega do resultado.
+Request Body
+1
+[]
+Response
+1
+[
+2
+{
+3
+"_id": "tom_D0zCMvq",
+4
+"total": 30,
+5
+"position": 1,
+6
+"move": "up",
+7
+"player": "tom",
+8
+"name": "Tom",
+9
+"extra": {
+10
+"cache": "D0zCMvq"
+11
+},
+12
+"boardId": "DTjTvZ5"
+13
+},
+14
+{
+15
+"_id": "jerry_D0zCMvq",
+16
+"total": 30,
+17
+"position": 2,
+18
+
+"move": "up",
+19
+"player": "jerry",
+20
+"name": "Jerry",
+21
+"image": "https://my.funifier.com/images/funny.png",
+22
+"extra": {
+23
+"cache": "D0zCMvq"
+24
+},
+25
+"boardId": "DTjTvZ5"
+26
+}
+27
+]
+Try
+Reset Leaders Cache
+GET {{funifier_server}}/v3/leaderboard/reset
+Limpa o cache de resultado de líderes de todos os leaderboards.
+Response
+1
+{
+2
+"status": "OK"
+3
+}
+​
+​
+
+Virtual Good
+Virtual goods é um módulo para configurar lojas onde os jogadores podem adquirir itens
+físicos ou virtuais dentro da gamificação. Por exemplo: Uma loja virtual onde os
+jogadores podem trocar pontos por souvenirs; Para configurar um item você informa o
+nome, descrição, quantidade disponível do item, requisitos para comprar o item e
+também pode definir um limite de quantos deste item o jogador pode comprar. Por
+exemplo: uma camiseta, que custa 15 pontos “moedas”, e pode ser comprada apenas
+uma vez por mês por cada jogador.
+
+Try
+List Catalogs
+GET {{funifier_server}}/v3/virtualgoods/catalog
+Response
+1
+[
+2
+{
+3
+"catalog": "Gifts",
+4
+"extra": {},
+5
+"created": 1688576863947,
+6
+"i18n": {},
+7
+"_id": "gifts"
+8
+}
+9
+]
+Try
+Create Catalog
+POST {{funifier_server}}/v3/virtualgoods/catalog
+Request Body
+1
+{
+2
+"catalog": "Gifts",
+3
+"extra": {},
+4
+"i18n": {},
+5
+"_id": "gifts"
+6
+}
+Response
+1
+{
+2
+"catalog": "Gifts",
+3
+"extra": {},
+4
+"created": 1695222753875,
+5
+"i18n": {},
+
+6
+"_id": "gifts"
+7
+}
+Try
+Delete Catalog
+DELETE {{funifier_server}}/v3/virtualgoods/catalog/:id
+
+Try
+List Items
+GET {{funifier_server}}/v3/virtualgoods/item
+Response
+1
+[
+2
+{
+3
+"catalogId": "gifts",
+4
+"name": "Bike",
+5
+"description": "Eletric bike",
+6
+"amount": -1,
+7
+"active": true,
+8
+"created": 1688579902963,
+9
+"extra": {},
+10
+"requires": [],
+11
+"rewards": [],
+12
+"notifications": [],
+13
+"i18n": {},
+14
+"techniques": [
+15
+"GT08"
+16
+],
+17
+"owned": 5,
+18
+
+"_id": "DTj7lVn"
+19
+}
+20
+]
+Try
+Create Item
+POST {{funifier_server}}/v3/virtualgoods/item
+Request Body
+1
+{
+2
+"catalogId": "gifts",
+3
+"name": "Bike",
+4
+"description": "Eletric bike",
+5
+"amount": -1,
+6
+"active": true,
+7
+"created": 1688579902963,
+8
+"extra": {},
+9
+"requires": [],
+10
+"rewards": [],
+11
+"notifications": [],
+12
+"i18n": {},
+13
+"techniques": ["GT08"],
+14
+"_id": "DTj7lVn"
+15
+}
+Response
+1
+{
+2
+"catalogId": "gifts",
+3
+"name": "Bike",
+4
+"description": "Eletric bike",
+5
+
+"amount": -1,
+6
+"active": true,
+7
+"created": 1688579902963,
+8
+"extra": {},
+9
+"requires": [],
+10
+"rewards": [],
+11
+"notifications": [],
+12
+"i18n": {},
+13
+"techniques": [
+14
+"GT08"
+15
+],
+16
+"owned": 0,
+17
+"_id": "DTj7lVn"
+18
+}
+Try
+Delete Item
+DELETE {{funifier_server}}/v3/virtualgoods/item/:id
+
+Try
+Create Purchase
+POST {{funifier_server}}/v3/virtualgoods/purchase
+Para comprar um item do catálogo você informa o ID do jogador que está
+comprando, o item que está sendo comprado e a quantidade. Se a compra for bem
+sucedida será retornado o status OK e um campo achievements com a lista de
+créditos e débitos feitos nesta transação de compra. { "achievements": [ { "player":
+"tom", "total": -1, "type": 0, "item": "coin", "time": 1695223594778, "_id":
+"650b0f2a8325771ffaa5bcfc" }, { "player": "tom", "total": 1, "type": 2, "item": "DTj7lVn",
+"time": 1695223594778, "_id": "650b0f2a8325771ffaa5bcfb" } ], "status": "OK" } Caso
+o jogador não consiga realizar a compra por qualquer motivo será retornado o status
+UNAUTHORIZED e um campo restrictions com as razões da falha na compra. {
+"restrictions": [ "insufficient_requirements", "item_out_of_time", "limit_exceeded",
+"principal_not_allowed" ], "status": "UNAUTHORIZED" }
+Request Body
+1
+{
+2
+"player": "tom",
+3
+"item": "DTj7lVn",
+4
+"total": 1
+5
+}
+Response
+1
+{
+2
+"milliseconds": {
+3
+"init": 6,
+4
+"debits": 2,
+5
+"credits": 4,
+6
+"verify": 2,
+7
+"trigger": 4,
+8
+"notify": 0,
+9
+"status": 43
+10
+},
+11
+"achievements": [
+12
+{
+
+13
+"player": "tom",
+14
+"total": -1,
+15
+"type": 0,
+16
+"item": "coin",
+17
+"time": 1695223594778,
+18
+"extra": {
+19
+"origin": "650b0f2a8325771ffaa5bcfb"
+20
+},
+21
+"_id": "650b0f2a8325771ffaa5bcfc"
+22
+},
+23
+{
+24
+"player": "tom",
+25
+"total": 1,
+26
+"type": 0,
+27
+"item": "xp",
+28
+"time": 1695223594778,
+29
+"extra": {
+30
+"origin": "650b0f2a8325771ffaa5bcfb"
+31
+},
+32
+"_id": "650b0f2a8325771ffaa5bcfd"
+33
+},
+34
+{
+35
+"player": "tom",
+36
+"total": 1,
+37
+"type": 2,
+
+38
+"item": "DTj7lVn",
+39
+"time": 1695223594778,
+40
+"_id": "650b0f2a8325771ffaa5bcfb"
+41
+}
+42
+],
+43
+"restrictions": [],
+44
+"status": "OK"
+45
+}
+Try
+Delete Purchase
+DELETE {{funifier_server}}/v3/virtualgoods/purchase
+Ao excluir uma compra todos os débitos e créditos da transação serão desfeitos.
+Request Body
+1
+{
+2
+"_id": "650b0f2a8325771ffaa5bcfb"
+3
+}
+Response
+1
+{
+2
+"_id": "650b0f2a8325771ffaa5bcfb"
+3
+}
+​
+​
+
+Lottery
+Módulo para configurar sorteios. Quando o sorteio é realizado as recompensas são
+dadas a um número de vencedores selecionado de forma aleatória. Por exemplo: Um
+sorteio de uma viagem para Cancún, onde temos apenas um ganhador, e o sorteio será
+realizado em uma data estipulada pelo administrador. Para participar do sorteio você
+acumula cupons do sorteio, que podem ser conquistados por exemplo realizando algum
+desafio específico.
+
+Try
+List Lottery
+GET {{funifier_server}}/v3/lottery
+Response
+1
+[
+2
+{
+3
+"title": "Travel to Cancun",
+4
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+5
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+6
+"tags": [],
+7
+"drawDate": 1690824650503,
+8
+"autoExecute": true,
+9
+"choiceMethod": "random_ticket",
+10
+"maxWinners": 1,
+11
+"maxPerPlayer": 1,
+12
+"notifications": [],
+13
+"extra": {},
+14
+"techniques": [
+15
+"GT74"
+16
+],
+17
+"createdDate": 1688578277583,
+18
+"rewards": [
+19
+{
+20
+"total": 1,
+21
+"type": 2,
+22
+
+"item": "flight_ticket",
+23
+"operation": 0,
+24
+"extra": {},
+25
+"restrict": false,
+26
+"perPlayer": false
+27
+}
+28
+],
+29
+"_id": "DTj0x5z"
+30
+}
+31
+]
+
+Try
+Create Lottery
+POST {{funifier_server}}/v3/lottery
+Request Body
+1
+{
+2
+"title": "Travel to Cancun",
+3
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+4
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+5
+"drawDate": 1690824650503,
+6
+"autoExecute": true,
+7
+"choiceMethod": "random_ticket",
+8
+"maxWinners": 1,
+9
+"maxPerPlayer": 1,
+10
+"notifications": [],
+11
+"extra": {},
+12
+"techniques": ["GT74"],
+13
+"createdDate": 1688578277583,
+14
+"rewards": [
+15
+{
+16
+"total": 1,
+17
+"type": 2,
+18
+"item": "flight_ticket"
+19
+}
+20
+],
+21
+"_id": "DTj0x5z"
+22
+
+}
+Response
+1
+{
+2
+"title": "Travel to Cancun",
+3
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+4
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+5
+"tags": [],
+6
+"drawDate": 1690824650503,
+7
+"autoExecute": true,
+8
+"choiceMethod": "random_ticket",
+9
+"maxWinners": 1,
+10
+"maxPerPlayer": 1,
+11
+"notifications": [],
+12
+"link": null,
+13
+"extra": {},
+14
+"principals": null,
+15
+"folder": null,
+16
+"techniques": [
+17
+"GT74"
+18
+],
+19
+"executedDate": null,
+20
+"createdDate": 1688578277583,
+21
+"rewards": [
+22
+{
+23
+
+"total": 1,
+24
+"type": 2,
+25
+"item": "flight_ticket",
+26
+"operation": 0,
+27
+"extra": {},
+28
+"period": null,
+29
+"folder": null,
+30
+"restrict": false,
+31
+"perPlayer": false
+32
+}
+33
+],
+34
+"_id": "DTj0x5z"
+35
+}
+Try
+Delete Lottery
+DELETE {{funifier_server}}/v3/lottery/:id
+
+Try
+List Tickets
+GET {{funifier_server}}/v3/lottery/ticket?lottery=DTj0x5z
+Response
+1
+[
+2
+{
+3
+"lottery": "DTj0x5z",
+4
+"player": "tom",
+5
+"value": "123456",
+6
+"created": 1695229525625,
+7
+"random": 5635418,
+8
+"used": true,
+9
+"_id": "650b26558325771ffaa5e417"
+10
+},
+11
+{
+12
+"lottery": "DTj0x5z",
+13
+"player": "tom",
+14
+"created": 1695229573866,
+15
+"random": 4169853,
+16
+"_id": "650b26858325771ffaa5e441"
+17
+}
+18
+]
+
+Try
+Create Ticket
+POST {{funifier_server}}/v3/lottery/ticket
+Request Body
+1
+{
+2
+"lottery":"DTj0x5z",
+3
+"player":"tom"
+4
+}
+Response
+1
+{
+2
+"lottery": "DTj0x5z",
+3
+"player": "tom",
+4
+"created": 1695229573866,
+5
+"random": 4169853,
+6
+"_id": "650b26858325771ffaa5e441"
+7
+}
+Try
+Delete Ticket
+DELETE {{funifier_server}}/v3/lottery/ticket/:id
+
+Try
+Execute Lottery
+GET {{funifier_server}}/v3/lottery/DTj0x5z/execute
+Response
+1
+{
+2
+"tickets": [
+3
+{
+4
+"lottery": "DTj0x5z",
+5
+"player": "tom",
+6
+"created": 1695229573866,
+7
+"random": 4169853,
+8
+"used": true,
+9
+"_id": "650b26858325771ffaa5e441"
+10
+}
+11
+],
+12
+"lottery": {
+13
+"title": "Travel to Cancun",
+14
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+15
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+16
+"tags": [],
+17
+"drawDate": 1690824650503,
+18
+"autoExecute": false,
+19
+"choiceMethod": "random_ticket",
+20
+"maxWinners": 1,
+21
+"maxPerPlayer": 1,
+22
+
+"notifications": [],
+23
+"extra": {},
+24
+"techniques": [
+25
+"GT74"
+26
+],
+27
+"createdDate": 1688578277583,
+28
+"rewards": [
+29
+{
+30
+"total": 1,
+31
+"type": 2,
+32
+"item": "flight_ticket",
+33
+"operation": 0,
+34
+"extra": {},
+35
+"restrict": false,
+36
+"perPlayer": false
+37
+}
+38
+],
+39
+"_id": "DTj0x5z"
+40
+}
+41
+}
+
+Try
+Rollback Execution
+DELETE {{funifier_server}}/v3/lottery/DTj0x5z/execute
+Response
+1
+{
+2
+"lottery": {
+3
+"title": "Travel to Cancun",
+4
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+5
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+6
+"tags": [],
+7
+"drawDate": 1690824650503,
+8
+"autoExecute": true,
+9
+"choiceMethod": "random_ticket",
+10
+"maxWinners": 1,
+11
+"maxPerPlayer": 1,
+12
+"notifications": [],
+13
+"extra": {},
+14
+"techniques": [
+15
+"GT74"
+16
+],
+17
+"executedDate": 1695229613714,
+18
+"createdDate": 1688578277583,
+19
+"rewards": [
+20
+{
+21
+"total": 1,
+22
+
+"type": 2,
+23
+"item": "flight_ticket",
+24
+"operation": 0,
+25
+"extra": {},
+26
+"restrict": false,
+27
+"perPlayer": false
+28
+}
+29
+],
+30
+"_id": "DTj0x5z"
+31
+},
+32
+"message": "Execution Rollback Done"
+33
+}
+Try
+List Winners
+GET {{funifier_server}}/v3/lottery/winner?lottery=DTj0x5z
+Response
+1
+[
+2
+{
+3
+"player": "tom",
+4
+"total": 1,
+5
+"type": 5,
+6
+"item": "DTj0x5z",
+7
+"time": 1695229965503,
+8
+"extra": {
+9
+"ticket": "650b26858325771ffaa5e441",
+10
+"player_name": "Tom",
+11
+"player_image": null
+
+12
+},
+13
+"_id": "650b280d8325771ffaa5edfe"
+14
+}
+15
+]
+
+Try
+List Participants
+GET {{funifier_server}}/v3/lottery/participants?lottery=DTj0x5z
+Response
+1
+{
+2
+"winners": [
+3
+{
+4
+"player": "tom",
+5
+"total": 1,
+6
+"type": 5,
+7
+"item": "DTj0x5z",
+8
+"time": 1695229965503,
+9
+"extra": {
+10
+"ticket": "650b26858325771ffaa5e441"
+11
+},
+12
+"_id": "650b280d8325771ffaa5edfe"
+13
+}
+14
+],
+15
+"total_tickets": 2,
+16
+"total_winners": 1,
+17
+"total_participants": 1,
+18
+"lottery": {
+19
+"title": "Travel to Cancun",
+20
+"description": "Travel with a companion to Cancun, with airfare and accommodation, for 7
+days.",
+21
+"image":
+"https://s3.amazonaws.com/funifier_node/540f14d70ffeeb8c2fe11767/bc6a75910406f34ad4cd."
+,
+22
+
+"tags": [],
+23
+"drawDate": 1690824650503,
+24
+"autoExecute": false,
+25
+"choiceMethod": "random_ticket",
+26
+"maxWinners": 1,
+27
+"maxPerPlayer": 1,
+28
+"notifications": [],
+29
+"extra": {},
+30
+"techniques": [
+31
+"GT74"
+32
+],
+33
+"executedDate": 1695229965527,
+34
+"createdDate": 1688578277583,
+35
+"rewards": [
+36
+{
+37
+"total": 1,
+38
+"type": 2,
+39
+"item": "flight_ticket",
+40
+"operation": 0,
+41
+"extra": {},
+42
+"restrict": false,
+43
+"perPlayer": false
+44
+}
+45
+],
+46
+"_id": "DTj0x5z"
+47
+
+},
+48
+"participants": [
+49
+{
+50
+"tickets": 2,
+51
+"_id": "tom"
+52
+}
+53
+]
+54
+}
+​
+​
+
+Competition
+Módulo para promover a disputa entre dois ou mais jogadores em um determinado
+período para avaliar quais jogadores alcançam os melhores resultados. Uma
+competição pode estipular o número máximo de participantes e o número máximo de
+vencedores. Além disso, o critério de classificação dos competidores deve ser definido
+assim que a competição é criada. Os jogadores interessados devem se registrar na
+competição para participar e serem considerados na apuração dos vencedores. Como
+recompensa, os vencedores de uma competição ganham o título de vencedor da
+competição com sua respectiva posição na classificação, e também podem ganhar
+outros prêmios como pontos, itens da loja virtual, cupons para sorteio etc.
+
+Try
+List Competitions
+GET {{funifier_server}}/v3/competition
+Response
+1
+[
+2
+{
+3
+"title": "Sales Race",
+4
+"description": "Leads the competition who has the highest amount of closed sales in
+the month.",
+5
+"period": {
+6
+"type": 0,
+7
+"timeAmount": 0,
+8
+"timeScale": 0,
+9
+"startDate": 1693526400000,
+10
+"endDate": 1698796799999,
+11
+"expression": "-0M-;+1M+"
+12
+},
+13
+"maxWinners": 1,
+14
+"maxPlayers": 100,
+15
+"minScore": 0,
+16
+"operation": {
+17
+"type": 1,
+18
+"achievement_type": 0,
+19
+"item": "sell",
+20
+"filters": [],
+21
+"sort": -1,
+22
+"sub": false
+23
+
+},
+24
+"requires": [
+25
+{
+26
+"total": 10,
+27
+"type": 0,
+28
+"item": "coin",
+29
+"operation": 1,
+30
+"extra": {},
+31
+"restrict": false,
+32
+"perPlayer": false
+33
+}
+34
+],
+35
+"rewards": [
+36
+{
+37
+"total": 100,
+38
+"type": 0,
+39
+"item": "xp",
+40
+"operation": 0,
+41
+"extra": {
+42
+"position_start": 1,
+43
+"position_ends": 3
+44
+},
+45
+"restrict": false,
+46
+"perPlayer": false
+47
+}
+48
+
+],
+49
+"notifications": [],
+50
+"active": true,
+51
+"teamCompetition": false,
+52
+"autoExecute": false,
+53
+"extra": {},
+54
+"techniques": [
+55
+"GT26"
+56
+],
+57
+"created": 1688578848312,
+58
+"updated": 1695303694755,
+59
+"now": 1695303704256,
+60
+"_id": "race"
+61
+}
+62
+]
+
+Try
+Create Competition
+POST {{funifier_server}}/v3/competition
+Request Body
+1
+{
+2
+"title": "Sales Race",
+3
+"description": "Leads the competition who has the highest amount of closed sales in
+the month.",
+4
+"period": {
+5
+"expression": "-0M-;+1M+"
+6
+},
+7
+"maxWinners": 1,
+8
+"maxPlayers": 100,
+9
+"minScore": 0,
+10
+"operation": {
+11
+"type": 1,
+12
+"achievement_type": 0,
+13
+"item": "sell",
+14
+"filters": [],
+15
+"sort": -1,
+16
+"sub": false
+17
+},
+18
+"requires": [
+19
+{
+20
+"total": 10,
+21
+"type": 0,
+22
+"item": "coin",
+23
+
+"operation": 1,
+24
+"extra": {},
+25
+"restrict": false,
+26
+"perPlayer": false
+27
+}
+28
+],
+29
+"rewards": [
+30
+{
+31
+"total": 100,
+32
+"type": 0,
+33
+"item": "xp",
+34
+"operation": 0,
+35
+"extra": {
+36
+"position_start": 1,
+37
+"position_ends": 3
+38
+},
+39
+"restrict": false,
+40
+"perPlayer": false
+41
+}
+42
+],
+43
+"notifications": [],
+44
+"active": true,
+45
+"teamCompetition": false,
+46
+"autoExecute": true,
+47
+"extra": {},
+48
+
+"techniques": ["GT26"],
+49
+"_id": "race"
+50
+}
+Response
+1
+{
+2
+"title": "Sales Race",
+3
+"description": "Leads the competition who has the highest amount of closed sales in
+the month.",
+4
+"period": {
+5
+"type": 0,
+6
+"timeAmount": 0,
+7
+"timeScale": 0,
+8
+"startDate": 1693526400000,
+9
+"endDate": 1698796799999,
+10
+"expression": "-0M-;+1M+"
+11
+},
+12
+"maxWinners": 1,
+13
+"maxPlayers": 100,
+14
+"minScore": 0,
+15
+"operation": {
+16
+"type": 1,
+17
+"achievement_type": 0,
+18
+"item": "sell",
+19
+"filters": [],
+20
+"sort": -1,
+21
+"sub": false
+22
+
+},
+23
+"requires": [
+24
+{
+25
+"total": 10,
+26
+"type": 0,
+27
+"item": "coin",
+28
+"operation": 1,
+29
+"extra": {},
+30
+"restrict": false,
+31
+"perPlayer": false
+32
+}
+33
+],
+34
+"rewards": [
+35
+{
+36
+"total": 100,
+37
+"type": 0,
+38
+"item": "xp",
+39
+"operation": 0,
+40
+"extra": {
+41
+"position_start": 1,
+42
+"position_ends": 3
+43
+},
+44
+"restrict": false,
+45
+"perPlayer": false
+46
+}
+47
+
+],
+48
+"notifications": [],
+49
+"active": true,
+50
+"teamCompetition": false,
+51
+"autoExecute": true,
+52
+"extra": {},
+53
+"techniques": [
+54
+"GT26"
+55
+],
+56
+"created": 1695304003885,
+57
+"updated": 1695304003885,
+58
+"_id": "race"
+59
+}
+Try
+Delete Competition
+DELETE {{funifier_server}}/v3/competition/race
+
+Try
+List Joins
+GET {{funifier_server}}/v3/competition/join?competition=race
+Response
+1
+[]
+
+Try
+Create Join
+POST {{funifier_server}}/v3/competition/join
+Para se entrar em uma competição é preciso criar um join. Se o join for aceito será
+retornado o status OK. {"status": "OK"} Caso o jogador não consiga entrar na
+competição por qualquer motivo será retornado o status UNAUTHORIZED e um
+campo restrictions com as razões da recusa. { "restrictions":
+["insufficient_requirements"], "status": "UNAUTHORIZED" }
+Request Body
+1
+{
+2
+"competition":"race",
+3
+"player":"jerry"
+4
+}
+Response
+1
+{
+2
+"join": {
+3
+"competition": "race",
+4
+"player": "jerry",
+5
+"created": 1695304642612,
+6
+"_id": "650c4bc28325771ffaa763cb"
+7
+},
+8
+"status": "OK"
+9
+}
+Try
+Delete Join
+DELETE {{funifier_server}}/v3/competition/join
+Request Body
+1
+{
+2
+"competition":"race",
+3
+"player":"tom"
+4
+}
+
+Try
+List Leaders
+POST {{funifier_server}}/v3/competition/leader/aggregate?id=race
+Request Body
+1
+[]
+Response
+1
+[
+2
+{
+3
+"player": "tom",
+4
+"total": 4,
+5
+"position": 1
+6
+},
+7
+{
+8
+"player": "jerry",
+9
+"total": 3,
+10
+"position": 2
+11
+}
+12
+]
+
+Try
+Execute Competition
+GET {{funifier_server}}/v3/competition/race/execute
+Response
+1
+{
+2
+"winners": [
+3
+{
+4
+"player": "tom",
+5
+"total": 1,
+6
+"type": 9,
+7
+"item": "race",
+8
+"time": 1695304844450,
+9
+"extra": {
+10
+"total": 4,
+11
+"position": 1
+12
+},
+13
+"_id": "650c4c8c8325771ffaa7644f"
+14
+}
+15
+],
+16
+"competition": {
+17
+"title": "Sales Race",
+18
+"description": "Leads the competition who has the highest amount of closed sales in
+the month.",
+19
+"period": {
+20
+"type": 0,
+21
+"timeAmount": 0,
+22
+"timeScale": 0,
+23
+
+"startDate": 1693526400000,
+24
+"endDate": 1698796799999,
+25
+"expression": "-0M-;+1M+"
+26
+},
+27
+"maxWinners": 1,
+28
+"maxPlayers": 100,
+29
+"minScore": 0,
+30
+"operation": {
+31
+"type": 1,
+32
+"achievement_type": 0,
+33
+"item": "sell",
+34
+"filters": [],
+35
+"sort": -1,
+36
+"sub": false
+37
+},
+38
+"requires": [],
+39
+"rewards": [
+40
+{
+41
+"total": 100,
+42
+"type": 0,
+43
+"item": "xp",
+44
+"operation": 0,
+45
+"extra": {
+46
+"position_start": 1,
+47
+"position_ends": 3
+48
+
+},
+49
+"restrict": false,
+50
+"perPlayer": false
+51
+}
+52
+],
+53
+"notifications": [],
+54
+"active": true,
+55
+"teamCompetition": false,
+56
+"autoExecute": false,
+57
+"extra": {},
+58
+"techniques": [
+59
+"GT26"
+60
+],
+61
+"created": 1695304003885,
+62
+"updated": 1695304463197,
+63
+"_id": "race"
+64
+}
+65
+}
+
+Try
+Rollback Execute
+DELETE {{funifier_server}}/v3/competition/race/execute
+Response
+1
+{
+2
+"competition": {
+3
+"title": "Sales Race",
+4
+"description": "Leads the competition who has the highest amount of closed sales in
+the month.",
+5
+"period": {
+6
+"type": 0,
+7
+"timeAmount": 0,
+8
+"timeScale": 0,
+9
+"startDate": 1693526400000,
+10
+"endDate": 1698796799999,
+11
+"expression": "-0M-;+1M+"
+12
+},
+13
+"maxWinners": 1,
+14
+"maxPlayers": 100,
+15
+"minScore": 0,
+16
+"operation": {
+17
+"type": 1,
+18
+"achievement_type": 0,
+19
+"item": "sell",
+20
+"filters": [],
+21
+"sort": -1,
+22
+"sub": false
+23
+
+},
+24
+"requires": [],
+25
+"rewards": [
+26
+{
+27
+"total": 100,
+28
+"type": 0,
+29
+"item": "xp",
+30
+"operation": 0,
+31
+"extra": {
+32
+"position_start": 1,
+33
+"position_ends": 3
+34
+},
+35
+"restrict": false,
+36
+"perPlayer": false
+37
+}
+38
+],
+39
+"notifications": [],
+40
+"active": true,
+41
+"teamCompetition": false,
+42
+"autoExecute": false,
+43
+"extra": {},
+44
+"techniques": [
+45
+"GT26"
+46
+],
+47
+"created": 1695304003885,
+48
+
+"updated": 1695304463197,
+49
+"executed": 1695304844450,
+50
+"_id": "race"
+51
+},
+52
+"message": "Execution Rollback Done"
+53
+}
+​
+​
+
+Swap
+Módulo que permite que jogadores troquem com outros jogadores itens conquistados
+dentro da gamificação. Por exemplo, um jogador pode oferecer aos outros jogadores
+uma camiseta, em troca de uma bola e mais 10 moedas. O jogador pode ainda aceitar
+contra propostas de outros jogadores. Este módulo pode ser usado, por exemplo, para
+criar um mercado de troca de figurinhas. Este módulo é um pouco diferente dos outros,
+pois o administrador não é o responsável por configurar a troca, mas sim os próprios
+jogadores.
+
+Try
+List Swaps
+GET {{funifier_server}}/v3/database/swap
+Response
+1
+[
+2
+{
+3
+"_id": "64a5af5ad8dcca49bcf7e65f",
+4
+"seller": "john",
+5
+"extra": {},
+6
+"rewards": [
+7
+{
+8
+"total": 1,
+9
+"type": 2,
+10
+"item": "DTjVpVA",
+11
+"operation": 0,
+12
+"extra": {},
+13
+"folder": "gifts",
+14
+"restrict": false,
+15
+"perPlayer": false
+16
+}
+17
+],
+18
+"created": 1688579930448,
+19
+"requires": [
+20
+{
+21
+"total": 1,
+22
+"type": 2,
+23
+"item": "DTj7lVn",
+
+24
+"operation": 0,
+25
+"extra": {},
+26
+"folder": "gifts",
+27
+"restrict": false,
+28
+"perPlayer": false
+29
+}
+30
+]
+31
+}
+32
+]
+
+Try
+Create Swap
+POST {{funifier_server}}/v3/swap
+Request Body
+1
+{
+2
+"seller":"tom",
+3
+"rewards":[
+4
+{
+5
+"total":1,
+6
+"type":2,
+7
+"item":"DTj7lVn"
+8
+}
+9
+],
+10
+"requires":[
+11
+{
+12
+"total":2,
+13
+"type":0,
+14
+"item":"coin"
+15
+}
+16
+]
+17
+}
+Response
+1
+{
+2
+"achievements": [
+3
+{
+4
+"player": "tom",
+5
+"total": -1,
+6
+
+"type": 2,
+7
+"item": "DTj7lVn",
+8
+"time": 1695311864300,
+9
+"extra": {
+10
+"swap": "650c67f88325771ffaa78a24",
+11
+"swap_role": "seller"
+12
+},
+13
+"_id": "650c67f88325771ffaa78a25"
+14
+}
+15
+],
+16
+"swap": {
+17
+"seller": "tom",
+18
+"extra": {},
+19
+"rewards": [
+20
+{
+21
+"total": 1,
+22
+"type": 2,
+23
+"item": "DTj7lVn",
+24
+"operation": 0,
+25
+"extra": {},
+26
+"restrict": false,
+27
+"perPlayer": false
+28
+}
+29
+],
+30
+"created": 1695311864298,
+31
+
+"requires": [
+32
+{
+33
+"total": 2,
+34
+"type": 0,
+35
+"item": "coin",
+36
+"operation": 0,
+37
+"extra": {},
+38
+"restrict": false,
+39
+"perPlayer": false
+40
+}
+41
+],
+42
+"_id": "650c67f88325771ffaa78a24"
+43
+},
+44
+"restrictions": [],
+45
+"status": "OK"
+46
+}
+
+Try
+Delete Swap
+DELETE {{funifier_server}}/v3/swap/650c64148325771ffaa7871f
+Response
+1
+{
+2
+"achievements": [],
+3
+"swap": {
+4
+"seller": "tom",
+5
+"extra": {},
+6
+"rewards": [
+7
+{
+8
+"total": 1,
+9
+"type": 2,
+10
+"item": "DTj7lVn",
+11
+"operation": 0,
+12
+"extra": {},
+13
+"restrict": false,
+14
+"perPlayer": false
+15
+}
+16
+],
+17
+"created": 1695310868363,
+18
+"requires": [
+19
+{
+20
+"total": 2,
+21
+"type": 0,
+22
+"item": "coin",
+23
+"operation": 0,
+
+24
+"extra": {},
+25
+"restrict": false,
+26
+"perPlayer": false
+27
+}
+28
+],
+29
+"_id": "650c64148325771ffaa7871f"
+30
+},
+31
+"restrictions": [],
+32
+"status": "OK"
+33
+}
+
+Try
+Acquire Swap
+POST {{funifier_server}}/v3/swap/acquire
+Método utilizado para um jogador (comprador) fazer a troca, com o jogador que criou o
+swap (vendedor). Se a troca for bem sucedida será retornado o status OK e um campo
+achievements com a lista de créditos e débitos feitos nesta transação. {"status": "OK"}
+Caso o jogador não consiga realizar a troca por qualquer motivo será retornado o status
+UNAUTHORIZED e um campo restrictions com as razões da falha. { "achievements" : [ ],
+"restrictions" : [ "swap_does_not_exist" ], "status" : "UNAUTHORIZED" }
+Request Body
+1
+{
+2
+"buyer":"jerry",
+3
+"swap":"650c67f88325771ffaa78a24"
+4
+}
+Response
+1
+{
+2
+"achievements": [
+3
+{
+4
+"player": "jerry",
+5
+"total": -2,
+6
+"type": 0,
+7
+"item": "coin",
+8
+"time": 1695311879902,
+9
+"extra": {
+10
+"swap": "650c67f88325771ffaa78a24",
+11
+"swap_role": "buyer"
+12
+},
+13
+"_id": "650c68078325771ffaa78a26"
+14
+},
+15
+{
+16
+
+"player": "jerry",
+17
+"total": 1,
+18
+"type": 2,
+19
+"item": "DTj7lVn",
+20
+"time": 1695311879904,
+21
+"extra": {
+22
+"swap": "650c67f88325771ffaa78a24",
+23
+"swap_role": "buyer"
+24
+},
+25
+"_id": "650c68078325771ffaa78a27"
+26
+}
+27
+],
+28
+"swap": {
+29
+"seller": "tom",
+30
+"buyer": "jerry",
+31
+"extra": {},
+32
+"rewards": [
+33
+{
+34
+"total": 1,
+35
+"type": 2,
+36
+"item": "DTj7lVn",
+37
+"operation": 0,
+38
+"extra": {},
+39
+"restrict": false,
+40
+"perPlayer": false
+41
+
+}
+42
+],
+43
+"created": 1695311864298,
+44
+"requires": [
+45
+{
+46
+"total": 2,
+47
+"type": 0,
+48
+"item": "coin",
+49
+"operation": 0,
+50
+"extra": {},
+51
+"restrict": false,
+52
+"perPlayer": false
+53
+}
+54
+],
+55
+"acquired": 1695311879898,
+56
+"_id": "650c67f88325771ffaa78a24"
+57
+},
+58
+"restrictions": [],
+59
+"status": "OK"
+60
+}
+
+Try
+Receive Swap
+POST {{funifier_server}}/v3/swap/receive
+Método utilizado para o jogador (vendedor) que criou o swap receber as recompensas da
+troca feita com o jogador (comprador).
+Request Body
+1
+{
+2
+"swap":"650c67f88325771ffaa78a24"
+3
+}
+Response
+1
+{
+2
+"achievements": [
+3
+{
+4
+"player": "tom",
+5
+"total": 2,
+6
+"type": 0,
+7
+"item": "coin",
+8
+"time": 1695311888659,
+9
+"extra": {
+10
+"swap": "650c67f88325771ffaa78a24",
+11
+"swap_role": "seller"
+12
+},
+13
+"_id": "650c68108325771ffaa78a31"
+14
+}
+15
+],
+16
+"swap": {
+17
+"seller": "tom",
+18
+"buyer": "jerry",
+19
+
+"extra": {},
+20
+"rewards": [
+21
+{
+22
+"total": 1,
+23
+"type": 2,
+24
+"item": "DTj7lVn",
+25
+"operation": 0,
+26
+"extra": {},
+27
+"restrict": false,
+28
+"perPlayer": false
+29
+}
+30
+],
+31
+"created": 1695311864298,
+32
+"requires": [
+33
+{
+34
+"total": 2,
+35
+"type": 0,
+36
+"item": "coin",
+37
+"operation": 0,
+38
+"extra": {},
+39
+"restrict": false,
+40
+"perPlayer": false
+41
+}
+42
+],
+43
+"acquired": 1695311879898,
+44
+
+"_id": "650c67f88325771ffaa78a24"
+45
+},
+46
+"restrictions": [],
+47
+"status": "OK"
+48
+}
+Try
+List Counter Offers
+POST {{funifier_server}}/v3/database/swap_counter_offer/aggregate
+Request Body
+1
+[
+2
+{"$match":{
+3
+"swap":"650c683c8325771ffaa78a3f"
+4
+}}
+5
+]
+Response
+1
+[]
+Try
+Create Counter Offer
+POST {{funifier_server}}/v3/swap/counter/offer
+Request Body
+1
+{
+2
+"swap":"650c683c8325771ffaa78a3f",
+3
+"buyer":"jerry",
+4
+"offer":[
+5
+{
+6
+"total":1,
+7
+"type":0,
+8
+"item":"coin"
+9
+}
+
+10
+]
+11
+}
+Try
+Delete Counter Offer
+DELETE {{funifier_server}}/v3/swap/counter/offer/650c68e78325771ffaa78aa1
+Request Body
+1
+{
+2
+"swap":"650c683c8325771ffaa78a3f",
+3
+"buyer":"jerry",
+4
+"offer":[
+5
+{
+6
+"total":1,
+7
+"type":0,
+8
+"item":"coin"
+9
+}
+10
+]
+11
+}
+Try
+Accept Counter Offer
+POST {{funifier_server}}/v3/swap/counter/offer/accept
+Request Body
+1
+{"offer":"650c69aa8325771ffaa78b1b"}
+
+Try
+Receive Counter Offer
+POST {{funifier_server}}/v3/swap/counter/offer/receive
+Request Body
+1
+{"swap":"650c683c8325771ffaa78a3f"}
+Response
+1
+{
+2
+"errorMessage": null,
+3
+"errorCode": 500,
+4
+"documentation": "http://doc.funifier.com"
+5
+}
+​
+​
+
+Question
+Módulo para criar perguntas para os jogadores. A apresentação da pergunta pode se
+dar no formato tradicional com a pergunta e as opções de resposta abaixo, mas também
+em formatos de mini games como por exemplo, um caça palavras, uma cruzadinha, etc.
+Cada pergunta pode apresentar texto, imagens, conteúdos audiovisuais, e as respostas
+podem ser de múltipla escolha, verdadeiro ou falso, dissertação, etc.
+
+Try
+List Questions
+GET {{funifier_server}}/v3/question
+Response
+1
+[
+2
+{
+3
+"_id": "64a5b2c2d8dcca49bcf7eb6e",
+4
+"type": "MULTIPLE_CHOICE",
+5
+"title": "Visual Components",
+6
+"question": "In Funifier, what is the small visual components that can be added to a
+web page to display feedbacks?",
+7
+"grade": 1,
+8
+"choices": [
+9
+{
+10
+"answer": "1",
+11
+"label": "Points",
+12
+"grade": 0,
+13
+"extra": {}
+14
+},
+15
+{
+16
+"answer": "2",
+17
+"label": "Badges",
+18
+"grade": 0,
+19
+"extra": {}
+20
+},
+21
+{
+22
+"answer": "3",
+23
+
+"label": "Challenges",
+24
+"grade": 0,
+25
+"extra": {}
+26
+},
+27
+{
+28
+"answer": "4",
+29
+"label": "Leaderboards",
+30
+"grade": 0,
+31
+"extra": {}
+32
+},
+33
+{
+34
+"answer": "5",
+35
+"label": "Widgets",
+36
+"grade": 1,
+37
+"extra": {}
+38
+}
+39
+],
+40
+"i18n": {},
+41
+"techniques": [
+42
+"GT05"
+43
+],
+44
+"select": "one_answer",
+45
+"answerNumbering": "uppercase_letters",
+46
+"shuffle": false,
+47
+"feedbacks": [],
+48
+
+"extra": {},
+49
+"created": 1695318347157,
+50
+"updated": 1695318347157,
+51
+"requires": []
+52
+}
+53
+]
+
+Try
+Create Question
+POST {{funifier_server}}/v3/question
+Request Body
+1
+{
+2
+"_id": "64a5b2c2d8dcca49bcf7eb6e",
+3
+"type": "MULTIPLE_CHOICE",
+4
+"title": "Visual Components",
+5
+"question": "In Funifier, what is the small visual components that can be added to a
+web page to display feedbacks?",
+6
+"grade": 1,
+7
+"choices": [
+8
+{"answer": "1", "label": "Points", "grade": 0, "extra": {}},
+9
+{"answer": "2", "label": "Badges", "grade": 0, "extra": {}},
+10
+{"answer": "3", "label": "Challenges", "grade": 0, "extra": {}},
+11
+{"answer": "4", "label": "Leaderboards", "grade": 0, "extra": {}},
+12
+{"answer": "5", "label": "Widgets", "grade": 1, "extra": {}}
+13
+],
+14
+"techniques": ["GT05"],
+15
+"select": "one_answer",
+16
+"answerNumbering": "uppercase_letters",
+17
+"shuffle": false,
+18
+"feedbacks": [],
+19
+"extra": {}
+20
+}
+Response
+1
+{
+2
+"question": {
+
+3
+"type": "MULTIPLE_CHOICE",
+4
+"title": "Visual Components",
+5
+"question": "In Funifier, what is the small visual components that can be added to a
+web page to display feedbacks?",
+6
+"grade": 1,
+7
+"choices": [
+8
+{
+9
+"answer": "1",
+10
+"label": "Points",
+11
+"grade": 0,
+12
+"extra": {}
+13
+},
+14
+{
+15
+"answer": "2",
+16
+"label": "Badges",
+17
+"grade": 0,
+18
+"extra": {}
+19
+},
+20
+{
+21
+"answer": "3",
+22
+"label": "Challenges",
+23
+"grade": 0,
+24
+"extra": {}
+25
+},
+26
+{
+27
+
+"answer": "4",
+28
+"label": "Leaderboards",
+29
+"grade": 0,
+30
+"extra": {}
+31
+},
+32
+{
+33
+"answer": "5",
+34
+"label": "Widgets",
+35
+"grade": 1,
+36
+"extra": {}
+37
+}
+38
+],
+39
+"i18n": {},
+40
+"techniques": [
+41
+"GT05"
+42
+],
+43
+"select": "one_answer",
+44
+"answerNumbering": "uppercase_letters",
+45
+"shuffle": false,
+46
+"feedbacks": [],
+47
+"extra": {},
+48
+"created": 1695318347157,
+49
+"updated": 1695318347157,
+50
+"requires": [],
+51
+"_id": "64a5b2c2d8dcca49bcf7eb6e"
+52
+
+},
+53
+"exceptions": []
+54
+}
+Try
+Delete Question
+DELETE {{funifier_server}}/v3/question/64a5b2c2d8dcca49bcf7eb6e
+Response
+1
+""
+
+Try
+List Question Logs
+GET {{funifier_server}}/v3/question/log?question=64a5b2c2d8dcca49bcf7eb6e
+Response
+1
+[
+2
+{
+3
+"player": "tom",
+4
+"question": "64a5b2c2d8dcca49bcf7eb6e",
+5
+"answer": [
+6
+"5"
+7
+],
+8
+"percent": 1,
+9
+"grade": 1,
+10
+"time": 1695318517211,
+11
+"_id": "650c81f58325771ffaa7bbc4"
+12
+}
+13
+]
+
+Try
+Create Question Log
+POST {{funifier_server}}/v3/question/log
+Request Body
+1
+{
+2
+"question":"64a5b2c2d8dcca49bcf7eb6e",
+3
+"answer":["5"],
+4
+"player":"tom"
+5
+}
+Response
+1
+{
+2
+"log": {
+3
+"player": "tom",
+4
+"question": "64a5b2c2d8dcca49bcf7eb6e",
+5
+"answer": [
+6
+"5"
+7
+],
+8
+"percent": 1,
+9
+"grade": 1,
+10
+"time": 1695318555401,
+11
+"_id": "650c821b8325771ffaa7bbd5"
+12
+}
+13
+}
+Try
+Delete Question Log
+DELETE {{funifier_server}}/v3/question/log/650c821b8325771ffaa7bbd5
+
+​
+​
+
+Quiz
+Módulo para agrupar várias perguntas em um bloco único a ser respondido pelos
+jogadores. Como por exemplo uma prova que tem várias perguntas. O administrador
+
+pode definir que uma prova vale 10 pontos, e quando o jogador responde a prova o
+FUNIFIER calcula o percentual de acerto, e a nota final do jogador. Estes questionários
+também podem ser apresentados na forma de mini games, como uma corrida espacial
+por exemplo
+Try
+List Quiz
+GET {{funifier_server}}/v3/database/quiz
+Response
+1
+[
+2
+{
+3
+"_id": "650c82fe8325771ffaa7bd33",
+4
+"title": "Funifier Exam",
+5
+"description": "Test your knowledge about the best gamification platform in the
+world.",
+6
+"grade": 10,
+7
+"i18n": {},
+8
+"extra": {},
+9
+"created": 1695318782638,
+10
+"updated": 1695318782638,
+11
+"feedbacks": [],
+12
+"questionNumbering": "uppercase_letters",
+13
+"showGradeBeforeFinish": false,
+14
+"shuffle": false
+15
+}
+16
+]
+
+Try
+Create Quiz
+POST {{funifier_server}}/v3/quiz
+Request Body
+1
+{
+2
+"_id": "650c82fe832",
+3
+"title": "Funifier Exam",
+4
+"description": "Test your knowledge about the best gamification platform in the
+world.",
+5
+"grade": 10,
+6
+"i18n": {},
+7
+"extra": {},
+8
+"feedbacks": [],
+9
+"questionNumbering": "uppercase_letters",
+10
+"showGradeBeforeFinish": false,
+11
+"shuffle": false
+12
+}
+Response
+1
+{
+2
+"title": "Funifier Exam",
+3
+"description": "Test your knowledge about the best gamification platform in the
+world.",
+4
+"grade": 10,
+5
+"i18n": {},
+6
+"extra": {},
+7
+"created": 1695400976152,
+8
+"updated": 1695400976152,
+9
+"feedbacks": [],
+10
+
+"questionNumbering": "uppercase_letters",
+11
+"showGradeBeforeFinish": false,
+12
+"shuffle": false,
+13
+"_id": "650c82fe832"
+14
+}
+Try
+Delete Quiz
+DELETE {{funifier_server}}/v3/quiz/650c82fe832
+Response
+1
+""
+
+Try
+List Quiz Questions
+GET {{funifier_server}}/v3/quiz/650c82fe832/question
+Response
+1
+[
+2
+{
+3
+"quiz": "650c82fe832",
+4
+"type": "MULTIPLE_CHOICE",
+5
+"title": "Best Platform",
+6
+"question": "What is the best gamification platform?",
+7
+"grade": 1,
+8
+"choices": [
+9
+{
+10
+"answer": "1",
+11
+"label": "Funifier",
+12
+"grade": 1,
+13
+"extra": {}
+14
+},
+15
+{
+16
+"answer": "2",
+17
+"label": "Points",
+18
+"grade": 0,
+19
+"extra": {}
+20
+},
+21
+{
+22
+"answer": "3",
+23
+"label": "Badges",
+
+24
+"grade": 0,
+25
+"extra": {}
+26
+},
+27
+{
+28
+"answer": "4",
+29
+"label": "Leaderboards",
+30
+"grade": 0,
+31
+"extra": {}
+32
+}
+33
+],
+34
+"i18n": {},
+35
+"select": "one_answer",
+36
+"shuffle": false,
+37
+"feedbacks": [],
+38
+"extra": {},
+39
+"created": 1695401177814,
+40
+"updated": 1695401177814,
+41
+"requires": [],
+42
+"_id": "650dc4d98325771ffaa93e5e"
+43
+}
+44
+]
+
+Try
+Create Quiz Question
+POST {{funifier_server}}/v3/question
+Request Body
+1
+{
+2
+"quiz":"650c82fe832",
+3
+"type":"MULTIPLE_CHOICE",
+4
+"title":"Best Platform",
+5
+"question":"What is the best gamification platform?",
+6
+"grade":1,
+7
+"choices":[
+8
+{"answer":"1","label":"Funifier","grade":1,"extra":{},"gradePercent":100,"gradeCheck":tr
+ue},
+9
+{"answer":"2","label":"Points","grade":0,"extra":{},"gradePercent":0},
+10
+{"answer":"3","label":"Badges","grade":0,"extra":{},"gradePercent":0},
+11
+{"answer":"4","label":"Leaderboards","grade":0,"extra":{},"gradePercent":0}
+12
+],
+13
+"i18n":{},
+14
+"select":"one_answer",
+15
+"shuffle":false
+16
+}
+Response
+1
+{
+2
+"question": {
+3
+"quiz": "650c82fe832",
+4
+"type": "MULTIPLE_CHOICE",
+5
+"title": "Best Platform",
+6
+
+"question": "What is the best gamification platform?",
+7
+"grade": 1,
+8
+"choices": [
+9
+{
+10
+"answer": "1",
+11
+"label": "Funifier",
+12
+"grade": 1,
+13
+"extra": {}
+14
+},
+15
+{
+16
+"answer": "2",
+17
+"label": "Points",
+18
+"grade": 0,
+19
+"extra": {}
+20
+},
+21
+{
+22
+"answer": "3",
+23
+"label": "Badges",
+24
+"grade": 0,
+25
+"extra": {}
+26
+},
+27
+{
+28
+"answer": "4",
+29
+"label": "Leaderboards",
+30
+"grade": 0,
+31
+
+"extra": {}
+32
+}
+33
+],
+34
+"i18n": {},
+35
+"select": "one_answer",
+36
+"shuffle": false,
+37
+"feedbacks": [],
+38
+"extra": {},
+39
+"created": 1695401363337,
+40
+"updated": 1695401363337,
+41
+"requires": [],
+42
+"_id": "650dc5938325771ffaa9403e"
+43
+},
+44
+"exceptions": []
+45
+}
+Try
+Start Quiz
+POST {{funifier_server}}/v3/quiz/start
+Request Body
+1
+{
+2
+"quiz":"650c82fe832",
+3
+"player":"tom"
+4
+}
+
+Try
+Answer Quiz Questions
+POST {{funifier_server}}/v3/question/log/bulk
+Request Body
+1
+[
+2
+{
+3
+"quiz":"650c82fe832",
+4
+"quiz_log":"650dc6168325771ffaa94098",
+5
+"question":"650dc4d98325771ffaa93e5e",
+6
+"answer":["1"],
+7
+"player":"tom"
+8
+}
+9
+]
+Try
+Finish Quiz
+POST {{funifier_server}}/v3/quiz/finish
+Request Body
+1
+{
+2
+"quiz_log": "650dc6168325771ffaa94098"
+3
+}
+​
+​
+
+Mystery Box
+Módulo para configurar prêmios aleatórios. O jogador não sabe o prêmio que irá ganhar.
+Por exemplo: uma raspadinha onde o jogador só descobre se ganhou algum prêmio ou
+não depois de raspar a cartela; um jogo de cara ou coroa, onde existe 50% de chance
+para cada opção; uma roda da fortuna, onde existem várias opções, algumas com
+prêmios legais e outras nem tanto. Você configura este módulo informando um título
+para caixa surpresa, as opções possíveis e a probabilidade de cada opção a ser
+escolhida pela plataforma, e as combinações vencedoras com seus respectivos
+prêmios.
+
+Try
+List Mystery Boxes
+GET {{funifier_server}}/v3/mystery
+Response
+1
+[
+2
+{
+3
+"title": "Heads or Tails",
+4
+"options": [
+5
+{
+6
+"title": "Heads",
+7
+"value": "heads",
+8
+"probability": 0.5
+9
+},
+10
+{
+11
+"title": "Tails",
+12
+"value": "tails",
+13
+"probability": 0.5
+14
+}
+15
+],
+16
+"columns": 1,
+17
+"requirements": [],
+18
+"win_chart": [
+19
+{
+20
+"combination": [
+21
+"heads"
+22
+],
+23
+"orderSensitive": false,
+
+24
+"reward": {
+25
+"total": 1,
+26
+"type": 0,
+27
+"item": "coin",
+28
+"operation": 0,
+29
+"extra": {},
+30
+"restrict": false,
+31
+"perPlayer": false
+32
+},
+33
+"isolated": false
+34
+}
+35
+],
+36
+"extra": {},
+37
+"techniques": [
+38
+"GT72"
+39
+],
+40
+"_id": "64a5b464d8dcca49bcf7edd0"
+41
+}
+42
+]
+
+Try
+Create Mystery
+POST {{funifier_server}}/v3/mystery
+Request Body
+1
+{
+2
+"title": "Heads or Tails",
+3
+"options": [
+4
+{"title": "Heads", "value": "heads", "probability": 0.5},
+5
+{"title": "Tails", "value": "tails", "probability": 0.5}
+6
+],
+7
+"columns": 1,
+8
+"requirements": [],
+9
+"win_chart": [
+10
+{
+11
+"combination": ["heads"],
+12
+"orderSensitive": false,
+13
+"reward": {
+14
+"total": 1,
+15
+"type": 0,
+16
+"item": "coin"
+17
+}
+18
+}
+19
+],
+20
+"techniques": ["GT72"],
+21
+"_id": "64a5b464d8dcca49bcf7edd0"
+22
+}
+Response
+1
+
+{
+2
+"title": "Heads or Tails",
+3
+"options": [
+4
+{
+5
+"title": "Heads",
+6
+"value": "heads",
+7
+"probability": 0.5
+8
+},
+9
+{
+10
+"title": "Tails",
+11
+"value": "tails",
+12
+"probability": 0.5
+13
+}
+14
+],
+15
+"columns": 1,
+16
+"requirements": [],
+17
+"win_chart": [
+18
+{
+19
+"combination": [
+20
+"heads"
+21
+],
+22
+"orderSensitive": false,
+23
+"reward": {
+24
+"total": 1,
+25
+"type": 0,
+26
+
+"item": "coin",
+27
+"operation": 0,
+28
+"extra": {},
+29
+"restrict": false,
+30
+"perPlayer": false
+31
+},
+32
+"isolated": false
+33
+}
+34
+],
+35
+"extra": {},
+36
+"techniques": [
+37
+"GT72"
+38
+],
+39
+"_id": "64a5b464d8dcca49bcf7edd0"
+40
+}
+Try
+Delete Mystery
+DELETE {{funifier_server}}/v3/mystery/64a5b464d8dcca49bcf7edd0
+Response
+1
+""
+
+Try
+Evaluate MysteryBox
+GET {{funifier_server}}/v3/mystery/evaluate/64a5b464d8dcca49bcf7edd0?player=tom
+Response
+1
+{
+2
+"milliseconds": 2,
+3
+"requirements": {
+4
+"milliseconds": 0,
+5
+"status": "OK"
+6
+},
+7
+"limit": {
+8
+"milliseconds": 0,
+9
+"status": "OK"
+10
+},
+11
+"exists": {
+12
+"status": "OK"
+13
+},
+14
+"limit_wins": {
+15
+"milliseconds": 0,
+16
+"status": "OK"
+17
+},
+18
+"params": {
+19
+"server_time": 1695409754940,
+20
+"player": "tom"
+21
+},
+22
+"limit_attempts": {
+23
+"milliseconds": 0,
+
+24
+"status": "OK"
+25
+},
+26
+"attempts": {
+27
+"milliseconds": 0,
+28
+"status": "OK"
+29
+}
+30
+}
+
+Try
+Execute MysteryBox
+GET {{funifier_server}}/v3/mystery/execute/64a5b464d8dcca49bcf7edd0?player=tom
+Response
+1
+{
+2
+"mystery": "64a5b464d8dcca49bcf7edd0",
+3
+"player": "tom",
+4
+"time": "2023-09-22T19:09:40Z",
+5
+"result": [
+6
+"heads"
+7
+],
+8
+"status": "WIN",
+9
+"achievements": [
+10
+{
+11
+"player": "tom",
+12
+"total": 1,
+13
+"type": 6,
+14
+"item": "64a5b464d8dcca49bcf7edd0",
+15
+"time": 1695409780541,
+16
+"_id": "650de6748325771ffaa985a4"
+17
+},
+18
+{
+19
+"player": "tom",
+20
+"total": 1,
+21
+"type": 0,
+22
+"item": "coin",
+23
+"time": 1695409780541,
+
+24
+"extra": {
+25
+"origin_item": "64a5b464d8dcca49bcf7edd0",
+26
+"origin": "650de6748325771ffaa985a4",
+27
+"origin_type": 6
+28
+},
+29
+"_id": "650de6748325771ffaa985a5"
+30
+}
+31
+]
+32
+}
+​
+​
+
+Folder
+Módulo para criar pastas virtuais onde você pode incluir qualquer coisa. As pastas
+podem ser utilizadas, por exemplo, para construir um curso online, composto de
+módulos, onde cada módulo possui um conjunto de aulas, e cada aula possui um
+conjunto de conteúdos. Uma das capacidades deste módulo é monitorar o progresso do
+jogador dentro dessa árvore de diretórios e conteúdos. É possível, por exemplo, saber
+que um jogador já completou 50% de um curso. E ao progredir podemos registrar logs
+de ações, que acionam as técnicas de jogos. E assim podemos, por exemplo, criar
+desafios que são concluídos quando o jogador completar um curso.
+Try
+List Folders
+GET {{funifier_server}}/v3/database/folder
+Response
+1
+[
+2
+{
+3
+"_id": "D0MlHOS",
+4
+"title": "Gamification",
+5
+"extra": {}
+6
+}
+7
+]
+
+Try
+Create Folder
+POST {{funifier_server}}/v3/folder
+Request Body
+1
+{
+2
+"title":"CoreDrives",
+3
+"parent":"D0MmmNf"
+4
+}
+Response
+1
+{
+2
+"title" : "CoreDrives",
+3
+"parent" : "D0MmmNf",
+4
+"extra" : { },
+5
+"_id" : "D0MmBbT"
+6
+}
+Try
+Delete Folder
+DELETE {{funifier_server}}/v3/folder/D0MlHOS
+
+Try
+Breadcrumb
+POST {{funifier_server}}/v3/folder/breadcrumb
+Request Body
+1
+{
+2
+"folder":"CD1"
+3
+}
+Response
+1
+[
+2
+{
+3
+"title": "Gamification",
+4
+"extra": {},
+5
+"_id": "D0MmmNf"
+6
+},
+7
+{
+8
+"parent": "D0MmmNf",
+9
+"title": "CoreDrives",
+10
+"extra": {},
+11
+"_id": "D0MmBbT"
+12
+},
+13
+{
+14
+"parent": "D0MmBbT",
+15
+"title": "Epic Meaning & Calling",
+16
+"extra": {},
+17
+"_id": "CD1"
+18
+}
+19
+]
+
+Try
+List ContentType
+GET {{funifier_server}}/v3/database/folder_content_type
+Response
+1
+[
+2
+{
+3
+"_id": "650dea458325771ffaa987b0",
+4
+"input": "formulary",
+5
+"form": [
+6
+{
+7
+"name": "title",
+8
+"type": "string",
+9
+"title": "Title",
+10
+"dropdown": {
+11
+"type": "",
+12
+"static": [],
+13
+"dynamic": {}
+14
+}
+15
+},
+16
+{
+17
+"name": "content",
+18
+"type": "text",
+19
+"title": "Content",
+20
+"dropdown": {
+21
+"type": "",
+22
+"static": [],
+23
+"dynamic": {}
+
+24
+}
+25
+}
+26
+],
+27
+"created": 1695410756428,
+28
+"title": "Text",
+29
+"updated": 1695410756428,
+30
+"entity": "text__c"
+31
+}
+32
+]
+
+Try
+Create ContentType
+PUT {{funifier_server}}/v3/database/folder_content_type
+Request Body
+1
+{
+2
+"_id": "text",
+3
+"input": "formulary",
+4
+"form": [
+5
+{
+6
+"name": "title",
+7
+"type": "string",
+8
+"title": "Title",
+9
+"dropdown": {
+10
+"type": "",
+11
+"static": [],
+12
+"dynamic": {}
+13
+}
+14
+},
+15
+{
+16
+"name": "content",
+17
+"type": "text",
+18
+"title": "Content",
+19
+"dropdown": {
+20
+"type": "",
+21
+"static": [],
+22
+"dynamic": {}
+23
+}
+
+24
+}
+25
+],
+26
+"created": 1695410756428,
+27
+"title": "Text",
+28
+"updated": 1695410756428,
+29
+"entity": "text__c"
+30
+}
+​
+​
+
+Database
+Permite acessar as coleções do banco de dados da gamificação. Cada gamficação tem
+o seu próprio banco de dados. Deste módulo é possível descobrir quais são as coleções
+existentes no banco de dados, realizar consultas, alteração e exclusão de dados das
+coleções.
+
+Try
+List Collections
+GET {{funifier_server}}/v3/database/collections
+Lista o nome de todas as coleções existentes no banco de dados da gamificação.
+Response
+1
+[
+2
+"achievement",
+3
+"action",
+4
+"action_log",
+5
+"car__c",
+6
+"catalog",
+7
+"catalog_item",
+8
+"challenge",
+9
+"challenge_progress",
+10
+"competition",
+11
+"join_log",
+12
+"leader",
+13
+"leaderboard",
+14
+"level",
+15
+"level_config",
+16
+"lottery",
+17
+"lottery_ticket",
+18
+"mystery_box",
+19
+"mystery_box_log",
+20
+"notification",
+21
+"player",
+22
+"player_status",
+23
+
+"point_category",
+24
+"prepared_aggregate",
+25
+"principal",
+26
+"question",
+27
+"req__c",
+28
+"req_folder__c",
+29
+"scheduler",
+30
+"scheduler_log",
+31
+"security",
+32
+"studio_filter_log__c",
+33
+"studio_page",
+34
+"swap",
+35
+"team",
+36
+"team_player",
+37
+"technique_field",
+38
+"trigger",
+39
+"trigger_log",
+40
+"upload",
+41
+"widget_log",
+42
+"widget_v3"
+43
+]
+
+Try
+List Data
+GET {{funifier_server}}/v3/database/:collection
+Lista os dados da coleção estipulada. O nome da coleção é informado no final da url.
+Response
+1
+[
+2
+{
+3
+"_id": "6553e49815865a7a732f5fc7",
+4
+"year": 2010,
+5
+"fuel": "gasoline",
+6
+"price": 50000,
+7
+"name": "Civic",
+8
+"description": "Honda Civic",
+9
+"brand": "honda"
+10
+}
+11
+]
+
+Try
+Create Data
+POST {{funifier_server}}/v3/database/:collection
+Cria um novo registro em uma coleção.
+Request Body
+1
+{
+2
+"year": 2010,
+3
+"fuel": "gasoline",
+4
+"price": 50000,
+5
+"name": "Civic",
+6
+"description": "Honda Civic",
+7
+"brand": "honda"
+8
+}
+Response
+1
+{
+2
+"year": 2010,
+3
+"fuel": "gasoline",
+4
+"price": 50000,
+5
+"name": "Civic",
+6
+"description": "Honda Civic",
+7
+"_id": "6553e49815865a7a732f5fc7",
+8
+"brand": "honda"
+9
+}
+
+Try
+Update Data
+PUT {{funifier_server}}/v3/database/:collection
+Request Body
+1
+{
+2
+"_id": "6553e49815865a7a732f5fc7",
+3
+"year": 2010,
+4
+"fuel": "gasoline",
+5
+"price": 50000,
+6
+"name": "Civic",
+7
+"description": "Honda Civic",
+8
+"brand": "honda"
+9
+}
+Response
+1
+{
+2
+"year": 2010,
+3
+"fuel": "gasoline",
+4
+"price": 50000,
+5
+"name": "Civic",
+6
+"description": "Honda Civic",
+7
+"_id": "6553e49815865a7a732f5fc7",
+8
+"brand": "honda"
+9
+}
+
+Try
+Delete Data
+DELETE {{funifier_server}}/v3/database/:collection?q=_id:'contend_id'
+Permite excluir um ou mais registros de uma coleção no banco de dados. Basta
+informar na url o parâmetro q com a expressão de pesquisa dos registros que devem
+ser excluídos.
+Response
+1
+""
+
+Try
+Aggregate Data
+POST {{funifier_server}}/v3/database/:collection/aggregate?strict=true
+Permite enviar uma lista de comandos aggregate na sintaxe do mongodb para ser
+executado no banco de dados. Na url você informa o nome da coleção e no corpo
+você envia a lista com os comandos aggregate.
+Request Body
+1
+[
+2
+{"$match":{ "actionId":"sell", "userId":"jerry", "attributes.price":{"$gte":10} }},
+3
+{"$limit": 1}
+4
+]
+Response
+1
+[
+2
+{
+3
+"_id": "6509e4e28325771ffaa4506e",
+4
+"actionId": "sell",
+5
+"userId": "jerry",
+6
+"time": {
+7
+"$date": "2023-09-19T18:13:54.712Z"
+8
+},
+9
+"attributes": {
+10
+"product": "bike",
+11
+
+"price": 1200
+12
+}
+13
+}
+14
+]
+Try
+Create Bulk Data
+POST {{funifier_server}}/v3/database/:collection/bulk
+Permite inserir vários registros em uma coleção de uma única vez. Ao invés de inserir
+vários registros um a um, use este endpoint para enviar uma lista com todos os
+objetos que devem ser inseridos ou atualizados no banco de dados.
+Request Body
+1
+[
+2
+{
+3
+"_id": "6553e49815865a7a732f5fc7",
+4
+"year": 2010,
+5
+"fuel": "gasoline",
+6
+"price": 60000,
+7
+"name": "Honda Civic",
+8
+"description": "Honda Civic",
+9
+"brand": "honda"
+10
+},
+11
+{
+12
+"_id": "6553e49815865a7a732f5fc8",
+13
+"year": 2012,
+14
+"fuel": "gasoline",
+15
+"price": 70000,
+16
+"name": "Toyota Corola",
+17
+"description": "Toyota Corola",
+18
+
+"brand": "toyota"
+19
+}
+20
+]
+Response
+1
+{
+2
+"total": 2
+3
+}
+Try
+List Index
+GET {{funifier_server}}/v3/database/:collection/index
+Lista os índices de uma determinada coleção.
+Response
+1
+[
+2
+{
+3
+"v": 2,
+4
+"key": {
+5
+"_id": 1
+6
+},
+7
+"name": "_id_"
+8
+}
+9
+]
+
+Try
+Create Index
+POST {{funifier_server}}/v3/database/:collection/index
+Cria um novo índice em uma determinada coleção.
+Request Body
+1
+{"fuel":1}
+Response
+1
+[
+2
+{
+3
+"v": 2,
+4
+"key": {
+5
+"_id": 1
+6
+},
+7
+"name": "_id_"
+8
+},
+9
+{
+10
+"v": 2,
+11
+"key": {
+12
+"fuel": 1
+13
+},
+14
+"name": "fuel_1"
+15
+}
+16
+]
+
+Try
+Delete Index
+DELETE {{funifier_server}}/v3/database/:collection/index/:index_name
+Exclui um índice de uma determinada coleção.
+Response
+1
+[
+2
+{
+3
+"v": 2,
+4
+"key": {
+5
+"_id": 1
+6
+},
+7
+"name": "_id_"
+8
+}
+9
+]
+
+​
+
+Read by Id
+GET {{funifier_server}}/v3/database/:collection/:id
+
+Lista os dados da coleção estipulada. O nome da coleção é informado no final
+da url.
+
+Try
+
+Relative Dates in Aggregates
+POST {{funifier_server}}/v3/database/:collection/aggregate?strict=true
+
+O Funifier permite expressões de datas relativas (atalhos) em filtros — ótimo
+para relatórios dinâmicos. ### Sintaxe (exemplos) - `-0d-` → início do dia
+atual (00:00:00) - `-0d+` → fim do dia atual (23:59:59) - `-1d-` / `-1d+` →
+início/fim de ontem - `-0w-` / `-0w+` → início/fim da semana atual - `-0M-` /
+`-0M+` → início/fim do mês atual - `-0y-` / `-0y+` → início/fim do ano atual
+### Como usar Dentro de `"$gte"` / `"$lte"` com `"$date"`: **Ações de
+ontem** ```json { "pipeline": [ { "$match": { "time": { "$gte": { "$date": "-1d-"
+}, "$lte": { "$date": "-1d+" } } } } ] } ```` Benefícios: Evita o cálculo manual de
+datas, torna os relatórios "perpétuos" (sem codificação fixa de datas).
+
+Request Body
+
+[
+
+{"$match":{ "actionId":"sell", "userId":"jerry",
+"attributes.price":{"$gte":10} }},
+
+{"$limit": 1}
+
+]
+
+​
+
+Upload
+
+​
+
+O recurso Upload permite o envio de arquivos, como imagens e documentos, diretamente
+para o servidor da gamificação. A API aceita envio via FormData e permite definir o nome do
+arquivo e incluir metadados adicionais por meio do campo extra. Essa funcionalidade é útil
+para armazenar elementos visuais utilizados na interface do jogador, como avatares,
+banners e outros recursos personalizados.
+
+Try
+
+Upload File
+POST {{funifier_server}}/v3/upload/file
+
+Envia um ou mais arquivos de qualquer tipo via multipart/form-data. Suporta metadados em `extra` e
+dispara triggers before/after upload. Envia **um ou mais arquivos** de **qualquer tipo**. Aceita
+metadados no campo `extra` (JSON). Dispara `Trigger.BEFORE_CREATE` e
+`Trigger.AFTER_CREATE` na entidade `UPLOAD`. Salva metadados do upload no banco (`entity:
+upload`) e grava o arquivo na nuvem (AWS S3 / Azure / Google) conforme a configuração do
+ambiente. **POST** `{funifier_server}/v3/upload/file` **Headers** - Authorization: `Bearer
+{access_token}` - Content-Type: `multipart/form-data` ## Campos do multipart - `file`: arquivo binário
+(pode repetir para enviar vários). - `extra`: **string JSON** (obrigatório). Exemplos de chaves úteis: `session`: *string* — usada para organizar bucket/pasta (ex.: `"images"`, `"docs"`). Default:
+`"upload"`. - quaisquer metadados livres que você queira persistir junto ao upload. > Observação: a
+chave `extra` **é obrigatória**. Se não enviada, o servidor responde 400. ## Exemplo — cURL (1
+arquivo) ```bash curl -X POST "{funifier_server}/v3/upload/file" \ -H "Authorization: Bearer
+{access_token}" \ -H "Content-Type: multipart/form-data" \ -F 'file=@./funifier.png;type=image/png' \ -F
+'extra={"session":"images","name":"logo_oficial"}' ```` ## Resposta (201) ```json { "status": "OK",
+"uploads": [ { "_id": "5926104c8517667bbdf63c33", "content_type": "image/png", "extension": "png",
+"extra": { "session": "images", "name": "logo_oficial" }, "filename_original": "funifier.png", "filename":
+"5926104c8517667bbdf63c32_funifier.png", "bucket": "funifier/games/{APIKEY}/images", "url":
+
+"https://s3.amazonaws.com/funifier/games/{APIKEY}/images/5926104c8517667bbdf63c32_funifier.pn
+g", "time": 1495666764893, "size": 3622 } ] } ```
+
+Response
+
+{
+
+"uploads": [
+
+{
+
+"url": "https://cdn.funifier.com/uploads/images/abc123/profile-pic.jpg"
+
+}
+
+]
+
+}
+Try
+
+Upload Image
+POST {{funifier_server}}/v3/upload/image
+
+Realiza o upload de uma imagem para o servidor da Funifier, utilizando um formulário multipart
+(FormData). É possível enviar dados adicionais através do campo extra. Exemplo de Body da
+Requisição (via FormData): file: conteúdo da imagem (ex: profile-pic.jpg) extra: { "session": "images" }
+
+Headers: Authorization: {token} Content-Type: multipart/form-data (gerenciado automaticamente pelo
+FormData, portanto deve ser undefined no código) Resposta esperada: { "uploads": [ { "url":
+"https://cdn.funifier.com/uploads/images/abc123/profile-pic.jpg" } ] }
+
+Try
+
+Delete Upload by Url
+DELETE {{funifier_server}}/v3/upload/image
+
+Deleta o arquivo no storage (S3/Azure/GCP) usando a **URL** e remove os metadados
+correspondentes na coleção `upload`. **DELETE** `{funifier_server}/v3/upload` **Headers** Authorization: `Bearer {access_token}` - Content-Type: `application/json` **Body** ```json { "url":
+"https://s3.amazonaws.com/funifier/games/{APIKEY}/images/59359e..._logo.png" } ````
+
+Try
+
+List Uploads
+GET {{funifier_server}}/v3/upload
+
+Deleta o arquivo no storage (S3/Azure/GCP) usando a **URL** e remove os metadados
+correspondentes na coleção `upload`. **DELETE** `{funifier_server}/v3/upload` **Headers** -
+
+Authorization: `Bearer {access_token}` - Content-Type: `application/json` **Body** ```json { "url":
+"https://s3.amazonaws.com/funifier/games/{APIKEY}/images/59359e..._logo.png" } ````
+
+​
+​
+
+Public
+O recurso Public permite a criação de endpoints públicos personalizados diretamente pela
+interface do Studio, acessando studio/public. Esses endpoints podem receber requisições
+externas, como webhooks do Circle, Zapier, Typeform e outros serviços, sem a necessidade
+de um token de autenticação no cabeçalho. A autenticação é feita por meio da apikey
+incluída na URL do endpoint, no formato: /v3/pub/{apikey}/{slug} Como os endpoints são
+públicos, qualquer pessoa que conheça a URL pode acessá-los. É recomendável utilizá-los
+com cuidado e avaliar os dados recebidos.
+
+Try
+
+List Public Endpoints
+GET {{funifier_server}}/v3/database/public_endpoint
+
+Request Body
+
+null
+
+Response
+
+[
+
+{
+
+"_id": "recebe_email",
+
+"title": "Recebe Email",
+
+"description": "Recebe email e registra na colecao email__c",
+
+"active": true,
+
+"method": "POST",
+
+"script": "public Object handle(Object payload) {\n
+
+\tpayload._id =
+
+payload.email;\n
+\tmanager.getJongoConnection().getCollection(\"email__c\").save(payl
+\n
+
+\n
+
+\tMap<String, Object> response = new HashMap<>();\n
+
+response.put(\"email\", payload.email);\n
+
+"sample": "{\n
+
+\"email\": \"user@email.com\"\n}",
+
+"updated": 1752619431356,
+
+"extra": {}
+
+}
+
+]
+
+return response;\n}",
+
+Try
+
+Create Public Endpoint
+POST {{funifier_server}}/v3/public
+
+Permite ao administrador criar um endpoint público programável em Java. O
+script é executado no servidor sempre que a URL pública correspondente
+for chamada via GET ou POST.
+
+Request Body
+
+{
+
+"title" : "Recebe Email",
+
+"description" : "Recebe email e registra na colecao email__c",
+
+"active" : true,
+
+"method" : "POST",
+
+"script" : "public Object handle(Object payload) {\n
+
+\tpayload._id =
+
+payload.email;\n
+\tmanager.getJongoConnection().getCollection(\"email__c\").save(payl
+\n
+
+\n
+
+\tMap<String, Object> response = new HashMap<>();\n
+
+response.put(\"email\", payload.email);\n
+
+"sample" : "{\n
+
+return response;\n}",
+
+\"email\": \"user@email.com\"\n}",
+
+"extra" : { },
+
+"_id" : "recebe_email"
+
+}
+
+Response
+
+{
+
+"title": "Recebe Email",
+
+"description": "Recebe email e registra na colecao email__c",
+
+"active": true,
+
+"method": "POST",
+
+"script": "public Object handle(Object payload) {\n
+
+\tpayload._id =
+
+payload.email;\n
+\tmanager.getJongoConnection().getCollection(\"email__c\").save(payl
+\n
+
+\n
+
+\tMap<String, Object> response = new HashMap<>();\n
+
+response.put(\"email\", payload.email);\n
+
+"sample": "{\n
+
+return response;\n}",
+
+\"email\": \"user@email.com\"\n}",
+
+"updated": 1752621472504,
+
+"extra": {},
+
+"_id": "recebe_email"
+
+}
+Try
+
+Execute Public Endpoint
+POST {{funifier_server}}/v3/pub/{apikey}/{slug}
+
+Quando você chama a URL pública, o Funifier **executa o código Java do
+endpoint** (programado no Studio pelo administrador). Isso significa que a
+resposta não é fixa: ela depende da lógica Java cadastrada no endpoint. O administrador escreveu a lógica no método `public Object handle(Object
+payload)` - O runtime injeta o `payload` com os dados da requisição
+(query string no GET, body JSON no POST). - O Funifier processa no
+servidor e retorna o resultado em JSON. **GET**
+`{funifier_server}/v3/pub/{apikey}/{slug}` **POST**
+`{funifier_server}/v3/pub/{apikey}/{slug}`
+
+Request Body
+
+{
+
+"email": "user@email.com"
+
+}
+
+Response
+
+{
+
+"email": "user@email.com"
+
+}
+Try
+
+Execute Public Endpoint
+GET {{funifier_server}}/v3/pub/{apikey}/{slug}
+
+Quando você chama a URL pública, o Funifier **executa o código Java do
+endpoint** (programado no Studio pelo administrador). Isso significa que a
+resposta não é fixa: ela depende da lógica Java cadastrada no endpoint. O administrador escreveu a lógica no método `public Object handle(Object
+payload)` - O runtime injeta o `payload` com os dados da requisição
+(query string no GET, body JSON no POST). - O Funifier processa no
+servidor e retorna o resultado em JSON. **GET**
+`{funifier_server}/v3/pub/{apikey}/{slug}` **POST**
+`{funifier_server}/v3/pub/{apikey}/{slug}`
+
+Request Body
+
+{
+
+"email": "user@email.com"
+
+}
+
+​
+
+Trigger
+
+​
+
+description
+
+Try
+
+Create Trigger
+POST {{funifier_server}}/v3/trigger
+
+Código Java executado automaticamente no servidor quando ocorre um
+evento (create/update/delete em coleções, upload, etc.).
+
+Request Body
+
+{
+
+"name": "Make the player's name uppcase",
+
+"description": "Before creating the player, change the letters of th
+name to uppercase",
+
+"entity": "player",
+
+"event": "before_create",
+
+"script": "void trigger(event, entity, player, database){\n\tentity.
+= name.toUpperCase();\n}",
+
+"creation": 1688757252712,
+
+"updated": 1688757252712,
+
+"_id": "DTv7uHc"
+
+}
+
+Response
+
+[
+
+{
+
+"name": "Convert Name and Email, Give XP, Send Welcome Email",
+
+"description": "This trigger converts the player's name to uppercase
+email to lowercase before creating the player. If the player is from
+Brazil, it gives 10 XP points as a reward. It also sends a welcome e
+to the player.",
+
+"entity": "player",
+
+"event": "before_create",
+
+"script": "void trigger(event, entity, player, database){\n\tentity.
+= entity.name.toUpperCase();\n\tentity.email =
+entity.email.toLowerCase();\n\tif(entity.extra.country == 'brasil')
+{\n\t\tAchievement xp = new Achievement();\n\t\txp.player =
+player;\n\t\txp.total = 10;\n\t\txp.type =
+Achievement.TYPE_POINT;\n\t\txp.item = 'xp';\n\t\txp.time = new
+Date();\n\t\tmanager.getAchievementManager().addAchievement(xp);\n\t
+Email email = EmailBuilder\n\t\t.startingBlank()\n\t\t.from(\"Compan
+\"your@company.com\")\n\t\t.to(entity.getName(),
+entity.email)\n\t\t.withSubject(\"Welcome!\")\n\t\t.withPlainText(\"
+me \" + entity.name + \" to our
+game!\")\n\t\t.buildEmail();\n\tMailerBuilder.withSMTPServer(\"host\
+
+587, \"login\",
+\"password\")\n\t\t.buildMailer()\n\t\t.sendMail(email);\n}",
+
+"creation": 1695651087460,
+
+"updated": 1695651087460,
+
+"_id": "D02Fj2e"
+
+},
+
+{
+
+"name": "Convert player name to uppercase and lowercase email, add X
+points if country is Brazil, and send welcome email",
+
+"description": "This trigger converts the name of the player to
+uppercase, the email to lowercase, gives 10 XP points as a reward if
+player has the country field equal to Brazil, and sends a welcome em
+to the player.",
+
+"entity": "player",
+
+"event": "before_create",
+
+"script": "// 'event': 'before_create', 'entity': 'player'\nvoid
+trigger(event, entity, player, database){\n
+entity.name.toUpperCase();\n
+
+entity.name =
+
+entity.email =
+
+entity.email.toLowerCase();\n
+if(entity.extra.country.equals('brasil')){\n
+
+Achievement xp = new
+
+Achievement();\n
+
+xp.total = 10;\n
+
+xp.type = 0;\n
+
+xp.player = entity._id;\n
+xp.item = 'xp';\n
+
+xp.time = new Date();\n
+
+xp
+
+Guid.newShortGuid();\n
+manager.getAchievementManager().addAchievement(xp);\n
+EmailBuilder\n
+
+.startingBlank()\n
+
+'your@company.com')\n
+
+}\n
+
+.from('Company',
+
+.to(entity.name, entity.email)\n
+
+Email em
+
+.withSubject('Welcome!')\n
+
+.withPlainText('Welcome ' + entity.nam
+
+', we are glad to have you on board!')\n
+
+.buildEmail();\n
+
+MailerBuilder\n
+
+.withSMTPServer('host', 587, 'login', 'password')
+
+.buildMailer()\n
+
+.sendMail(email);\n}",
+
+"creation": 1695587712383,
+
+"updated": 1695587729821,
+
+"_id": "D0Wnphz"
+
+},
+
+{
+
+"name": "Give XP for Selling",
+
+"description": "Gives 1 XP point to the player when they perform the
+action of selling, but only if the player's extra.country field is s
+Brazil.",
+
+"entity": "action",
+
+"event": "after_win",
+
+"script": "// \"event\": \"after_win\", \"entity\": \"action\"\nvoid
+trigger(event, entity, player, database) {\n
+(entity.actionId.equals(\"sell\")) {\n
+
+if
+
+Player currentPlayer =
+
+manager.getPlayerManager().findById(player);\n
+
+if
+
+(currentPlayer.extra.country.equals(\"brazil\")) {\n
+= new Achievement();\n
+xp.type = 0;\n
+
+xp.player = player;\n
+
+xp.item = \"xp\";\n
+
+Achievemen
+xp.total = 1;
+
+xp.time = new Date();\n
+
+xp.id = Guid.newShortGuid();\n
+manager.getAchievementManager().addAchievement(xp);\n
+
+}\n
+
+}\n}",
+
+"creation": 1695573007282,
+
+"updated": 1695577466693,
+
+"_id": "D0YnHOx"
+
+},
+
+{
+
+"name": "IT Multiplier",
+
+"description": "Duplicate points earned for it players",
+
+"entity": "achievement",
+
+"event": "before_create",
+
+"script": "void trigger(event, entity, player,
+database){\n\tif(entity.type == Achievement.TYPE_POINT) {\n
+= manager.getPlayerManager().findById(player);\n
+if(\"IT\".equals(p.extra.department)) {\n
+entity.total * 2;\n
+
+}\n
+
+"creation": 1688590174047,
+
+"updated": 1688765945334,
+
+"_id": "DTkOrT1"
+
+},
+
+{
+
+}\n}",
+
+entity.total =
+
+Pla
+
+"name": "Empty",
+
+"description": "Do nothing!",
+
+"entity": "action",
+
+"event": "after_win",
+
+"script": "void trigger(event, entity, player, database){\n}",
+
+"creation": 1688756480483,
+
+"updated": 1688756503575,
+
+"_id": "DTv4fNT"
+
+},
+
+{
+
+"name": "Make the player's name uppcase",
+
+"description": "Before creating the player, change the letters of th
+name to uppercase",
+
+"entity": "player",
+
+"event": "before_create",
+
+"script": "void trigger(event, entity, player, database){\n\tentity.
+= name.toUpperCase();\n}",
+
+"creation": 1688757252712,
+
+"updated": 1688757252712,
+
+"_id": "DTv7uHc"
+
+},
+
+{
+
+"name": "Welcome Email",
+
+"entity": "player",
+
+"event": "after_create",
+
+"script": "void trigger(event, entity, player, database){\n\tlong to
+manager.getPlayerManager().findTotal();\n\n
+EmailBuilder\n
+
+.startingBlank()\n
+
+Email email =
+
+.from(\"Support\",
+
+\"support@funifier.com\")\n
+
+.to(entity.getName(), entity.getEmail
+
+.withSubject(\"Welcome!\")\n
+
+.withPlainText(\"Welcome \" +
+
+entity.getName() + \", you are member number \" + total + \" of this
+community.\")\n
+
+.buildEmail();\n\n
+
+MailerBuilder.withSMTPServer(\"host\", 587, \"login\", \"password\")
+.buildMailer()\n
+
+.sendMail(email);\n}",
+
+"creation": 1688771191980,
+
+"updated": 1688771320405,
+
+"_id": "DTx3WV6"
+
+},
+
+{
+
+"name": "When a player earn 100+ points, all friends will also recei
+extra point",
+
+"entity": "achievement",
+
+"event": "after_create",
+
+"script": "void trigger(event, entity, player,
+database){\n\tif(entity.type == Achievement.TYPE_POINT && entity.tot
+100) {\n
+
+Player p = manager.getPlayerManager().findById(player)
+
+for(String friend : p.friends) {\n
+Achievement();\n
+a.type = 0;\n
+
+Achievement a = new
+
+a.player = friend;\n
+a.time = new Date();\n
+
+a.total = 1;\n
+a.item =
+
+entity.item;\n
+manager.getAchievementManager().addAchievement(a);\n
+
+"creation": 1688770098437,
+
+"updated": 1688770098437,
+
+"_id": "DTxZosj"
+
+}
+
+]
+
+​
+
+Scheduler
+
+​
+
+description
+
+}\n
+
+}\n
+
+Try
+
+Create Scheduler
+POST {{funifier_server}}/v3/scheduler
+
+Código Java executado no servidor segundo uma expressão cron
+(minuto/hora/dia/mês/diaSemana). Ideal para rotinas periódicas.
+
+Request Body
+
+{
+
+"name": "Sent Report With Total Players Every Monday at Noon",
+
+"cron": "0 0 12 ? * MON",
+
+"script": "void execute(scheduler){ \n
+
+long total =
+
+manager.getPlayerManager().findTotal();\n\t\t\n
+org.simplejavamail.email.Email email =
+org.simplejavamail.email.EmailBuilder\n
+
+.startingBlank()\n
+
+.from(\"Support\", \"support@funifier.com\")\n
+\"ricardo@funifier.com\")\n
+
+.to(\"Ricardo\",
+
+.withSubject(\"Total players so far!\")
+
+.withPlainText(\"So far we have \" + total + \" players\")\n
+.buildEmail();\n\n
+org.simplejavamail.mailer.MailerBuilder.withSMTPServer(\"server\", 5
+\"user\", \"password\").buildMailer().sendMail(email);\n}",
+
+"creation": 1688593473227,
+
+"active": false,
+
+"timezone": "America/New_York",
+
+"extra": {},
+
+"updated": 1688593591941,
+
+"techniques": [],
+
+"_id": "64a5e441d8dcca49bcf82363"
+
+}
+
+Response
+
+[
+
+{
+
+"name": "Sent Report With Total Players Every Monday at Noon",
+
+"cron": "0 0 12 ? * MON",
+
+"script": "void execute(scheduler){ \n
+
+long total =
+
+manager.getPlayerManager().findTotal();\n\t\t\n
+org.simplejavamail.email.Email email =
+org.simplejavamail.email.EmailBuilder\n
+
+.startingBlank()\n
+
+.from(\"Support\", \"support@funifier.com\")\n
+\"ricardo@funifier.com\")\n
+
+.to(\"Ricardo\",
+
+.withSubject(\"Total players so far!\")
+
+.withPlainText(\"So far we have \" + total + \" players\")\n
+.buildEmail();\n\n
+org.simplejavamail.mailer.MailerBuilder.withSMTPServer(\"server\", 5
+\"user\", \"password\").buildMailer().sendMail(email);\n}",
+
+"creation": 1688593473227,
+
+"active": false,
+
+"timezone": "America/New_York",
+
+"extra": {},
+
+"updated": 1688593591941,
+
+"techniques": [],
+
+"_id": "64a5e441d8dcca49bcf82363"
+
+}
+
+]
+
+
