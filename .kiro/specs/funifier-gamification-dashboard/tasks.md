@@ -162,7 +162,6 @@
 
 - [ ] 6. Build admin dashboard components
   - [x] 6.1 Create admin dashboard layout and navigation from scratch
-
     - Design admin interface from scratch using O Boticário design system
     - Create sidebar navigation with player selection and data export sections
     - Implement responsive layout for admin tools matching player dashboard style
@@ -289,3 +288,26 @@
     - Configure branch previews for development workflow
     - Document deployment process and environment setup
     - _Requirements: All requirements verification_
+
+- [ ] 11. Remove test mocks and replace with real implementations
+  - [ ] 11.1 Replace Next.js Link mocks in admin component tests
+    - Remove Next.js Link mocks from AdminBreadcrumb.test.tsx
+    - Remove Next.js Link mocks from AdminSidebar.test.tsx
+    - Update tests to work with real Next.js Link components using proper test setup
+    - Ensure all admin navigation tests still pass with real implementations
+    - _Requirements: Test quality and maintainability_
+
+  - [ ] 11.2 Replace authentication service mocks in admin tests
+    - Remove AuthProvider mocks from admin component tests
+    - Set up proper test environment with real AuthProvider and test data
+    - Use test utilities to provide authenticated user context
+    - Ensure all admin component tests work with real authentication flow
+    - _Requirements: Test quality and maintainability_
+
+  - [ ] 11.3 Review and remove any other temporary mocks
+    - Audit all test files for temporary mocks and workarounds
+    - Replace localStorage mocks with proper test setup
+    - Replace service mocks with real implementations where appropriate
+    - Document any remaining mocks that are intentional (external APIs, etc.)
+    - Ensure test coverage remains high after mock removal
+    - _Requirements: Test quality and maintainability_

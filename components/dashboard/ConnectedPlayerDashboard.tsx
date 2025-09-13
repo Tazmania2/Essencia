@@ -54,5 +54,17 @@ export const ConnectedPlayerDashboard: React.FC<ConnectedPlayerDashboardProps> =
     );
   }
 
-  return <PlayerDashboard {...dashboardData} />;
+  return (
+    <PlayerDashboard 
+      {...dashboardData}
+      secondaryGoal1={{
+        ...dashboardData.secondaryGoal1,
+        isBoostActive: dashboardData.secondaryGoal1.isBoostActive ?? false
+      }}
+      secondaryGoal2={{
+        ...dashboardData.secondaryGoal2,
+        isBoostActive: dashboardData.secondaryGoal2.isBoostActive ?? false
+      }}
+    />
+  );
 };
