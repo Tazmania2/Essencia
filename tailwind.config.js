@@ -9,6 +9,11 @@ module.exports = {
     extend: {
       colors: {
         // O Boticário brand colors
+        'boticario-pink': '#E91E63',
+        'boticario-purple': '#9C27B0',
+        'boticario-gold': '#FFD700',
+        'boticario-light': '#FCE4EC',
+        'boticario-dark': '#880E4F',
         primary: {
           pink: '#E91E63',
           purple: '#9C27B0',

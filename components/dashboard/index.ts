@@ -1,2 +1,9 @@
-// Dashboard components will be implemented here
-export {};
+export { DashboardHeader } from './DashboardHeader';
+export { PointsCard } from './PointsCard';
+export { CycleCard } from './CycleCard';
+export { ProgressBar } from './ProgressBar';
+export { BoostIndicator } from './BoostIndicator';
+export { GoalCard } from './GoalCard';
+export { GoalDetailsAccordion } from './GoalDetailsAccordion';
+export { QuickActions } from './QuickActions';
+export { PlayerDashboard } from './PlayerDashboard';
