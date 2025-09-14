@@ -50,6 +50,9 @@ export class FunifierPlayerService {
 
       const playerData = response.data;
       
+      // Log the actual response to understand the structure
+      console.log('🎮 Funifier API Response:', JSON.stringify(playerData, null, 2));
+      
       // Validate the response structure
       this.validatePlayerStatusResponse(playerData);
 
@@ -228,17 +231,40 @@ export class FunifierPlayerService {
       });
     }
 
-    // Check required fields
-    const requiredFields = ['_id', 'name'];
-    for (const field of requiredFields) {
-      if (!(field in data)) {
-        throw new ApiError({
-          type: ErrorType.DATA_PROCESSING_ERROR,
-          message: `Missing required field: ${field}`,
-          details: { receivedData: data },
-          timestamp: new Date()
-        });
-      }
+    // Check for ID field (could be _id, id, or playerId)
+    const hasId = data._id || data.id || data.playerId || data.player_id;
+    if (!hasId) {
+      throw new ApiError({
+        type: ErrorType.DATA_PROCESSING_ERROR,
+        message: 'Missing player ID field (_id, id, playerId, or player_id)',
+        details: { receivedData: data },
+        timestamp: new Date()
+      });
+    }
+
+    // Normalize the ID field to _id for consistency
+    if (!data._id) {
+      data._id = data.id || data.playerId || data.player_id;
+    }
+
+    // Check for name field
+    if (!data.name) {
+      throw new ApiError({
+        type: ErrorType.DATA_PROCESSING_ERROR,
+        message: 'Missing required field: name',
+        details: { receivedData: data },
+        timestamp: new Date()
+      });
+    }
+
+    // Validate teams field (critical for team identification)
+    if (!data.teams || !Array.isArray(data.teams)) {
+      throw new ApiError({
+        type: ErrorType.DATA_PROCESSING_ERROR,
+        message: 'Missing or invalid teams field - teams array is required',
+        details: { receivedData: data },
+        timestamp: new Date()
+      });
     }
 
     // Validate catalog_items structure
