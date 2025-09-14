@@ -5,7 +5,7 @@ import {
   LoginCredentials,
   ApiError,
   ErrorType,
-  FUNIFIER_CONFIG
+  FUNIFIER_CONFIG,
 } from '../types';
 import { errorHandlerService } from './error-handler.service';
 
@@ -33,7 +33,7 @@ export class FunifierAuthService {
         apiKey: FUNIFIER_CONFIG.API_KEY,
         grant_type: 'password',
         username: credentials.username,
-        password: credentials.password
+        password: credentials.password,
       };
 
       const response = await axios.post<FunifierAuthResponse>(
@@ -52,11 +52,14 @@ export class FunifierAuthService {
       // Store tokens and calculate expiry
       this.accessToken = access_token;
       this.refreshToken = refresh_token || null;
-      this.tokenExpiry = new Date(Date.now() + (expires_in * 1000));
+      this.tokenExpiry = new Date(Date.now() + expires_in * 1000);
 
       return access_token;
     } catch (error) {
-      const apiError = errorHandlerService.handleFunifierError(error, 'authentication');
+      const apiError = errorHandlerService.handleFunifierError(
+        error,
+        'authentication'
+      );
       throw apiError;
     }
   }
@@ -91,7 +94,7 @@ export class FunifierAuthService {
       throw new ApiError({
         type: ErrorType.AUTHENTICATION_ERROR,
         message: 'No refresh token available',
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     }
 
@@ -101,7 +104,7 @@ export class FunifierAuthService {
         {
           apiKey: FUNIFIER_CONFIG.API_KEY,
           grant_type: 'refresh_token',
-          refresh_token: this.refreshToken
+          refresh_token: this.refreshToken,
         },
         {
           headers: {
@@ -115,12 +118,15 @@ export class FunifierAuthService {
 
       this.accessToken = access_token;
       this.refreshToken = refresh_token || this.refreshToken;
-      this.tokenExpiry = new Date(Date.now() + (expires_in * 1000));
+      this.tokenExpiry = new Date(Date.now() + expires_in * 1000);
 
       return access_token;
     } catch (error) {
       this.clearTokens();
-      const apiError = errorHandlerService.handleFunifierError(error, 'token_refresh');
+      const apiError = errorHandlerService.handleFunifierError(
+        error,
+        'token_refresh'
+      );
       throw apiError;
     }
   }
@@ -147,13 +153,32 @@ export class FunifierAuthService {
       throw new ApiError({
         type: ErrorType.AUTHENTICATION_ERROR,
         message: 'No access token available',
-        timestamp: new Date()
+        timestamp: new Date(),
       });
     }
 
     return {
-      'Authorization': `Bearer ${this.accessToken}`
+      Authorization: `Bearer ${this.accessToken}`,
     };
+  }
+
+  /**
+   * Set access token manually (for when token is obtained from API route)
+   */
+  public setAccessToken(token: string, expiresIn?: number): void {
+    this.accessToken = token;
+
+    if (expiresIn) {
+      this.tokenExpiry = new Date(Date.now() + expiresIn * 1000);
+    } else {
+      // Default to 1 hour if no expiry provided
+      this.tokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
+    }
+
+    console.log(
+      '💾 Token stored in auth service, expires at:',
+      this.tokenExpiry
+    );
   }
 
   private isTokenExpired(): boolean {
@@ -168,7 +193,7 @@ export class FunifierAuthService {
       return true;
     }
     // Check if token expires in the next 5 minutes
-    const fiveMinutesFromNow = new Date(Date.now() + (5 * 60 * 1000));
+    const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
     return this.tokenExpiry <= fiveMinutesFromNow;
   }
 
@@ -181,13 +206,13 @@ export class FunifierAuthService {
   private handleAuthError(error: unknown): ApiError {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
-      
+
       if (axiosError.code === 'ECONNABORTED') {
         return new ApiError({
           type: ErrorType.NETWORK_ERROR,
           message: 'Authentication request timed out',
           details: axiosError.message,
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       }
 
@@ -201,28 +226,28 @@ export class FunifierAuthService {
               type: ErrorType.AUTHENTICATION_ERROR,
               message: 'Invalid credentials',
               details: data?.error || 'Unauthorized',
-              timestamp: new Date()
+              timestamp: new Date(),
             });
           case 403:
             return new ApiError({
               type: ErrorType.AUTHENTICATION_ERROR,
               message: 'Access forbidden',
               details: data?.error || 'Forbidden',
-              timestamp: new Date()
+              timestamp: new Date(),
             });
           case 429:
             return new ApiError({
               type: ErrorType.FUNIFIER_API_ERROR,
               message: 'Too many authentication attempts',
               details: data?.error || 'Rate limit exceeded',
-              timestamp: new Date()
+              timestamp: new Date(),
             });
           default:
             return new ApiError({
               type: ErrorType.FUNIFIER_API_ERROR,
               message: `Authentication failed with status ${status}`,
               details: data?.error || axiosError.message,
-              timestamp: new Date()
+              timestamp: new Date(),
             });
         }
       }
@@ -232,7 +257,7 @@ export class FunifierAuthService {
           type: ErrorType.NETWORK_ERROR,
           message: 'Network error during authentication',
           details: 'No response received from server',
-          timestamp: new Date()
+          timestamp: new Date(),
         });
       }
     }
@@ -241,7 +266,7 @@ export class FunifierAuthService {
       type: ErrorType.AUTHENTICATION_ERROR,
       message: 'Unknown authentication error',
       details: error instanceof Error ? error.message : String(error),
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   }
 }

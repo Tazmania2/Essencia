@@ -115,7 +115,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       const authResult = await authResponse.json();
-      console.log('🔐 Auth successful, token received');
+      console.log('🔐 Auth successful, token received:', authResult.access_token?.substring(0, 20) + '...');
+
+      // Store the token in the auth service so other services can use it
+      console.log('💾 Storing token in auth service...');
+      funifierAuthService.setAccessToken(authResult.access_token, authResult.expires_in);
 
       // Identify user role and team
       console.log('👤 Identifying user role and team...');
