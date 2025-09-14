@@ -130,23 +130,26 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
    * Special logic: 0-50% red (0-33% fill), 50-100% yellow (33-66% fill), 100-150% green (66-100% fill)
    */
   protected calculateProgressBar(percentage: number): ProgressBarConfig {
-    if (percentage <= 50) {
+    // Round percentage to avoid floating-point precision issues
+    const roundedPercentage = Math.round(percentage * 100) / 100;
+    
+    if (roundedPercentage <= 50) {
       return {
-        percentage,
+        percentage: roundedPercentage,
         color: 'red',
-        fillPercentage: (percentage / 50) * 33.33 // 0-50% -> 0-33.33% of bar
+        fillPercentage: Math.round(((roundedPercentage / 50) * 33.33) * 100) / 100 // 0-50% -> 0-33.33% of bar
       };
-    } else if (percentage <= 100) {
+    } else if (roundedPercentage <= 100) {
       return {
-        percentage,
+        percentage: roundedPercentage,
         color: 'yellow',
-        fillPercentage: 33.33 + ((percentage - 50) / 50) * 33.33 // 50-100% -> 33.33-66.66% of bar
+        fillPercentage: Math.round((33.33 + ((roundedPercentage - 50) / 50) * 33.33) * 100) / 100 // 50-100% -> 33.33-66.66% of bar
       };
     } else {
       return {
-        percentage,
+        percentage: roundedPercentage,
         color: 'green',
-        fillPercentage: 66.66 + ((Math.min(percentage, 150) - 100) / 50) * 33.34 // 100-150% -> 66.66-100% of bar
+        fillPercentage: Math.round((66.66 + ((Math.min(roundedPercentage, 150) - 100) / 50) * 33.34) * 100) / 100 // 100-150% -> 66.66-100% of bar
       };
     }
   }
@@ -205,7 +208,9 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
     for (const progress of challengeProgress) {
       if (challengeIds.includes(progress.challenge || progress.challengeId || progress.id)) {
         // Extract percentage from challenge progress - use actual Funifier field names
-        return progress.percent_completed || progress.percentage || progress.progress || fallbackValue;
+        const rawPercentage = progress.percent_completed || progress.percentage || progress.progress || fallbackValue;
+        // Round to avoid floating-point precision issues
+        return Math.round(rawPercentage * 100) / 100;
       }
     }
     return fallbackValue;
@@ -338,7 +343,8 @@ export class TeamProcessorUtils {
     if (isNaN(percentage) || !isFinite(percentage)) {
       return 0;
     }
-    return Math.max(0, percentage);
+    // Round to 2 decimal places to avoid floating-point precision issues
+    return Math.max(0, Math.round(percentage * 100) / 100);
   }
 
   /**

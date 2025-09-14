@@ -98,15 +98,15 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
     if (goal.target !== undefined && goal.current !== undefined) {
       items.push(`META: ${formatValue(goal.target, goal.unit)}`);
       items.push(`Valor Atual: ${formatValue(goal.current, goal.unit)}`);
-      items.push(`Porcentagem alcançada: ${goal.percentage}%`);
+      items.push(`Porcentagem alcançada: ${goal.percentage.toFixed(0)}%`);
       if (goal.daysRemaining !== undefined) {
         items.push(`Prazo: ${goal.daysRemaining} dias restantes`);
       }
     } else {
       // Fallback to basic information
-      items.push(`Progresso: ${goal.percentage}%`);
+      items.push(`Progresso: ${goal.percentage.toFixed(0)}%`);
       items.push(`Meta: 100%`);
-      items.push(`Restante: ${Math.max(0, 100 - goal.percentage)}%`);
+      items.push(`Restante: ${Math.max(0, 100 - goal.percentage).toFixed(0)}%`);
       items.push(`Prazo: ${totalCycleDays - currentCycleDay} dias`);
     }
     

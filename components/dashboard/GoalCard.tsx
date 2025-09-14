@@ -78,7 +78,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
               isActive={isBoostActive}
             />
           )}
-          <span className={percentageClasses}>{percentage}%</span>
+          <span className={percentageClasses}>{percentage.toFixed(0)}%</span>
         </div>
       </div>
       <ProgressBar 
