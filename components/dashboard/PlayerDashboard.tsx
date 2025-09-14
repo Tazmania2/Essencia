@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { DashboardHeader } from './DashboardHeader';
 import { PointsCard } from './PointsCard';
 import { CycleCard } from './CycleCard';
@@ -57,16 +57,9 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
   secondaryGoal2,
   goalDetails = []
 }) => {
-  const [boost1Active, setBoost1Active] = useState(secondaryGoal1.isBoostActive);
-  const [boost2Active, setBoost2Active] = useState(secondaryGoal2.isBoostActive);
-
-  const handleBoost1Toggle = () => {
-    setBoost1Active(!boost1Active);
-  };
-
-  const handleBoost2Toggle = () => {
-    setBoost2Active(!boost2Active);
-  };
+  // Use boost status directly from props (no toggle functionality)
+  const boost1Active = secondaryGoal1.isBoostActive;
+  const boost2Active = secondaryGoal2.isBoostActive;
 
   const defaultGoalDetails = [
     {
@@ -139,7 +132,6 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
               emoji={secondaryGoal1.emoji}
               hasBoost={secondaryGoal1.hasBoost}
               isBoostActive={boost1Active}
-              onBoostToggle={handleBoost1Toggle}
             />
             <GoalCard
               title={secondaryGoal2.name}
@@ -148,7 +140,6 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
               emoji={secondaryGoal2.emoji}
               hasBoost={secondaryGoal2.hasBoost}
               isBoostActive={boost2Active}
-              onBoostToggle={handleBoost2Toggle}
             />
           </div>
         </div>

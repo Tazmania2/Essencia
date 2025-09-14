@@ -2,7 +2,6 @@
 
 import { PlayerRoute } from '../../components/auth/ProtectedRoute';
 import { PlayerDashboard } from '../../components/dashboard/PlayerDashboard';
-import { RefreshButton } from '../../components/dashboard/RefreshButton';
 import { useFreshDashboardData } from '../../hooks/useFreshDashboardData';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -106,17 +105,6 @@ function DashboardWithFreshData({ playerId }: { playerId: string }) {
 
   return (
     <div>
-      {/* Refresh Controls */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto">
-          <RefreshButton
-            onRefresh={refreshData}
-            loading={loading}
-            lastUpdated={lastUpdated}
-          />
-        </div>
-      </div>
-
       {/* Debug Info Panel (only in development) */}
       {process.env.NODE_ENV === 'development' && (
         <div className="bg-gray-100 p-4 border-b">

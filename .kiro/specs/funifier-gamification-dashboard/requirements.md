@@ -92,7 +92,22 @@ Este projeto consiste em desenvolver um dashboard de gamificação que integra c
 4. WHEN action logs são enviados THEN o sistema SHALL usar endpoints apropriados da API Funifier
 5. IF a API retorna erro THEN o sistema SHALL tratar e exibir mensagem apropriada ao usuário
 
-### Requirement 8 - Interface Responsiva e Usabilidade
+### Requirement 8 - Gerenciamento de Cache e Atualização de Dados
+
+**User Story:** Como usuário, eu quero que os dados sejam sempre atualizados e que eu possa forçar uma atualização quando necessário, para que eu tenha informações precisas e em tempo real.
+
+#### Acceptance Criteria
+
+1. WHEN o usuário faz refresh da página (F5 ou Ctrl+R) THEN o sistema SHALL buscar dados frescos da API Funifier ignorando cache
+2. WHEN dados são mais antigos que 24 horas THEN o sistema SHALL automaticamente buscar dados frescos da API
+3. WHEN o dashboard é carregado THEN o sistema SHALL exibir um botão "Atualizar" para refresh manual dos dados
+4. WHEN o usuário clica no botão "Atualizar" THEN o sistema SHALL buscar dados frescos da API e atualizar o cache
+5. WHEN dados estão sendo atualizados THEN o sistema SHALL exibir indicador de loading e desabilitar o botão de atualização
+6. WHEN dados são atualizados com sucesso THEN o sistema SHALL exibir timestamp da última atualização
+7. WHEN há erro na atualização de dados THEN o sistema SHALL manter dados em cache e exibir mensagem de erro com opção de tentar novamente
+8. WHEN o sistema detecta que a página ficou inativa e depois volta ao foco THEN o sistema SHALL verificar se precisa atualizar dados automaticamente
+
+### Requirement 9 - Interface Responsiva e Usabilidade
 
 **User Story:** Como usuário, eu quero uma interface intuitiva e responsiva, para que eu possa acessar o sistema de qualquer dispositivo.
 

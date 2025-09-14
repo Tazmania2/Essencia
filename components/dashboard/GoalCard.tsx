@@ -12,7 +12,6 @@ interface GoalCardProps {
   isPrimary?: boolean;
   hasBoost?: boolean;
   isBoostActive?: boolean;
-  onBoostToggle?: () => void;
 }
 
 export const GoalCard: React.FC<GoalCardProps> = ({
@@ -22,8 +21,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
   emoji,
   isPrimary = false,
   hasBoost = false,
-  isBoostActive = false,
-  onBoostToggle
+  isBoostActive = false
 }) => {
   const cardClasses = isPrimary 
     ? 'bg-white rounded-2xl p-6 shadow-lg'
@@ -49,7 +47,6 @@ export const GoalCard: React.FC<GoalCardProps> = ({
           {hasBoost && (
             <BoostIndicator 
               isActive={isBoostActive}
-              onClick={onBoostToggle}
             />
           )}
           <span className={percentageClasses}>{percentage}%</span>

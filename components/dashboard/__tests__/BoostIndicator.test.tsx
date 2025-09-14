@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { BoostIndicator } from '../BoostIndicator';
 
 describe('BoostIndicator', () => {
@@ -19,14 +19,18 @@ describe('BoostIndicator', () => {
     expect(screen.getByText('⚡')).toHaveClass('text-gray-500');
   });
 
-  it('calls onClick when clicked', () => {
-    const mockOnClick = jest.fn();
-    render(<BoostIndicator isActive={true} onClick={mockOnClick} />);
+  it('shows correct tooltip for active boost', () => {
+    render(<BoostIndicator isActive={true} />);
     
     const indicator = screen.getByText('⚡').parentElement;
-    fireEvent.click(indicator!);
+    expect(indicator).toHaveAttribute('title', 'Boost Ativo!');
+  });
+
+  it('shows correct tooltip for inactive boost', () => {
+    render(<BoostIndicator isActive={false} />);
     
-    expect(mockOnClick).toHaveBeenCalledTimes(1);
+    const indicator = screen.getByText('⚡').parentElement;
+    expect(indicator).toHaveAttribute('title', 'Boost Inativo');
   });
 
   it('applies custom className', () => {
@@ -36,10 +40,18 @@ describe('BoostIndicator', () => {
     expect(indicator).toHaveClass('custom-boost');
   });
 
-  it('has cursor-pointer class for interactivity', () => {
+  it('does not have cursor-pointer class (not clickable)', () => {
     render(<BoostIndicator isActive={true} />);
     
     const indicator = screen.getByText('⚡').parentElement;
-    expect(indicator).toHaveClass('cursor-pointer');
+    expect(indicator).not.toHaveClass('cursor-pointer');
+  });
+
+  it('has proper styling for active boost with glow effect', () => {
+    render(<BoostIndicator isActive={true} />);
+    
+    const indicator = screen.getByText('⚡').parentElement;
+    expect(indicator).toHaveClass('animate-pulse');
+    expect(indicator).toHaveClass('shadow-lg');
   });
 });

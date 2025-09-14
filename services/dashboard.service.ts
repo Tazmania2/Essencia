@@ -204,6 +204,9 @@ export class DashboardService {
   /**
    * Extract dashboard data directly from Funifier API response for debugging
    * This bypasses team processors and extracts data directly from the API response
+   * 
+   * IMPORTANT: When players reach 100% and have boosts active, Funifier stops tracking
+   * progress in challenge_progress. In this case, we should fetch from collection data.
    */
   static extractDirectDashboardData(playerStatus: FunifierPlayerStatus): DashboardData {
     // Challenge IDs for goal tracking
@@ -220,7 +223,7 @@ export class DashboardService {
     // Check if points are unlocked (E6F0O5f > 0)
     const pointsLocked = !(playerStatus.catalog_items?.['E6F0O5f'] > 0);
     
-    // Check boost status
+    // Check boost status - this indicates if player has reached 100% on secondary goals
     const boost1Active = (playerStatus.catalog_items?.['E6F0WGc'] || 0) > 0;
     const boost2Active = (playerStatus.catalog_items?.['E6K79Mt'] || 0) > 0;
     
@@ -230,9 +233,9 @@ export class DashboardService {
       return challenge ? Math.round(challenge.percent_completed) : 0;
     };
 
-    const atividadeProgress = getGoalProgress(CHALLENGE_IDS.ATIVIDADE);
-    const reaisProgress = getGoalProgress(CHALLENGE_IDS.REAIS_POR_ATIVO);
-    const faturamentoProgress = getGoalProgress(CHALLENGE_IDS.FATURAMENTO);
+    let atividadeProgress = getGoalProgress(CHALLENGE_IDS.ATIVIDADE);
+    let reaisProgress = getGoalProgress(CHALLENGE_IDS.REAIS_POR_ATIVO);
+    let faturamentoProgress = getGoalProgress(CHALLENGE_IDS.FATURAMENTO);
 
     // Determine team type from teams array (simplified)
     const teamId = playerStatus.teams?.[0];
@@ -253,6 +256,35 @@ export class DashboardService {
         break;
     }
 
+    // IMPORTANT: When boosts are active, it means the player reached 100% on those goals
+    // and Funifier stops tracking progress. We need to show 100%+ for those goals.
+    // In a real implementation, this data should come from the collection/report data.
+    
+    // For now, if boost is active, show 100% minimum for the corresponding secondary goals
+    switch (teamType) {
+      case TeamType.CARTEIRA_I:
+        if (boost1Active && reaisProgress < 100) {
+          reaisProgress = 100; // Reais por Ativo reached 100% (boost1 = secondary goal 1)
+        }
+        if (boost2Active && faturamentoProgress < 100) {
+          faturamentoProgress = 100; // Faturamento reached 100% (boost2 = secondary goal 2)
+        }
+        break;
+      case TeamType.CARTEIRA_II:
+        if (boost1Active && atividadeProgress < 100) {
+          atividadeProgress = 100; // Atividade reached 100% (boost1 = secondary goal 1)
+        }
+        // Note: For Carteira II, boost2 would be Multimarcas, but we don't have that data yet
+        break;
+      case TeamType.CARTEIRA_III:
+      case TeamType.CARTEIRA_IV:
+        if (boost1Active && reaisProgress < 100) {
+          reaisProgress = 100; // Reais por Ativo reached 100% (boost1 = secondary goal 1)
+        }
+        // Note: boost2 would be Multimarcas, but we don't have that data yet
+        break;
+    }
+
     // Set goals based on team type
     let primaryGoal: { name: string; percentage: number; emoji: string };
     let secondaryGoal1: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
@@ -267,18 +299,20 @@ export class DashboardService {
       case TeamType.CARTEIRA_II:
         primaryGoal = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰' };
         secondaryGoal1 = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: 0, emoji: '🏪', isBoostActive: boost2Active }; // No data yet
+        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: boost2Active ? 100 : 0, emoji: '🏪', isBoostActive: boost2Active };
         break;
       case TeamType.CARTEIRA_III:
       case TeamType.CARTEIRA_IV:
         primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
         secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: 0, emoji: '🏪', isBoostActive: boost2Active }; // No data yet
+        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: boost2Active ? 100 : 0, emoji: '🏪', isBoostActive: boost2Active };
         break;
     }
 
-    const generateDescription = (percentage: number): string => {
-      if (percentage >= 100) {
+    const generateDescription = (percentage: number, isBoostActive: boolean): string => {
+      if (isBoostActive && percentage >= 100) {
+        return `Meta superada! ${percentage}% concluído - Boost ativo! 🚀`;
+      } else if (percentage >= 100) {
         return `Meta atingida! ${percentage}% concluído - Parabéns! 🎉`;
       } else if (percentage >= 75) {
         return `Quase lá! ${percentage}% concluído - Faltam apenas ${100 - percentage}%`;
@@ -301,13 +335,13 @@ export class DashboardService {
       primaryGoal: {
         name: primaryGoal.name,
         percentage: primaryGoal.percentage,
-        description: generateDescription(primaryGoal.percentage),
+        description: generateDescription(primaryGoal.percentage, false),
         emoji: primaryGoal.emoji
       },
       secondaryGoal1: {
         name: secondaryGoal1.name,
         percentage: secondaryGoal1.percentage,
-        description: generateDescription(secondaryGoal1.percentage),
+        description: generateDescription(secondaryGoal1.percentage, secondaryGoal1.isBoostActive),
         emoji: secondaryGoal1.emoji,
         hasBoost: true as const,
         isBoostActive: secondaryGoal1.isBoostActive
@@ -315,7 +349,7 @@ export class DashboardService {
       secondaryGoal2: {
         name: secondaryGoal2.name,
         percentage: secondaryGoal2.percentage,
-        description: generateDescription(secondaryGoal2.percentage),
+        description: generateDescription(secondaryGoal2.percentage, secondaryGoal2.isBoostActive),
         emoji: secondaryGoal2.emoji,
         hasBoost: true as const,
         isBoostActive: secondaryGoal2.isBoostActive
