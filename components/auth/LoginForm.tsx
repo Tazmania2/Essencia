@@ -33,7 +33,7 @@ export function LoginForm({ onSubmit, isLoading }: LoginFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6 login-form">
       {/* Username Field */}
       <div>
         <label htmlFor="username" className="block text-sm font-semibold text-[#880E4F] mb-3">
@@ -50,10 +50,10 @@ export function LoginForm({ onSubmit, isLoading }: LoginFormProps) {
             })}
             type="text"
             id="username"
-            className={`w-full px-4 py-3 pl-12 border-2 rounded-xl focus:ring-2 focus:ring-[#E91E63] focus:border-[#E91E63] transition-all duration-200 font-medium ${
+            className={`w-full px-4 py-3 pl-12 border-2 rounded-xl focus:ring-2 focus:ring-[#E91E63] focus:border-[#E91E63] transition-all duration-200 font-medium text-gray-900 placeholder-gray-500 ${
               errors.username 
                 ? 'border-red-300 bg-red-50' 
-                : 'border-gray-200 hover:border-[#9C27B0] focus:bg-white'
+                : 'border-gray-200 hover:border-[#9C27B0] focus:bg-white bg-white'
             }`}
             placeholder="Digite seu usuário"
             disabled={isLoading}
@@ -90,10 +90,10 @@ export function LoginForm({ onSubmit, isLoading }: LoginFormProps) {
             })}
             type={showPassword ? 'text' : 'password'}
             id="password"
-            className={`w-full px-4 py-3 pl-12 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-[#E91E63] focus:border-[#E91E63] transition-all duration-200 font-medium ${
+            className={`w-full px-4 py-3 pl-12 pr-12 border-2 rounded-xl focus:ring-2 focus:ring-[#E91E63] focus:border-[#E91E63] transition-all duration-200 font-medium text-gray-900 placeholder-gray-500 ${
               errors.password 
                 ? 'border-red-300 bg-red-50' 
-                : 'border-gray-200 hover:border-[#9C27B0] focus:bg-white'
+                : 'border-gray-200 hover:border-[#9C27B0] focus:bg-white bg-white'
             }`}
             placeholder="Digite sua senha"
             disabled={isLoading}

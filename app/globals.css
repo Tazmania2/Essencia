@@ -46,3 +46,38 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #E91E63;
 }
+
+/* Fix autofill styling issues */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  color: #111827 !important;
+}
+
+/* Ensure text is always visible in inputs */
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  color: #111827 !important;
+  background-color: white !important;
+}
+
+/* Dark mode prevention for login form */
+.login-form input {
+  color: #111827 !important;
+  background-color: white !important;
+}
+
+/* Force light mode for the entire app */
+html {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: light;
+  }
+}

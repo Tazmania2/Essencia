@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { LoginForm } from '../../components/auth/LoginForm';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoginCredentials } from '../../types';
+import { LoginDebug } from '../../components/debug/LoginDebug';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
@@ -26,11 +27,19 @@ export default function LoginPage() {
     setError(null);
 
     try {
+      console.log('🔐 Login page: Starting login for', credentials.username);
       await login(credentials);
+      console.log('✅ Login page: Login successful');
       // Redirect will be handled by the useEffect above
     } catch (err) {
+      console.error('❌ Login page: Login failed', err);
       // Error handling is done in the AuthContext
-      // We can get the error from the context if needed
+      // But let's also set a local error as backup
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Erro inesperado. Tente novamente.');
+      }
     }
   };
 
@@ -82,6 +91,9 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      
+      {/* Debug component for development */}
+      <LoginDebug />
     </div>
   );
 }

@@ -1,9 +1,18 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { funifierAuthService } from '../services/funifier-auth.service';
-import { userIdentificationService, UserIdentification } from '../services/user-identification.service';
+import {
+  userIdentificationService,
+  UserIdentification,
+} from '../services/user-identification.service';
 import { LoginCredentials, ApiError, ErrorType } from '../types';
 
 interface AuthContextType {
@@ -11,18 +20,18 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  
+
   // User information
   user: UserIdentification | null;
-  
+
   // Authentication methods
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
-  
+
   // Convenience getters
   isPlayer: boolean;
   isAdmin: boolean;
-  
+
   // Token management
   refreshToken: () => Promise<void>;
 }
@@ -40,23 +49,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<UserIdentification | null>(null);
   const router = useRouter();
 
-  // Initialize authentication state on mount
-  useEffect(() => {
-    initializeAuth();
-  }, []);
-
   // Set up token refresh interval
   useEffect(() => {
     if (isAuthenticated) {
-      const interval = setInterval(async () => {
-        try {
-          await refreshToken();
-        } catch (error) {
-          console.warn('Token refresh failed:', error);
-          // Don't logout automatically on refresh failure
-          // Let the user continue until they make a request that fails
-        }
-      }, 4 * 60 * 1000); // Refresh every 4 minutes
+      const interval = setInterval(
+        async () => {
+          try {
+            await refreshToken();
+          } catch (error) {
+            console.warn('Token refresh failed:', error);
+            // Don't logout automatically on refresh failure
+            // Let the user continue until they make a request that fails
+          }
+        },
+        4 * 60 * 1000
+      ); // Refresh every 4 minutes
 
       return () => clearInterval(interval);
     }
@@ -88,11 +95,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      // Authenticate with Funifier
-      await funifierAuthService.authenticate(credentials);
+      console.log('🔐 Starting login process for:', credentials.username);
+
+      // Call the API route for authentication
+      const authResponse = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      console.log('🔐 Auth API response status:', authResponse.status);
+
+      if (!authResponse.ok) {
+        const errorData = await authResponse.json();
+        console.error('🔐 Auth API error:', errorData);
+        throw new Error(errorData.error || 'Authentication failed');
+      }
+
+      const authResult = await authResponse.json();
+      console.log('🔐 Auth successful, token received');
 
       // Identify user role and team
-      const userInfo = await userIdentificationService.identifyUser(credentials.username);
+      console.log('👤 Identifying user role and team...');
+      const userInfo = await userIdentificationService.identifyUser(
+        credentials.username
+      );
+      console.log('👤 User identified:', userInfo);
 
       // Update state
       setUser(userInfo);
@@ -102,19 +132,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem('user', JSON.stringify(userInfo));
       localStorage.setItem('username', credentials.username);
 
+      console.log('✅ Login completed successfully');
     } catch (err) {
+      console.error('❌ Login error:', err);
+
       let errorMessage = 'Erro inesperado durante o login';
 
-      if (err instanceof ApiError) {
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (err instanceof ApiError) {
         switch (err.type) {
           case ErrorType.AUTHENTICATION_ERROR:
-            errorMessage = 'Credenciais inválidas. Verifique seu usuário e senha.';
+            errorMessage =
+              'Credenciais inválidas. Verifique seu usuário e senha.';
             break;
           case ErrorType.NETWORK_ERROR:
-            errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+            errorMessage =
+              'Erro de conexão. Verifique sua internet e tente novamente.';
             break;
           case ErrorType.FUNIFIER_API_ERROR:
-            errorMessage = 'Erro no servidor. Tente novamente em alguns minutos.';
+            errorMessage =
+              'Erro no servidor. Tente novamente em alguns minutos.';
             break;
           default:
             errorMessage = 'Erro inesperado. Tente novamente.';
@@ -158,24 +196,48 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // Try to restore user from localStorage on mount
+  // Initialize authentication state on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const storedUsername = localStorage.getItem('username');
-    
-    if (storedUser && storedUsername && funifierAuthService.isAuthenticated()) {
+    const initializeAuth = async () => {
       try {
-        const userInfo = JSON.parse(storedUser) as UserIdentification;
-        setUser(userInfo);
-        setIsAuthenticated(true);
+        setIsLoading(true);
+        setError(null);
+
+        console.log('🔄 Initializing authentication...');
+
+        // Try to restore user from localStorage
+        const storedUser = localStorage.getItem('user');
+        const storedUsername = localStorage.getItem('username');
+
+        if (storedUser && storedUsername) {
+          try {
+            const userInfo = JSON.parse(storedUser) as UserIdentification;
+            console.log(
+              '👤 Restored user from localStorage:',
+              userInfo.userName
+            );
+            setUser(userInfo);
+            setIsAuthenticated(true);
+          } catch (error) {
+            console.error(
+              '❌ Failed to restore user from localStorage:',
+              error
+            );
+            localStorage.removeItem('user');
+            localStorage.removeItem('username');
+          }
+        }
+
+        console.log('✅ Auth initialization complete');
       } catch (error) {
-        console.error('Failed to restore user from localStorage:', error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('username');
+        console.error('❌ Auth initialization error:', error);
+        setError('Erro ao inicializar autenticação');
+      } finally {
+        setIsLoading(false);
       }
-    }
-    
-    setIsLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const contextValue: AuthContextType = {
@@ -187,13 +249,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     logout,
     refreshToken,
     isPlayer: user?.role.isPlayer || false,
-    isAdmin: user?.role.isAdmin || false
+    isAdmin: user?.role.isAdmin || false,
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 }
 
