@@ -205,7 +205,8 @@ export const FUNIFIER_CONFIG = {
     CARTEIRA_I: 'E6F4sCh',
     CARTEIRA_II: 'E6F4O1b', 
     CARTEIRA_III: 'E6F4Xf2',
-    CARTEIRA_IV: 'E6F41Bb'
+    CARTEIRA_IV: 'E6F41Bb',
+    ADMIN: 'E6U1B1p'
   },
   ACTION_IDS: {
     ATIVIDADE: 'atividade',

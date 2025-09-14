@@ -260,7 +260,7 @@ export class DashboardService {
       case TeamType.CARTEIRA_III:
       case TeamType.CARTEIRA_IV:
         challengeIds = {
-          faturamento: 'E6F8HMK',    // Carteira III & IV - Bater Meta Faturamento
+          faturamento: 'E6Gahd4',    // Carteira III & IV - Subir Faturamento (Pre-Meta)
           reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
           multimarcas: 'E6MMH5v'     // Carteira III & IV - Subir Multimarcas por Ativo
         };

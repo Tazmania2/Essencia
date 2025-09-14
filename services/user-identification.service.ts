@@ -200,39 +200,35 @@ export class UserIdentificationService {
   }
 
   /**
+   * Check if a player has admin privileges based on their player data
+   * This is a public method that can be used by other services
+   */
+  public isUserAdmin(playerData: FunifierPlayerStatus): boolean {
+    return this.checkAdminPrivileges(playerData);
+  }
+
+  /**
+   * Get admin team ID
+   */
+  public getAdminTeamId(): string {
+    return FUNIFIER_CONFIG.TEAM_IDS.ADMIN;
+  }
+
+  /**
    * Check if user has admin privileges
-   * This is a placeholder implementation - adjust based on your business logic
+   * Admin users are identified by being members of the admin team (E6U1B1p)
    */
   private checkAdminPrivileges(playerData: FunifierPlayerStatus): boolean {
-    // Example logic: Check if user has specific admin indicators
-    // This could be based on:
-    // 1. Specific team membership
-    // 2. Extra fields in player data
-    // 3. Special catalog items
-    // 4. User roles from external system
-    
-    // For now, we'll check if the user has admin-specific extra fields
-    const extraData = playerData.extra || {};
-    
-    // Check for admin role in extra data
-    if (extraData.role === 'admin' || extraData.isAdmin === true) {
+    // Primary check: Admin team membership
+    const adminTeamId = FUNIFIER_CONFIG.TEAM_IDS.ADMIN;
+    if (playerData.teams?.includes(adminTeamId)) {
       return true;
     }
 
-    // Check for admin team membership (if you have a specific admin team)
-    // const adminTeamId = 'ADMIN_TEAM_ID'; // Define this if you have admin teams
-    // if (playerData.teams?.includes(adminTeamId)) {
-    //   return true;
-    // }
-
-    // Check for specific admin catalog items
-    const catalogItems = playerData.catalog_items || {};
-    const adminCatalogItems = ['ADMIN_ITEM_1', 'ADMIN_ITEM_2']; // Define admin-specific items
-    
-    for (const adminItem of adminCatalogItems) {
-      if (catalogItems[adminItem] && catalogItems[adminItem] > 0) {
-        return true;
-      }
+    // Secondary check: Admin role in extra data (fallback)
+    const extraData = playerData.extra || {};
+    if (extraData.role === 'admin' || extraData.isAdmin === true) {
+      return true;
     }
 
     // Default to player role

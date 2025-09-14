@@ -328,6 +328,27 @@ export const PlayerSelector: React.FC<PlayerSelectorProps> = ({
                       })()}
                     </div>
                   </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Tipo de Usuário</label>
+                    <div className="mt-1">
+                      {funifierPlayerService.isPlayerAdmin(selectedPlayerData) ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 8a6 6 0 01-7.743 5.743L10 14l-0.257-0.257A6 6 0 1118 8zM10 2a1 1 0 011 1v1.267a4.39 4.39 0 011.617.602l.894-.894a1 1 0 011.414 1.414l-.894.894A4.39 4.39 0 0115.267 7H17a1 1 0 110 2h-1.267a4.39 4.39 0 01-.602 1.617l.894.894a1 1 0 11-1.414 1.414l-.894-.894A4.39 4.39 0 0112 12.267V14a1 1 0 11-2 0v-1.733a4.39 4.39 0 01-1.617-.602l-.894.894a1 1 0 01-1.414-1.414l.894-.894A4.39 4.39 0 015.733 9H4a1 1 0 110-2h1.733a4.39 4.39 0 01.602-1.617l-.894-.894a1 1 0 111.414-1.414l.894.894A4.39 4.39 0 019 4.267V3a1 1 0 011-1z" clipRule="evenodd" />
+                          </svg>
+                          Administrador
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                          </svg>
+                          Jogador
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </>
               )}
             </div>

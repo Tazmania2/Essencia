@@ -164,6 +164,14 @@ export class FunifierPlayerService {
   }
 
   /**
+   * Check if player has admin privileges
+   */
+  public isPlayerAdmin(playerData: FunifierPlayerStatus): boolean {
+    const adminTeamId = FUNIFIER_CONFIG.TEAM_IDS.ADMIN;
+    return playerData.teams?.includes(adminTeamId) || false;
+  }
+
+  /**
    * Get comprehensive player analysis
    */
   public analyzePlayerData(playerData: FunifierPlayerStatus): {
@@ -202,6 +210,7 @@ export class FunifierPlayerService {
     };
     catalogItemsCount: number;
     hasImage: boolean;
+    isAdmin: boolean;
   } {
     return {
       playerId: playerData._id,
@@ -212,7 +221,8 @@ export class FunifierPlayerService {
       teamInfo: this.extractTeamInfo(playerData),
       challengeInfo: this.extractChallengeProgress(playerData),
       catalogItemsCount: playerData.total_catalog_items || 0,
-      hasImage: !!playerData.image
+      hasImage: !!playerData.image,
+      isAdmin: this.isPlayerAdmin(playerData)
     };
   }
 
