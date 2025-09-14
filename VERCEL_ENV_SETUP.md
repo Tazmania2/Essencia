@@ -7,7 +7,7 @@ This document explains how to configure environment variables for the Funifier G
 ### 1. Funifier API Configuration
 
 ```bash
-FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
+FUNIFIER_API_KEY= [Your_API_key_here]
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
 FUNIFIER_BASIC_TOKEN=Basic [your_basic_token_here]
 ```
@@ -28,7 +28,7 @@ NEXTAUTH_URL=https://your-app-name.vercel.app
 3. Add each variable:
 
    **FUNIFIER_API_KEY**
-   - Value: `68a6737a6e1d0e2196db1b1e`
+   - Value: [Your_API_key_here]
    - Environment: Production, Preview, Development
 
    **FUNIFIER_BASE_URL**
@@ -62,7 +62,7 @@ vercel login
 
 # Set environment variables
 vercel env add FUNIFIER_API_KEY
-# Enter: 68a6737a6e1d0e2196db1b1e
+# Enter: [Your_API_key_here]
 # Select: Production, Preview, Development
 
 vercel env add FUNIFIER_BASE_URL
@@ -87,7 +87,7 @@ vercel env add NEXTAUTH_URL
 Create a `.env.production` file (do not commit this):
 
 ```bash
-FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
+FUNIFIER_API_KEY=[Your_API_key_here]
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
 FUNIFIER_BASIC_TOKEN=Basic [your_basic_token_here]
 NEXTAUTH_SECRET=your_super_secure_nextauth_secret_key_here_32_chars_minimum
