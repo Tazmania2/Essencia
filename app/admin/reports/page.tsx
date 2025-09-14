@@ -21,8 +21,8 @@ function AdminReportsContent() {
     { label: 'Upload de Relatórios', isActive: true }
   ];
 
-  const handleFileUpload = (files: File[], results: any[]) => {
-    setUploadResults(results);
+  const handleFileUpload = async (files: File[], parseResults: any[]) => {
+    setUploadResults(parseResults);
   };
 
   return (
@@ -49,7 +49,7 @@ function AdminReportsContent() {
               <button
                 onClick={() => {
                   // Import and use the sample generator
-                  import('../../utils/sample-csv-generator').then(({ downloadSampleCSV }) => {
+                  import('../../../utils/sample-csv-generator').then(({ downloadSampleCSV }) => {
                     downloadSampleCSV(['123456'], 'exemplo-relatorio.csv');
                   });
                 }}
@@ -84,7 +84,7 @@ function AdminReportsContent() {
           onFileUpload={handleFileUpload}
           acceptedTypes={['.csv']}
           multiple={false}
-          maxSize={10 * 1024 * 1024} // 10MB
+          maxFileSize={10} // 10MB
         />
 
         {/* Upload Results */}

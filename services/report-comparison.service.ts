@@ -109,7 +109,7 @@ export class ReportComparisonService {
         if (reportValue !== undefined && reportValue !== null) {
           differences.push({
             playerId: reportRecord.playerId,
-            playerName: reportRecord.playerName,
+            playerName: reportRecord.playerId, // Use playerId as fallback since playerName is not available
             metric,
             funifierValue: 0,
             reportValue,
@@ -135,7 +135,7 @@ export class ReportComparisonService {
           if (Math.abs(difference) > this.TOLERANCE) {
             differences.push({
               playerId: reportRecord.playerId,
-              playerName: reportRecord.playerName,
+              playerName: reportRecord.playerId, // Use playerId as fallback since playerName is not available
               metric,
               funifierValue: storedValue,
               reportValue,
@@ -149,12 +149,12 @@ export class ReportComparisonService {
     }
 
     const hasChanges = differences.length > 0;
-    const summary = this.generatePlayerSummary(reportRecord.playerName, differences);
+    const summary = this.generatePlayerSummary(reportRecord.playerId, differences);
 
     return {
       playerId: reportRecord.playerId,
-      playerName: reportRecord.playerName,
-      team: reportRecord.team,
+      playerName: reportRecord.playerId, // Use playerId as fallback since playerName is not available
+      team: 'UNKNOWN', // Default team since not available in report data
       differences,
       hasChanges,
       summary

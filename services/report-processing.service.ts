@@ -187,7 +187,7 @@ export class ReportProcessingService {
           };
 
           // Store in database (this will handle team detection and player name lookup)
-          await funifierDatabaseService.storeReportData([essenciaRecord]);
+          await funifierDatabaseService.insertReportRecord(essenciaRecord);
           changes++;
 
           // Create action logs for each metric if token is provided
