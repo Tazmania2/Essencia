@@ -209,13 +209,6 @@ export class DashboardService {
    * progress in challenge_progress. In this case, we should fetch from collection data.
    */
   static extractDirectDashboardData(playerStatus: FunifierPlayerStatus): DashboardData {
-    // Challenge IDs for goal tracking
-    const CHALLENGE_IDS = {
-      ATIVIDADE: 'E6FQIjs',
-      REAIS_POR_ATIVO: 'E6Gm8RI', 
-      FATURAMENTO: 'E6GglPq'
-    };
-
     // Extract basic player info
     const playerName = playerStatus.name;
     const totalPoints = playerStatus.total_points;
@@ -226,18 +219,8 @@ export class DashboardService {
     // Check boost status - this indicates if player has reached 100% on secondary goals
     const boost1Active = (playerStatus.catalog_items?.['E6F0WGc'] || 0) > 0;
     const boost2Active = (playerStatus.catalog_items?.['E6K79Mt'] || 0) > 0;
-    
-    // Extract goal progress from challenge_progress
-    const getGoalProgress = (challengeId: string): number => {
-      const challenge = playerStatus.challenge_progress?.find(c => c.challenge === challengeId);
-      return challenge ? Math.round(challenge.percent_completed) : 0;
-    };
 
-    let atividadeProgress = getGoalProgress(CHALLENGE_IDS.ATIVIDADE);
-    let reaisProgress = getGoalProgress(CHALLENGE_IDS.REAIS_POR_ATIVO);
-    let faturamentoProgress = getGoalProgress(CHALLENGE_IDS.FATURAMENTO);
-
-    // Determine team type from teams array (simplified)
+    // Determine team type from teams array first
     const teamId = playerStatus.teams?.[0];
     let teamType: TeamType = TeamType.CARTEIRA_I; // Default
     
@@ -255,6 +238,45 @@ export class DashboardService {
         teamType = TeamType.CARTEIRA_IV;
         break;
     }
+
+    // Team-specific challenge IDs for goal tracking
+    let challengeIds: { atividade?: string; reaisPorAtivo: string; faturamento?: string; multimarcas?: string };
+    
+    switch (teamType) {
+      case TeamType.CARTEIRA_I:
+        challengeIds = {
+          atividade: 'E6FQIjs',      // Carteira I - Bater Meta Atividade %
+          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
+          faturamento: 'E6GglPq'     // Carteira I - Bater Faturamento (Meta)
+        };
+        break;
+      case TeamType.CARTEIRA_II:
+        challengeIds = {
+          reaisPorAtivo: 'E6MTIIK',  // Carteira II - Subir Reais por Ativo (PRIMARY GOAL)
+          atividade: 'E6Gv58l',      // Carteira II - Subir Atividade (SECONDARY GOAL 1)
+          multimarcas: 'E6MWJKs'     // Carteira II - Subir Multimarcas por Ativo (SECONDARY GOAL 2)
+        };
+        break;
+      case TeamType.CARTEIRA_III:
+      case TeamType.CARTEIRA_IV:
+        challengeIds = {
+          faturamento: 'E6F8HMK',    // Carteira III & IV - Bater Meta Faturamento
+          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
+          multimarcas: 'E6MMH5v'     // Carteira III & IV - Subir Multimarcas por Ativo
+        };
+        break;
+    }
+
+    // Extract goal progress from challenge_progress using team-specific challenge IDs
+    const getGoalProgress = (challengeId: string): number => {
+      const challenge = playerStatus.challenge_progress?.find(c => c.challenge === challengeId);
+      return challenge ? Math.round(challenge.percent_completed) : 0;
+    };
+
+    let atividadeProgress = challengeIds.atividade ? getGoalProgress(challengeIds.atividade) : 0;
+    let reaisProgress = getGoalProgress(challengeIds.reaisPorAtivo);
+    let faturamentoProgress = challengeIds.faturamento ? getGoalProgress(challengeIds.faturamento) : 0;
+    let multimarcasProgress = challengeIds.multimarcas ? getGoalProgress(challengeIds.multimarcas) : 0;
 
     // IMPORTANT: When boosts are active, it means the player reached 100% on those goals
     // and Funifier stops tracking progress. We need to show 100%+ for those goals to trigger green color.
@@ -275,14 +297,18 @@ export class DashboardService {
         if (boost1Active && atividadeProgress <= 100) {
           atividadeProgress = 101; // Atividade reached 100%+ (boost1 = secondary goal 1)
         }
-        // Note: For Carteira II, boost2 would be Multimarcas, but we don't have that data yet
+        if (boost2Active && multimarcasProgress <= 100) {
+          multimarcasProgress = 101; // Multimarcas por Ativo reached 100%+ (boost2 = secondary goal 2)
+        }
         break;
       case TeamType.CARTEIRA_III:
       case TeamType.CARTEIRA_IV:
         if (boost1Active && reaisProgress <= 100) {
           reaisProgress = 101; // Reais por Ativo reached 100%+ (boost1 = secondary goal 1)
         }
-        // Note: boost2 would be Multimarcas, but we don't have that data yet
+        if (boost2Active && multimarcasProgress <= 100) {
+          multimarcasProgress = 101; // Multimarcas por Ativo reached 100%+ (boost2 = secondary goal 2)
+        }
         break;
     }
 
@@ -300,13 +326,13 @@ export class DashboardService {
       case TeamType.CARTEIRA_II:
         primaryGoal = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰' };
         secondaryGoal1 = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: boost2Active ? 101 : 0, emoji: '🏪', isBoostActive: boost2Active };
+        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: multimarcasProgress, emoji: '🏪', isBoostActive: boost2Active };
         break;
       case TeamType.CARTEIRA_III:
       case TeamType.CARTEIRA_IV:
         primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
         secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: boost2Active ? 101 : 0, emoji: '🏪', isBoostActive: boost2Active };
+        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: multimarcasProgress, emoji: '🏪', isBoostActive: boost2Active };
         break;
     }
 
