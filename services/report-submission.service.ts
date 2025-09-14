@@ -166,8 +166,8 @@ export class ReportSubmissionService {
     const actionLogs: ActionLogEntry[] = [];
 
     for (const record of reportRecords) {
-      // Get previous data for this player
-      const previousData = await this.getPreviousPlayerData(record.playerId, record.reportDate);
+      // Get previous data for this player (excluding current record)
+      const previousData = await this.getPreviousPlayerData(record.playerId, record._id);
       
       const metrics = [
         { key: 'faturamentoPercentual', actionId: 'faturamento' },
@@ -235,11 +235,11 @@ export class ReportSubmissionService {
   }
 
   /**
-   * Get previous data for a player (excluding current report date)
+   * Get previous data for a player (excluding current submission)
    */
-  private async getPreviousPlayerData(playerId: string, currentReportDate: string): Promise<ReportRecord | null> {
+  private async getPreviousPlayerData(playerId: string, currentRecordId?: string): Promise<ReportRecord | null> {
     try {
-      // Option 1: Use simple List Data API to get all records, then filter in JavaScript
+      // Use simple List Data API to get all records, then filter in JavaScript
       const response = await axios.get(
         `${FUNIFIER_BASE_URL}/database/report__c`,
         {
@@ -253,10 +253,15 @@ export class ReportSubmissionService {
       // Filter and sort the data in JavaScript
       const allRecords = response.data as ReportRecord[];
       const playerRecords = allRecords
-        .filter(record => 
-          record.playerId === playerId && 
-          record.reportDate < currentReportDate
-        )
+        .filter(record => {
+          // Include records for this player that are:
+          // 1. Not the current record being processed (if we have its ID)
+          // 2. Have status 'REGISTERED' (completed submissions)
+          // 3. Are for the same player
+          return record.playerId === playerId && 
+                 record.status === 'REGISTERED' &&
+                 (!currentRecordId || record._id !== currentRecordId);
+        })
         .sort((a, b) => {
           // Sort by reportDate descending, then by createdAt descending
           if (b.reportDate !== a.reportDate) {
@@ -264,6 +269,11 @@ export class ReportSubmissionService {
           }
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
+
+      console.log(`Found ${playerRecords.length} previous records for player ${playerId}`);
+      if (playerRecords.length > 0) {
+        console.log(`Most recent previous record:`, playerRecords[0]);
+      }
 
       return playerRecords.length > 0 ? playerRecords[0] : null;
     } catch (error) {
@@ -276,15 +286,22 @@ export class ReportSubmissionService {
    * Alternative: Get previous data using correct aggregation format
    * (Uncomment this method if you prefer to use aggregation)
    */
-  private async getPreviousPlayerDataWithAggregation(playerId: string, currentReportDate: string): Promise<ReportRecord | null> {
+  private async getPreviousPlayerDataWithAggregation(playerId: string, currentRecordId?: string): Promise<ReportRecord | null> {
     try {
       // Correct aggregation pipeline format as per Funifier API docs
+      const matchConditions: any = {
+        "playerId": playerId,
+        "status": "REGISTERED"
+      };
+
+      // Exclude current record if we have its ID
+      if (currentRecordId) {
+        matchConditions["_id"] = { "$ne": currentRecordId };
+      }
+
       const pipeline = [
         {
-          "$match": {
-            "playerId": playerId,
-            "reportDate": { "$lt": currentReportDate }
-          }
+          "$match": matchConditions
         },
         {
           "$sort": { "reportDate": -1, "createdAt": -1 }
