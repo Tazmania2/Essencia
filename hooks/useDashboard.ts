@@ -4,6 +4,7 @@ import { FunifierPlayerService } from '../services/funifier-player.service';
 import { FunifierDatabaseService } from '../services/funifier-database.service';
 import { TeamProcessorFactory } from '../services/team-processor-factory.service';
 import { UserIdentificationService } from '../services/user-identification.service';
+import { funifierAuthService } from '../services/funifier-auth.service';
 import { DashboardData, ApiError, ErrorType } from '../types';
 
 interface UseDashboardResult {
@@ -28,13 +29,26 @@ export const useDashboard = (playerId: string, token: string): UseDashboardResul
 
   const fetchDashboardData = async () => {
     try {
+      console.log('🎯 useDashboard: Starting fetch for player:', playerId);
       setLoading(true);
       setError(null);
       
-      const data = await dashboardService.getDashboardData(playerId, token);
+      // Get token from auth service instead of relying on passed token
+      const authToken = await funifierAuthService.getAccessToken();
+      if (!authToken) {
+        throw new ApiError({
+          type: ErrorType.AUTHENTICATION_ERROR,
+          message: 'No authentication token available',
+          timestamp: new Date()
+        });
+      }
+      
+      console.log('🔑 useDashboard: Got auth token, calling dashboard service');
+      const data = await dashboardService.getDashboardData(playerId, authToken);
+      console.log('✅ useDashboard: Dashboard data received successfully');
       setDashboardData(data);
     } catch (err) {
-      console.error('Dashboard fetch error:', err);
+      console.error('❌ useDashboard: Dashboard fetch error:', err);
       
       if (err instanceof ApiError) {
         switch (err.type) {
@@ -59,10 +73,11 @@ export const useDashboard = (playerId: string, token: string): UseDashboardResul
   };
 
   useEffect(() => {
-    if (playerId && token) {
+    if (playerId) {
+      console.log('🔄 useDashboard: useEffect triggered for player:', playerId);
       fetchDashboardData();
     }
-  }, [playerId, token]);
+  }, [playerId]);
 
   return {
     dashboardData,
