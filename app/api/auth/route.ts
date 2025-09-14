@@ -13,9 +13,9 @@ export async function POST(request: NextRequest) {
     }
 
     const authService = FunifierAuthService.getInstance();
-    const result = await authService.authenticate({ username, password });
+    const authResponse = await authService.authenticate({ username, password });
 
-    return NextResponse.json(result);
+    return NextResponse.json(authResponse);
   } catch (error) {
     console.error('Authentication error:', error);
     return NextResponse.json(

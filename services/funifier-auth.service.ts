@@ -27,7 +27,9 @@ export class FunifierAuthService {
   /**
    * Authenticate with Funifier API using username and password
    */
-  public async authenticate(credentials: LoginCredentials): Promise<string> {
+  public async authenticate(
+    credentials: LoginCredentials
+  ): Promise<FunifierAuthResponse> {
     try {
       const authRequest: FunifierAuthRequest = {
         apiKey: FUNIFIER_CONFIG.API_KEY,
@@ -54,7 +56,13 @@ export class FunifierAuthService {
       this.refreshToken = refresh_token || null;
       this.tokenExpiry = new Date(Date.now() + expires_in * 1000);
 
-      return access_token;
+      // Return the full response
+      return {
+        access_token,
+        token_type: 'Bearer',
+        expires_in,
+        refresh_token,
+      };
     } catch (error) {
       const apiError = errorHandlerService.handleFunifierError(
         error,
