@@ -62,10 +62,6 @@ describe('ReportSubmissionService', () => {
             updatedAt: '2024-01-15T10:00:00.000Z'
           }
         })
-        // Step 2: Get previous data (no previous data)
-        .mockResolvedValueOnce({
-          data: []
-        })
         // Step 2: Create action logs
         .mockResolvedValueOnce({
           data: { total_registered: 4 }
@@ -76,6 +72,11 @@ describe('ReportSubmissionService', () => {
             uploads: [{ url: 'https://example.com/file.csv' }]
           }
         });
+
+      // Mock GET for fetching previous data (no previous data)
+      mockedAxios.get.mockResolvedValueOnce({
+        data: [] // Empty array means no previous data
+      });
 
       // Mock PUT for record updates
       mockedAxios.put.mockResolvedValueOnce({
@@ -96,7 +97,8 @@ describe('ReportSubmissionService', () => {
       expect(result.errors).toHaveLength(0);
 
       // Verify API calls
-      expect(mockedAxios.post).toHaveBeenCalledTimes(4); // Individual POST, aggregate, action logs, upload
+      expect(mockedAxios.post).toHaveBeenCalledTimes(3); // Individual POST, action logs, upload
+      expect(mockedAxios.get).toHaveBeenCalledTimes(1); // GET for previous data
       expect(mockedAxios.put).toHaveBeenCalledTimes(1); // Individual PUT for update
     });
 

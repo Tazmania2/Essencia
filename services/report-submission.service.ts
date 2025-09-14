@@ -239,19 +239,58 @@ export class ReportSubmissionService {
    */
   private async getPreviousPlayerData(playerId: string, currentReportDate: string): Promise<ReportRecord | null> {
     try {
-      // Use aggregation to get the most recent record for this player before the current date
+      // Option 1: Use simple List Data API to get all records, then filter in JavaScript
+      const response = await axios.get(
+        `${FUNIFIER_BASE_URL}/database/report__c`,
+        {
+          headers: {
+            'Authorization': FUNIFIER_AUTH_TOKEN,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // Filter and sort the data in JavaScript
+      const allRecords = response.data as ReportRecord[];
+      const playerRecords = allRecords
+        .filter(record => 
+          record.playerId === playerId && 
+          record.reportDate < currentReportDate
+        )
+        .sort((a, b) => {
+          // Sort by reportDate descending, then by createdAt descending
+          if (b.reportDate !== a.reportDate) {
+            return b.reportDate.localeCompare(a.reportDate);
+          }
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+
+      return playerRecords.length > 0 ? playerRecords[0] : null;
+    } catch (error) {
+      console.warn(`Could not fetch previous data for player ${playerId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Alternative: Get previous data using correct aggregation format
+   * (Uncomment this method if you prefer to use aggregation)
+   */
+  private async getPreviousPlayerDataWithAggregation(playerId: string, currentReportDate: string): Promise<ReportRecord | null> {
+    try {
+      // Correct aggregation pipeline format as per Funifier API docs
       const pipeline = [
         {
-          $match: {
-            playerId: playerId,
-            reportDate: { $lt: currentReportDate }
+          "$match": {
+            "playerId": playerId,
+            "reportDate": { "$lt": currentReportDate }
           }
         },
         {
-          $sort: { reportDate: -1, createdAt: -1 }
+          "$sort": { "reportDate": -1, "createdAt": -1 }
         },
         {
-          $limit: 1
+          "$limit": 1
         }
       ];
 
