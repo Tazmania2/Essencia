@@ -183,13 +183,13 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
     console.log('🔍 Checking for challenge data:', {
       challengeIds,
       availableChallenges: challengeProgress.map(p => ({
-        id: p.challengeId || p.id || p.challenge,
-        percentage: p.percentage || p.progress || p.percent_completed
+        id: p.challenge || p.challengeId || p.id,
+        percentage: p.percent_completed || p.percentage || p.progress
       }))
     });
     
     const found = challengeProgress.some(progress => 
-      challengeIds.includes(progress.challengeId || progress.id || progress.challenge)
+      challengeIds.includes(progress.challenge || progress.challengeId || progress.id)
     );
     
     console.log('🎯 Challenge data found:', found);

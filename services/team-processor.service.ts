@@ -203,10 +203,9 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
     fallbackValue: number = 0
   ): number {
     for (const progress of challengeProgress) {
-      if (challengeIds.includes(progress.challengeId || progress.id)) {
-        // Extract percentage from challenge progress
-        // This might need adjustment based on actual Funifier response structure
-        return progress.percentage || progress.progress || fallbackValue;
+      if (challengeIds.includes(progress.challenge || progress.challengeId || progress.id)) {
+        // Extract percentage from challenge progress - use actual Funifier field names
+        return progress.percent_completed || progress.percentage || progress.progress || fallbackValue;
       }
     }
     return fallbackValue;
