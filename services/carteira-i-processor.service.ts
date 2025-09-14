@@ -93,20 +93,23 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
     rawData: FunifierPlayerStatus,
     reportData?: EssenciaReportRecord
   ): number {
-    // Priority 1: Report data (most accurate)
+    // Priority 1: Funifier challenge progress (primary source)
+    const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].atividade;
+    const challengePercentage = this.extractChallengePercentage(
+      rawData.challenge_progress || [],
+      challengeIds
+    );
+
+    if (challengePercentage > 0) {
+      return this.validatePercentage(challengePercentage);
+    }
+
+    // Priority 2: Report data (fallback when Funifier data is missing)
     if (reportData?.atividade !== undefined) {
       return this.validatePercentage(reportData.atividade);
     }
 
-    // Priority 2: Challenge progress from Funifier
-    const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].atividade;
-    const challengePercentage = this.extractChallengePercentage(
-      rawData.challenge_progress || [],
-      challengeIds,
-      0
-    );
-
-    return this.validatePercentage(challengePercentage);
+    return 0;
   }
 
   /**
@@ -116,20 +119,23 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
     rawData: FunifierPlayerStatus,
     reportData?: EssenciaReportRecord
   ): number {
-    // Priority 1: Report data (most accurate)
+    // Priority 1: Funifier challenge progress (primary source)
+    const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].reaisPorAtivo;
+    const challengePercentage = this.extractChallengePercentage(
+      rawData.challenge_progress || [],
+      challengeIds
+    );
+
+    if (challengePercentage > 0) {
+      return this.validatePercentage(challengePercentage);
+    }
+
+    // Priority 2: Report data (fallback when Funifier data is missing)
     if (reportData?.reaisPorAtivo !== undefined) {
       return this.validatePercentage(reportData.reaisPorAtivo);
     }
 
-    // Priority 2: Challenge progress from Funifier
-    const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].reaisPorAtivo;
-    const challengePercentage = this.extractChallengePercentage(
-      rawData.challenge_progress || [],
-      challengeIds,
-      0
-    );
-
-    return this.validatePercentage(challengePercentage);
+    return 0;
   }
 
   /**
@@ -139,20 +145,23 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
     rawData: FunifierPlayerStatus,
     reportData?: EssenciaReportRecord
   ): number {
-    // Priority 1: Report data (most accurate)
+    // Priority 1: Funifier challenge progress (primary source)
+    const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].faturamento;
+    const challengePercentage = this.extractChallengePercentage(
+      rawData.challenge_progress || [],
+      challengeIds
+    );
+
+    if (challengePercentage > 0) {
+      return this.validatePercentage(challengePercentage);
+    }
+
+    // Priority 2: Report data (fallback when Funifier data is missing)
     if (reportData?.faturamento !== undefined) {
       return this.validatePercentage(reportData.faturamento);
     }
 
-    // Priority 2: Challenge progress from Funifier
-    const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].faturamento;
-    const challengePercentage = this.extractChallengePercentage(
-      rawData.challenge_progress || [],
-      challengeIds,
-      0
-    );
-
-    return this.validatePercentage(challengePercentage);
+    return 0;
   }
 
   /**

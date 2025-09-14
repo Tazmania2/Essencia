@@ -20,6 +20,10 @@ interface PlayerDashboardProps {
     percentage: number;
     description: string;
     emoji: string;
+    target?: number;
+    current?: number;
+    unit?: string;
+    daysRemaining?: number;
   };
   secondaryGoal1: {
     name: string;
@@ -28,6 +32,10 @@ interface PlayerDashboardProps {
     emoji: string;
     hasBoost: boolean;
     isBoostActive: boolean;
+    target?: number;
+    current?: number;
+    unit?: string;
+    daysRemaining?: number;
   };
   secondaryGoal2: {
     name: string;
@@ -36,6 +44,10 @@ interface PlayerDashboardProps {
     emoji: string;
     hasBoost: boolean;
     isBoostActive: boolean;
+    target?: number;
+    current?: number;
+    unit?: string;
+    daysRemaining?: number;
   };
   goalDetails?: Array<{
     title: string;
@@ -61,37 +73,67 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
   const boost1Active = secondaryGoal1.isBoostActive;
   const boost2Active = secondaryGoal2.isBoostActive;
 
+  // Helper function to format values for display
+  const formatValue = (value: number, unit?: string): string => {
+    if (unit === 'R$') {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(value);
+    }
+    
+    if (unit === 'marcas') {
+      return value.toFixed(1) + ' ' + unit;
+    }
+    
+    return Math.round(value).toString() + (unit ? ' ' + unit : '');
+  };
+
+  // Generate enhanced goal details
+  const generateGoalItems = (goal: any, isBoostGoal: boolean = false) => {
+    const items = [];
+    
+    if (goal.target !== undefined && goal.current !== undefined) {
+      items.push(`META: ${formatValue(goal.target, goal.unit)}`);
+      items.push(`Valor Atual: ${formatValue(goal.current, goal.unit)}`);
+      items.push(`Porcentagem alcançada: ${goal.percentage}%`);
+      if (goal.daysRemaining !== undefined) {
+        items.push(`Prazo: ${goal.daysRemaining} dias restantes`);
+      }
+    } else {
+      // Fallback to basic information
+      items.push(`Progresso: ${goal.percentage}%`);
+      items.push(`Meta: 100%`);
+      items.push(`Restante: ${Math.max(0, 100 - goal.percentage)}%`);
+      items.push(`Prazo: ${totalCycleDays - currentCycleDay} dias`);
+    }
+    
+    if (isBoostGoal) {
+      const isActive = goal.name === secondaryGoal1.name ? boost1Active : boost2Active;
+      items.push(`Boost: ${isActive ? 'Ativo (2x pontos)' : 'Inativo'}`);
+    }
+    
+    return items;
+  };
+
   const defaultGoalDetails = [
     {
-      title: 'Meta Principal',
-      items: [
-        `Valor atual: ${primaryGoal.percentage}%`,
-        `Meta: 100%`,
-        `Restante: ${Math.max(0, 100 - primaryGoal.percentage)}%`,
-        `Prazo: ${totalCycleDays - currentCycleDay} dias`
-      ],
+      title: primaryGoal.name,
+      items: generateGoalItems(primaryGoal),
       bgColor: 'bg-boticario-light',
       textColor: 'text-boticario-dark'
     },
     {
       title: secondaryGoal1.name,
-      items: [
-        `Progresso: ${secondaryGoal1.percentage}%`,
-        `Boost: ${boost1Active ? 'Ativo (2x pontos)' : 'Inativo'}`,
-        `Próxima ação: +400 pts`,
-        'Categoria favorita'
-      ],
+      items: generateGoalItems(secondaryGoal1, true),
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-800'
     },
     {
       title: secondaryGoal2.name,
-      items: [
-        `Progresso: ${secondaryGoal2.percentage}%`,
-        `Boost: ${boost2Active ? 'Ativo (2x pontos)' : 'Inativo'}`,
-        `Próxima ação: +200 pts`,
-        'Desconto disponível: 15%'
-      ],
+      items: generateGoalItems(secondaryGoal2, true),
       bgColor: 'bg-pink-50',
       textColor: 'text-pink-800'
     }
@@ -121,6 +163,10 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
             description={primaryGoal.description}
             emoji={primaryGoal.emoji}
             isPrimary={true}
+            target={primaryGoal.target}
+            current={primaryGoal.current}
+            unit={primaryGoal.unit}
+            daysRemaining={primaryGoal.daysRemaining}
           />
 
           {/* Metas Secundárias */}
@@ -132,6 +178,10 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
               emoji={secondaryGoal1.emoji}
               hasBoost={secondaryGoal1.hasBoost}
               isBoostActive={boost1Active}
+              target={secondaryGoal1.target}
+              current={secondaryGoal1.current}
+              unit={secondaryGoal1.unit}
+              daysRemaining={secondaryGoal1.daysRemaining}
             />
             <GoalCard
               title={secondaryGoal2.name}
@@ -140,6 +190,10 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
               emoji={secondaryGoal2.emoji}
               hasBoost={secondaryGoal2.hasBoost}
               isBoostActive={boost2Active}
+              target={secondaryGoal2.target}
+              current={secondaryGoal2.current}
+              unit={secondaryGoal2.unit}
+              daysRemaining={secondaryGoal2.daysRemaining}
             />
           </div>
         </div>

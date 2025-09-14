@@ -12,6 +12,11 @@ interface GoalCardProps {
   isPrimary?: boolean;
   hasBoost?: boolean;
   isBoostActive?: boolean;
+  // Enhanced fields for detailed information
+  target?: number;
+  current?: number;
+  unit?: string;
+  daysRemaining?: number;
 }
 
 export const GoalCard: React.FC<GoalCardProps> = ({
@@ -21,7 +26,11 @@ export const GoalCard: React.FC<GoalCardProps> = ({
   emoji,
   isPrimary = false,
   hasBoost = false,
-  isBoostActive = false
+  isBoostActive = false,
+  target,
+  current,
+  unit,
+  daysRemaining
 }) => {
   const cardClasses = isPrimary 
     ? 'bg-white rounded-2xl p-6 shadow-lg'
@@ -36,6 +45,26 @@ export const GoalCard: React.FC<GoalCardProps> = ({
     : 'font-bold text-boticario-purple';
 
   const progressHeight = isPrimary ? 'lg' : 'md';
+
+  // Helper function to format values
+  const formatValue = (value: number): string => {
+    if (unit === 'R$') {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(value);
+    }
+    
+    if (title.includes('Multimarcas')) {
+      return value.toFixed(1);
+    }
+    
+    return Math.round(value).toString();
+  };
+
+  const hasDetailedData = target !== undefined && current !== undefined;
 
   return (
     <div className={cardClasses}>
@@ -57,6 +86,32 @@ export const GoalCard: React.FC<GoalCardProps> = ({
         height={progressHeight}
         className="mb-2"
       />
+      
+      {/* Enhanced detailed information */}
+      {hasDetailedData && (
+        <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <span className="text-gray-500">Meta:</span>
+              <span className="ml-1 font-semibold text-gray-800">
+                {formatValue(target!)} {unit && !unit.startsWith('R$') && unit}
+              </span>
+            </div>
+            <div>
+              <span className="text-gray-500">Atual:</span>
+              <span className="ml-1 font-semibold text-gray-800">
+                {formatValue(current!)} {unit && !unit.startsWith('R$') && unit}
+              </span>
+            </div>
+          </div>
+          {daysRemaining !== undefined && (
+            <div className="mt-2 text-xs text-gray-600">
+              <span className="font-medium">Prazo:</span> {daysRemaining} dias restantes
+            </div>
+          )}
+        </div>
+      )}
+      
       <p className="text-gray-600 text-sm">{description}</p>
     </div>
   );

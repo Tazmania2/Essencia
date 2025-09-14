@@ -186,6 +186,16 @@ export const reportDataCache = new CacheService({
   maxSize: 20,
 });
 
+export const enhancedReportCache = new CacheService({
+  ttl: 5 * 60 * 1000, // 5 minutes for enhanced database reports
+  maxSize: 30,
+});
+
+export const csvDataCache = new CacheService({
+  ttl: 15 * 60 * 1000, // 15 minutes for CSV data
+  maxSize: 20,
+});
+
 // Cache key generators
 export const CacheKeys = {
   playerStatus: (playerId: string) => `player:status:${playerId}`,
@@ -193,6 +203,9 @@ export const CacheKeys = {
   reportData: (playerId: string) => `report:${playerId}`,
   teamProcessorData: (teamType: string, playerId: string) => `processor:${teamType}:${playerId}`,
   funifierCollection: (collectionName: string) => `collection:${collectionName}`,
+  enhancedReport: (playerId: string) => `enhanced:report:${playerId}`,
+  csvData: (csvUrl: string) => `csv:${Buffer.from(csvUrl).toString('base64').slice(0, 20)}`,
+  completePlayerData: (playerId: string) => `complete:player:${playerId}`,
 } as const;
 
 // Utility functions for cache management
@@ -232,6 +245,8 @@ export const CacheUtils = {
       dashboard: dashboardCache.getStats(),
       player: playerDataCache.getStats(),
       report: reportDataCache.getStats(),
+      enhancedReport: enhancedReportCache.getStats(),
+      csvData: csvDataCache.getStats(),
     };
   },
 
@@ -242,5 +257,7 @@ export const CacheUtils = {
     dashboardCache.clear();
     playerDataCache.clear();
     reportDataCache.clear();
+    enhancedReportCache.clear();
+    csvDataCache.clear();
   },
 };

@@ -1,11 +1,15 @@
 import axios, { AxiosError } from 'axios';
 import {
   EssenciaReportRecord,
+  EnhancedReportRecord,
+  CSVGoalData,
   ApiError,
   ErrorType,
   FUNIFIER_CONFIG
 } from '../types';
 import { funifierAuthService } from './funifier-auth.service';
+import { csvProcessingService } from './csv-processing.service';
+import { enhancedReportCache, csvDataCache, CacheKeys } from './cache.service';
 
 export interface BulkInsertResult {
   insertedCount: number;
@@ -158,6 +162,132 @@ export class FunifierDatabaseService {
       return results.length > 0 ? results[0] : null;
     } catch (error) {
       throw this.handleDatabaseError(error, 'get latest player report');
+    }
+  }
+
+  /**
+   * Get enhanced report data for a specific player using Basic auth
+   * This method uses the special Basic auth token for enhanced database access
+   */
+  public async getEnhancedPlayerReport(playerId: string): Promise<EnhancedReportRecord | null> {
+    try {
+      // Check cache first
+      const cacheKey = CacheKeys.enhancedReport(playerId);
+      const cachedData = enhancedReportCache.get<EnhancedReportRecord>(cacheKey);
+      
+      if (cachedData) {
+        return cachedData;
+      }
+
+      const pipeline: AggregationPipeline[] = [
+        { 
+          $match: { 
+            playerId: playerId,
+            status: "REGISTERED"
+          } 
+        },
+        { $sort: { createdAt: -1 } },
+        { $limit: 1 }
+      ];
+
+      const response = await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/${FUNIFIER_CONFIG.CUSTOM_COLLECTION}/aggregate?strict=true`,
+        pipeline,
+        {
+          headers: {
+            'Authorization': 'Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==',
+            'Content-Type': 'application/json',
+          },
+          timeout: 25000,
+        }
+      );
+
+      const results = response.data || [];
+      const result = results.length > 0 ? results[0] : null;
+      
+      // Cache the result
+      if (result) {
+        enhancedReportCache.set(cacheKey, result, 5 * 60 * 1000); // 5 minutes TTL
+      }
+      
+      return result;
+    } catch (error) {
+      console.warn('Enhanced database access failed, falling back to regular method:', error);
+      // Fallback to regular method if enhanced access fails
+      return null;
+    }
+  }
+
+  /**
+   * Get CSV goal data from report record
+   */
+  public async getCSVGoalData(reportRecord: EnhancedReportRecord): Promise<CSVGoalData | null> {
+    if (!reportRecord.uploadUrl) {
+      console.log('No CSV URL available in report record');
+      return null;
+    }
+
+    try {
+      // Check cache first
+      const cacheKey = CacheKeys.csvData(reportRecord.uploadUrl);
+      const cachedData = csvDataCache.get<CSVGoalData>(cacheKey);
+      
+      if (cachedData) {
+        return cachedData;
+      }
+
+      const csvData = await csvProcessingService.downloadAndParseCSV(reportRecord.uploadUrl);
+      
+      // Cache the result
+      if (csvData) {
+        csvDataCache.set(cacheKey, csvData, 15 * 60 * 1000); // 15 minutes TTL
+      }
+      
+      return csvData;
+    } catch (error) {
+      console.error('Failed to process CSV goal data:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get complete enhanced player data (database + CSV)
+   */
+  public async getCompletePlayerData(playerId: string): Promise<{
+    reportRecord: EnhancedReportRecord | null;
+    csvData: CSVGoalData | null;
+  }> {
+    try {
+      // Check cache for complete data first
+      const cacheKey = CacheKeys.completePlayerData(playerId);
+      const cachedData = enhancedReportCache.get<{
+        reportRecord: EnhancedReportRecord | null;
+        csvData: CSVGoalData | null;
+      }>(cacheKey);
+      
+      if (cachedData) {
+        return cachedData;
+      }
+
+      const reportRecord = await this.getEnhancedPlayerReport(playerId);
+      
+      if (!reportRecord) {
+        const result = { reportRecord: null, csvData: null };
+        // Cache negative results for shorter time
+        enhancedReportCache.set(cacheKey, result, 1 * 60 * 1000); // 1 minute TTL
+        return result;
+      }
+
+      const csvData = await this.getCSVGoalData(reportRecord);
+      const result = { reportRecord, csvData };
+      
+      // Cache complete result
+      enhancedReportCache.set(cacheKey, result, 5 * 60 * 1000); // 5 minutes TTL
+      
+      return result;
+    } catch (error) {
+      console.error('Failed to get complete player data:', error);
+      return { reportRecord: null, csvData: null };
     }
   }
 

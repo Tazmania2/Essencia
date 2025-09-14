@@ -65,6 +65,49 @@ export interface EssenciaReportRecord {
   updatedAt: string;
 }
 
+export interface EnhancedReportRecord {
+  _id: string;
+  playerId: string;
+  reaisPorAtivoPercentual: number;
+  diaDociclo: number;
+  totalDiasCiclo: number;
+  faturamentoPercentual: number;
+  atividadePercentual: number;
+  multimarcasPorAtivoPercentual: number;
+  uploadUrl?: string;
+  reportDate: string;
+  createdAt: string;
+  updatedAt: string;
+  status: string;
+  time?: number;
+}
+
+export interface CSVGoalData {
+  playerId: string;
+  cycleDay: number;
+  totalCycleDays: number;
+  faturamento: {
+    target: number;
+    current: number;
+    percentage: number;
+  };
+  reaisPorAtivo: {
+    target: number;
+    current: number;
+    percentage: number;
+  };
+  multimarcasPorAtivo: {
+    target: number;
+    current: number;
+    percentage: number;
+  };
+  atividade: {
+    target: number;
+    current: number;
+    percentage: number;
+  };
+}
+
 export enum TeamType {
   CARTEIRA_I = 'CARTEIRA_I',
   CARTEIRA_II = 'CARTEIRA_II',
@@ -170,6 +213,11 @@ export interface DashboardGoal {
   emoji: string;
   hasBoost?: boolean;
   isBoostActive?: boolean;
+  // Enhanced fields for detailed goal information
+  target?: number;
+  current?: number;
+  unit?: string;
+  daysRemaining?: number;
 }
 
 export interface DashboardData {

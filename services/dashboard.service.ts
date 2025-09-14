@@ -6,6 +6,8 @@ import { dashboardCache, playerDataCache, CacheKeys } from './cache.service';
 import { 
   FunifierPlayerStatus, 
   EssenciaReportRecord, 
+  EnhancedReportRecord,
+  CSVGoalData,
   TeamType, 
   DashboardData,
   PlayerMetrics,
@@ -30,7 +32,7 @@ export class DashboardService {
         return cachedData;
       }
 
-      // Get player status from Funifier (with caching)
+      // Get player status from Funifier (with caching) - PRIMARY DATA SOURCE
       const playerStatus = await playerDataCache.getOrSet(
         CacheKeys.playerStatus(playerId),
         () => this.playerService.getPlayerStatus(playerId),
@@ -41,7 +43,10 @@ export class DashboardService {
       const teamInfo = this.userIdentificationService.extractTeamInformation(playerStatus);
       const teamType = teamInfo.teamType;
       
-      // Get report data from custom collection
+      // Get enhanced data from database (for missing info and goal details)
+      const { reportRecord, csvData } = await this.getEnhancedReportData(playerId);
+      
+      // Get regular report data as fallback
       const reportData = await this.getLatestReportData(playerId);
       
       // Process data using appropriate team processor
@@ -52,8 +57,8 @@ export class DashboardService {
       const processor = this.teamProcessorFactory.getProcessor(teamType);
       const playerMetrics = processor.processPlayerData(playerStatus, reportData);
       
-      // Convert to dashboard format
-      const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData);
+      // Convert to dashboard format with enhanced data
+      const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData, reportRecord, csvData);
       
       // Cache the result with team-specific key
       const teamSpecificCacheKey = CacheKeys.dashboardData(playerId, teamType);
@@ -76,25 +81,75 @@ export class DashboardService {
     }
   }
 
-  private convertTodashboardData(metrics: PlayerMetrics, teamType: TeamType, reportData?: EssenciaReportRecord): DashboardData {
+  private async getEnhancedReportData(playerId: string): Promise<{
+    reportRecord: any;
+    csvData: any;
+  }> {
+    try {
+      const result = await this.databaseService.getCompletePlayerData(playerId);
+      return result;
+    } catch (error) {
+      console.warn('Could not fetch enhanced report data, continuing with Funifier data only:', error);
+      // Always return safe defaults to prevent dashboard breakage
+      return { reportRecord: null, csvData: null };
+    }
+  }
+
+  private convertTodashboardData(
+    metrics: PlayerMetrics, 
+    teamType: TeamType, 
+    reportData?: EssenciaReportRecord,
+    enhancedRecord?: any,
+    csvData?: any
+  ): DashboardData {
     const goalEmojis = this.getGoalEmojis(teamType);
     
-    // Calculate cycle information with fallbacks
-    const totalCycleDays = reportData?.totalCycleDays || 21; // Default to 21 days
-    const currentCycleDay = reportData?.currentCycleDay || metrics.currentCycleDay;
+    // Calculate cycle information with fallbacks (enhanced data takes priority)
+    const totalCycleDays = enhancedRecord?.totalDiasCiclo || csvData?.totalCycleDays || reportData?.totalCycleDays || 21;
+    const currentCycleDay = enhancedRecord?.diaDociclo || csvData?.cycleDay || reportData?.currentCycleDay || metrics.currentCycleDay;
+    const daysRemaining = Math.max(0, totalCycleDays - currentCycleDay);
     
+    // Helper function to get enhanced goal data with error handling
+    const getEnhancedGoalData = (goalName: string) => {
+      try {
+        if (!csvData) return {};
+        
+        const goalKey = this.getGoalKeyFromName(goalName);
+        const goalData = csvData[goalKey];
+        
+        if (!goalData) return {};
+        
+        // Validate data before using
+        if (typeof goalData.target !== 'number' || typeof goalData.current !== 'number') {
+          console.warn(`Invalid goal data for ${goalName}:`, goalData);
+          return {};
+        }
+        
+        return {
+          target: goalData.target,
+          current: goalData.current,
+          unit: this.getGoalUnit(goalKey),
+          daysRemaining: daysRemaining
+        };
+      } catch (error) {
+        console.warn(`Error processing enhanced goal data for ${goalName}:`, error);
+        return {};
+      }
+    };
+
     return {
       playerName: metrics.playerName,
       totalPoints: metrics.totalPoints,
       pointsLocked: metrics.pointsLocked,
       currentCycleDay: currentCycleDay,
       totalCycleDays: totalCycleDays,
-      isDataFromCollection: !!reportData, // True if we have report data from collection
+      isDataFromCollection: !!reportData || !!enhancedRecord, // True if we have any database data
       primaryGoal: {
         name: metrics.primaryGoal.name,
         percentage: metrics.primaryGoal.percentage,
         description: this.generateGoalDescription(metrics.primaryGoal),
-        emoji: goalEmojis.primary
+        emoji: goalEmojis.primary,
+        ...getEnhancedGoalData(metrics.primaryGoal.name)
       },
       secondaryGoal1: {
         name: metrics.secondaryGoal1.name,
@@ -102,7 +157,8 @@ export class DashboardService {
         description: this.generateGoalDescription(metrics.secondaryGoal1),
         emoji: goalEmojis.secondary1,
         hasBoost: true,
-        isBoostActive: metrics.secondaryGoal1.boostActive || false
+        isBoostActive: metrics.secondaryGoal1.boostActive || false,
+        ...getEnhancedGoalData(metrics.secondaryGoal1.name)
       },
       secondaryGoal2: {
         name: metrics.secondaryGoal2.name,
@@ -110,7 +166,8 @@ export class DashboardService {
         description: this.generateGoalDescription(metrics.secondaryGoal2),
         emoji: goalEmojis.secondary2,
         hasBoost: true,
-        isBoostActive: metrics.secondaryGoal2.boostActive || false
+        isBoostActive: metrics.secondaryGoal2.boostActive || false,
+        ...getEnhancedGoalData(metrics.secondaryGoal2.name)
       }
     };
   }
@@ -156,6 +213,28 @@ export class DashboardService {
     } else {
       return `${percentage}% concluído - Vamos começar forte!`;
     }
+  }
+
+  private getGoalKeyFromName(goalName: string): 'faturamento' | 'reaisPorAtivo' | 'multimarcasPorAtivo' | 'atividade' {
+    const nameMap: Record<string, 'faturamento' | 'reaisPorAtivo' | 'multimarcasPorAtivo' | 'atividade'> = {
+      'Faturamento': 'faturamento',
+      'Reais por Ativo': 'reaisPorAtivo',
+      'Multimarcas por Ativo': 'multimarcasPorAtivo',
+      'Atividade': 'atividade'
+    };
+    
+    return nameMap[goalName] || 'atividade';
+  }
+
+  private getGoalUnit(goalType: 'faturamento' | 'reaisPorAtivo' | 'multimarcasPorAtivo' | 'atividade'): string {
+    const units = {
+      faturamento: 'R$',
+      reaisPorAtivo: 'R$',
+      multimarcasPorAtivo: 'marcas',
+      atividade: 'pontos'
+    };
+
+    return units[goalType] || '';
   }
 
   // Method to check if points are unlocked based on catalog items
