@@ -290,7 +290,6 @@
     - _Requirements: All requirements verification_
 
 - [x] 11. Remove test mocks and replace with real implementations
-
   - [x] 11.1 Replace Next.js Link mocks in admin component tests
 
         - Remove Next.js Link mocks from AdminBreadcrumb.test.tsx
