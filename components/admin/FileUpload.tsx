@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
-import { Upload, FileText, X, CheckCircle, AlertCircle, Download, Eye } from 'lucide-react';
+import { Upload, FileText, X, CheckCircle, AlertCircle, Download, Eye, Send } from 'lucide-react';
 import { ReportProcessingService, ParseResult, ReportData } from '../../services/report-processing.service';
+import { reportSubmissionService, SubmissionResult } from '../../services/report-submission.service';
 
 export interface UploadedFile {
   file: File;
@@ -17,6 +18,7 @@ export interface UploadedFile {
 export interface FileUploadProps {
   onFileUpload: (files: File[], parseResults: ParseResult[]) => Promise<void>;
   onFileProcessed?: (file: File, parseResult: ParseResult) => void;
+  onSubmissionComplete?: (result: any) => void;
   acceptedTypes?: string[];
   maxFileSize?: number; // in MB
   multiple?: boolean;
@@ -28,6 +30,7 @@ export interface FileUploadProps {
 export const FileUpload: React.FC<FileUploadProps> = ({
   onFileUpload,
   onFileProcessed,
+  onSubmissionComplete,
   acceptedTypes = ['.csv', '.xlsx', '.xls'],
   maxFileSize = 10,
   multiple = false,
@@ -38,6 +41,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = useCallback((file: File): string | null => {
@@ -291,6 +296,57 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     }
   };
 
+  const handleSubmit = useCallback(async () => {
+    const successfulFiles = uploadedFiles.filter(f => f.status === 'success' && f.parseResult?.isValid);
+    
+    if (successfulFiles.length === 0) {
+      alert('Nenhum arquivo válido para enviar. Certifique-se de que os arquivos foram processados com sucesso.');
+      return;
+    }
+
+    if (successfulFiles.length > 1) {
+      alert('Por favor, envie apenas um arquivo por vez.');
+      return;
+    }
+
+    const fileToSubmit = successfulFiles[0];
+    
+    setIsSubmitting(true);
+    setSubmissionResult(null);
+
+    try {
+      const result = await reportSubmissionService.submitReport(
+        fileToSubmit.parseResult!,
+        fileToSubmit.file
+      );
+
+      setSubmissionResult(result);
+      
+      if (onSubmissionComplete) {
+        onSubmissionComplete(result);
+      }
+
+      if (result.success) {
+        // Clear files after successful submission
+        setUploadedFiles([]);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido durante o envio';
+      setSubmissionResult({
+        success: false,
+        recordsProcessed: 0,
+        actionLogsCreated: 0,
+        differences: [],
+        errors: [errorMessage],
+        summary: `Erro durante o envio: ${errorMessage}`
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [uploadedFiles, onSubmissionComplete]);
+
+  const canSubmit = uploadedFiles.some(f => f.status === 'success' && f.parseResult?.isValid) && !isSubmitting;
+
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Upload Area */}
@@ -436,6 +492,93 @@ export const FileUpload: React.FC<FileUploadProps> = ({
               </div>
             ))}
           </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-center pt-4">
+            <button
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className={`
+                flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all duration-200
+                ${canSubmit
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }
+              `}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Enviando...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  <span>Enviar Relatório</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Submission Results */}
+      {submissionResult && (
+        <div className={`
+          p-6 rounded-lg border-2 
+          ${submissionResult.success 
+            ? 'bg-green-50 border-green-200' 
+            : 'bg-red-50 border-red-200'
+          }
+        `}>
+          <div className="flex items-center space-x-3 mb-4">
+            {submissionResult.success ? (
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            ) : (
+              <AlertCircle className="w-6 h-6 text-red-600" />
+            )}
+            <h3 className={`text-lg font-semibold ${
+              submissionResult.success ? 'text-green-900' : 'text-red-900'
+            }`}>
+              {submissionResult.success ? 'Envio Concluído!' : 'Erro no Envio'}
+            </h3>
+          </div>
+
+          <div className={`text-sm whitespace-pre-line ${
+            submissionResult.success ? 'text-green-800' : 'text-red-800'
+          }`}>
+            {submissionResult.summary}
+          </div>
+
+          {submissionResult.errors.length > 0 && (
+            <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded">
+              <h4 className="font-medium text-red-900 mb-2">Erros:</h4>
+              <ul className="text-sm text-red-800 space-y-1">
+                {submissionResult.errors.map((error, index) => (
+                  <li key={index}>• {error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {submissionResult.success && submissionResult.differences.length > 0 && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+              <h4 className="font-medium text-blue-900 mb-2">
+                Action Logs Criados ({submissionResult.actionLogsCreated}):
+              </h4>
+              <div className="text-sm text-blue-800 max-h-40 overflow-y-auto">
+                {submissionResult.differences.map((diff, index) => (
+                  <div key={index} className="mb-1">
+                    <strong>{diff.playerId}</strong> - {diff.metric}: 
+                    <span className={diff.difference >= 0 ? 'text-green-600' : 'text-red-600'}>
+                      {diff.difference >= 0 ? '+' : ''}{diff.difference.toFixed(2)}%
+                    </span>
+                    {diff.isFirstEntry && <span className="text-purple-600"> (Primeira entrada)</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

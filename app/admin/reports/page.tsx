@@ -25,6 +25,11 @@ function AdminReportsContent() {
     setUploadResults(parseResults);
   };
 
+  const handleSubmissionComplete = (result: any) => {
+    console.log('Submission completed:', result);
+    // You can add additional handling here if needed
+  };
+
   return (
     <AdminLayout currentSection="reports" breadcrumbItems={breadcrumbItems}>
       <div className="space-y-6">
@@ -82,6 +87,7 @@ function AdminReportsContent() {
         {/* File Upload Component */}
         <FileUpload
           onFileUpload={handleFileUpload}
+          onSubmissionComplete={handleSubmissionComplete}
           acceptedTypes={['.csv']}
           multiple={false}
           maxFileSize={10} // 10MB
