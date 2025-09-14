@@ -180,9 +180,20 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
    * Check if challenge data exists for given challenge IDs
    */
   private hasChallengeData(challengeProgress: any[], challengeIds: string[]): boolean {
-    return challengeProgress.some(progress => 
+    console.log('🔍 Checking for challenge data:', {
+      challengeIds,
+      availableChallenges: challengeProgress.map(p => ({
+        id: p.challengeId || p.id || p.challenge,
+        percentage: p.percentage || p.progress || p.percent_completed
+      }))
+    });
+    
+    const found = challengeProgress.some(progress => 
       challengeIds.includes(progress.challengeId || progress.id || progress.challenge)
     );
+    
+    console.log('🎯 Challenge data found:', found);
+    return found;
   }
 
   /**

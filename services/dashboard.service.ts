@@ -24,20 +24,30 @@ export class DashboardService {
 
   async getDashboardData(playerId: string, token: string): Promise<DashboardData> {
     try {
+      console.log('🚀 Dashboard service called for player:', playerId);
+      
       // Check cache first
       const cacheKey = CacheKeys.dashboardData(playerId, 'unknown');
       const cachedData = dashboardCache.get<DashboardData>(cacheKey);
       
       if (cachedData) {
+        console.log('📋 Returning cached dashboard data for:', playerId);
         return cachedData;
       }
 
       // Get player status from Funifier (with caching) - PRIMARY DATA SOURCE
+      console.log('🔍 Fetching player status from Funifier for:', playerId);
       const playerStatus = await playerDataCache.getOrSet(
         CacheKeys.playerStatus(playerId),
         () => this.playerService.getPlayerStatus(playerId),
         2 * 60 * 1000 // 2 minutes TTL
       );
+      
+      console.log('👤 Player status received:', {
+        name: playerStatus.name,
+        totalPoints: playerStatus.total_points,
+        challengeProgressCount: playerStatus.challenge_progress?.length || 0
+      });
       
       // Identify team type
       const teamInfo = this.userIdentificationService.extractTeamInformation(playerStatus);

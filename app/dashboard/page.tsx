@@ -1,6 +1,7 @@
 'use client';
 
 import { PlayerRoute } from '../../components/auth/ProtectedRoute';
+import { ConnectedPlayerDashboard } from '../../components/dashboard/ConnectedPlayerDashboard';
 import { PlayerDashboard } from '../../components/dashboard/PlayerDashboard';
 import { DashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../contexts/AuthContext';
@@ -40,24 +41,7 @@ function DashboardContent() {
 }
 
 function DashboardWithAuthData({ user }: { user: any }) {
-  // Extract dashboard data directly from existing player data
-  const dashboardData = DashboardService.extractDirectDashboardData(user.playerData);
-
-  // Ensure the data matches the expected PlayerDashboard props
-  const dashboardProps = {
-    ...dashboardData,
-    secondaryGoal1: {
-      ...dashboardData.secondaryGoal1,
-      hasBoost: true,
-      isBoostActive: dashboardData.secondaryGoal1.isBoostActive ?? false
-    },
-    secondaryGoal2: {
-      ...dashboardData.secondaryGoal2,
-      hasBoost: true,
-      isBoostActive: dashboardData.secondaryGoal2.isBoostActive ?? false
-    }
-  };
-
+  // Use enhanced dashboard service that includes database integration
   return (
     <div>
       {/* Debug Info Panel (only in development) */}
@@ -75,17 +59,12 @@ function DashboardWithAuthData({ user }: { user: any }) {
                 </pre>
               </div>
               <div>
-                <h3 className="font-semibold text-sm text-gray-600 mb-2">Extracted Dashboard Data:</h3>
-                <pre className="bg-white p-3 rounded text-xs overflow-auto max-h-40 border">
-                  {JSON.stringify(dashboardData, null, 2)}
-                </pre>
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm text-gray-600 mb-2">Page Refresh Info:</h3>
+                <h3 className="font-semibold text-sm text-gray-600 mb-2">Enhanced Dashboard Integration:</h3>
                 <pre className="bg-white p-3 rounded text-xs overflow-auto max-h-20 border">
                   {JSON.stringify({
-                    refreshDetected: 'F5 refresh will fetch fresh data on next login',
-                    currentDataSource: 'AuthContext (cached from login)'
+                    dataSource: 'Enhanced Dashboard Service (Funifier + Database + CSV)',
+                    playerId: user.userId,
+                    fallbackLogic: 'Funifier primary, Database fallback, CSV details'
                   }, null, 2)}
                 </pre>
                 <div className="mt-2 flex space-x-2">
@@ -105,8 +84,11 @@ function DashboardWithAuthData({ user }: { user: any }) {
         </div>
       )}
       
-      {/* Main Dashboard */}
-      <PlayerDashboard {...dashboardProps} />
+      {/* Enhanced Dashboard with Database Integration */}
+      <ConnectedPlayerDashboard 
+        playerId={user.userId}
+        token={user.token || ''}
+      />
     </div>
   );
 }
