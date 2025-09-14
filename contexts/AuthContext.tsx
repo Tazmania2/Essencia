@@ -153,6 +153,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Store user info in localStorage for persistence
       localStorage.setItem('user', JSON.stringify(userInfo));
       localStorage.setItem('username', credentials.username);
+      localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('tokenExpiry', (Date.now() + expiresIn * 1000).toString());
 
       console.log('✅ Login completed successfully');
     } catch (err) {
@@ -201,6 +203,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Clear localStorage
       localStorage.removeItem('user');
       localStorage.removeItem('username');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('tokenExpiry');
 
       // Redirect to login
       router.push('/login');
@@ -230,23 +234,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Try to restore user from localStorage
         const storedUser = localStorage.getItem('user');
         const storedUsername = localStorage.getItem('username');
+        const storedToken = localStorage.getItem('accessToken');
+        const storedTokenExpiry = localStorage.getItem('tokenExpiry');
 
-        if (storedUser && storedUsername) {
+        if (storedUser && storedUsername && storedToken && storedTokenExpiry) {
           try {
             const userInfo = JSON.parse(storedUser) as UserIdentification;
-            console.log(
-              '👤 Restored user from localStorage:',
-              userInfo.userName
-            );
-            setUser(userInfo);
-            setIsAuthenticated(true);
+            const tokenExpiry = parseInt(storedTokenExpiry);
+            
+            // Check if token is still valid
+            if (Date.now() < tokenExpiry) {
+              console.log('👤 Restored user from localStorage:', userInfo.userName);
+              console.log('🔑 Restored token from localStorage');
+              
+              // Restore token to auth service
+              const expiresIn = Math.floor((tokenExpiry - Date.now()) / 1000);
+              funifierAuthService.setAccessToken(storedToken, expiresIn);
+              
+              setUser(userInfo);
+              setIsAuthenticated(true);
+            } else {
+              console.log('🔑 Stored token has expired, clearing localStorage');
+              localStorage.removeItem('user');
+              localStorage.removeItem('username');
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('tokenExpiry');
+            }
           } catch (error) {
-            console.error(
-              '❌ Failed to restore user from localStorage:',
-              error
-            );
+            console.error('❌ Failed to restore user from localStorage:', error);
             localStorage.removeItem('user');
             localStorage.removeItem('username');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('tokenExpiry');
           }
         }
 

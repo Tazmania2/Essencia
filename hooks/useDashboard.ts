@@ -33,15 +33,16 @@ export const useDashboard = (playerId: string, token: string): UseDashboardResul
       setLoading(true);
       setError(null);
       
-      // Get token from auth service instead of relying on passed token
-      const authToken = await funifierAuthService.getAccessToken();
-      if (!authToken) {
+      // Use the passed token directly (it comes from localStorage via AuthContext)
+      if (!token) {
         throw new ApiError({
           type: ErrorType.AUTHENTICATION_ERROR,
           message: 'No authentication token available',
           timestamp: new Date()
         });
       }
+      
+      const authToken = token;
       
       console.log('🔑 useDashboard: Got auth token, calling dashboard service');
       const data = await dashboardService.getDashboardData(playerId, authToken);

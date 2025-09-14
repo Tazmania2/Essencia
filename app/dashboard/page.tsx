@@ -41,9 +41,20 @@ function DashboardContent() {
 }
 
 function DashboardWithAuthData({ user }: { user: any }) {
-  // Use enhanced dashboard service that includes database integration
-  // Get token from auth service since it's not stored in user object
-  const token = ''; // The useDashboard hook will get token from funifierAuthService
+  const { isAuthenticated } = useAuth();
+  
+  // Get token from localStorage (restored by AuthContext)
+  const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') || '' : '';
+  
+  if (!isAuthenticated || !token) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Token de autenticação não encontrado. Faça login novamente.</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div>
