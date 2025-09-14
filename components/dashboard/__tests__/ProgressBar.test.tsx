@@ -11,12 +11,20 @@ describe('ProgressBar', () => {
     expect(progressFill).toHaveStyle({ width: '16.665%' }); // 25/50 * 33.33 = 16.665%
   });
 
-  it('renders yellow color for 50-100% range', () => {
+  it('renders yellow color for 50-99% range', () => {
     const { container } = render(<ProgressBar percentage={75} />);
     
     const progressFill = container.querySelector('.bg-yellow-500');
     expect(progressFill).toBeInTheDocument();
     expect(progressFill).toHaveStyle({ width: '49.995%' }); // 33.33 + (25/50 * 33.33) = 49.995%
+  });
+
+  it('renders green color for exactly 100%', () => {
+    const { container } = render(<ProgressBar percentage={100} />);
+    
+    const progressFill = container.querySelector('.bg-green-500');
+    expect(progressFill).toBeInTheDocument();
+    expect(progressFill).toHaveStyle({ width: '66.66%' }); // 66.66 + (0/50 * 33.34) = 66.66%
   });
 
   it('renders green color for 100-150% range', () => {
@@ -31,6 +39,14 @@ describe('ProgressBar', () => {
     const { container } = render(<ProgressBar percentage={200} />);
     
     const progressFill = container.querySelector('.bg-green-500');
+    expect(progressFill).toHaveStyle({ width: '100%' });
+  });
+
+  it('shows green color for very high percentages like 1000%', () => {
+    const { container } = render(<ProgressBar percentage={1000} />);
+    
+    const progressFill = container.querySelector('.bg-green-500');
+    expect(progressFill).toBeInTheDocument();
     expect(progressFill).toHaveStyle({ width: '100%' });
   });
 

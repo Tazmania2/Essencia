@@ -24,7 +24,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   if (percentage <= 50) {
     color = 'bg-red-500';
     visualFill = (percentage / 50) * 33.33;
-  } else if (percentage <= 100) {
+  } else if (percentage < 100) {
     color = 'bg-yellow-500';
     visualFill = 33.33 + ((percentage - 50) / 50) * 33.33;
   } else {

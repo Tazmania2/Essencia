@@ -257,29 +257,30 @@ export class DashboardService {
     }
 
     // IMPORTANT: When boosts are active, it means the player reached 100% on those goals
-    // and Funifier stops tracking progress. We need to show 100%+ for those goals.
+    // and Funifier stops tracking progress. We need to show 100%+ for those goals to trigger green color.
     // In a real implementation, this data should come from the collection/report data.
     
-    // For now, if boost is active, show 100% minimum for the corresponding secondary goals
+    // For now, if boost is active, show 101% minimum for the corresponding secondary goals
+    // This ensures the progress bar shows green (100%+ range) instead of yellow (50-100% range)
     switch (teamType) {
       case TeamType.CARTEIRA_I:
-        if (boost1Active && reaisProgress < 100) {
-          reaisProgress = 100; // Reais por Ativo reached 100% (boost1 = secondary goal 1)
+        if (boost1Active && reaisProgress <= 100) {
+          reaisProgress = 101; // Reais por Ativo reached 100%+ (boost1 = secondary goal 1)
         }
-        if (boost2Active && faturamentoProgress < 100) {
-          faturamentoProgress = 100; // Faturamento reached 100% (boost2 = secondary goal 2)
+        if (boost2Active && faturamentoProgress <= 100) {
+          faturamentoProgress = 101; // Faturamento reached 100%+ (boost2 = secondary goal 2)
         }
         break;
       case TeamType.CARTEIRA_II:
-        if (boost1Active && atividadeProgress < 100) {
-          atividadeProgress = 100; // Atividade reached 100% (boost1 = secondary goal 1)
+        if (boost1Active && atividadeProgress <= 100) {
+          atividadeProgress = 101; // Atividade reached 100%+ (boost1 = secondary goal 1)
         }
         // Note: For Carteira II, boost2 would be Multimarcas, but we don't have that data yet
         break;
       case TeamType.CARTEIRA_III:
       case TeamType.CARTEIRA_IV:
-        if (boost1Active && reaisProgress < 100) {
-          reaisProgress = 100; // Reais por Ativo reached 100% (boost1 = secondary goal 1)
+        if (boost1Active && reaisProgress <= 100) {
+          reaisProgress = 101; // Reais por Ativo reached 100%+ (boost1 = secondary goal 1)
         }
         // Note: boost2 would be Multimarcas, but we don't have that data yet
         break;
@@ -299,13 +300,13 @@ export class DashboardService {
       case TeamType.CARTEIRA_II:
         primaryGoal = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰' };
         secondaryGoal1 = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: boost2Active ? 100 : 0, emoji: '🏪', isBoostActive: boost2Active };
+        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: boost2Active ? 101 : 0, emoji: '🏪', isBoostActive: boost2Active };
         break;
       case TeamType.CARTEIRA_III:
       case TeamType.CARTEIRA_IV:
         primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
         secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: boost2Active ? 100 : 0, emoji: '🏪', isBoostActive: boost2Active };
+        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: boost2Active ? 101 : 0, emoji: '🏪', isBoostActive: boost2Active };
         break;
     }
 

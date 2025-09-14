@@ -2,7 +2,7 @@
 
 import { PlayerRoute } from '../../components/auth/ProtectedRoute';
 import { PlayerDashboard } from '../../components/dashboard/PlayerDashboard';
-import { useFreshDashboardData } from '../../hooks/useFreshDashboardData';
+import { DashboardService } from '../../services/dashboard.service';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function DashboardPage() {
@@ -26,67 +26,22 @@ function DashboardContent() {
     );
   }
 
-  if (!user.userId) {
+  if (!user.playerData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600">ID do jogador não encontrado. Faça login novamente.</p>
+          <p className="text-red-600">Dados do jogador não encontrados. Faça login novamente.</p>
         </div>
       </div>
     );
   }
 
-  return <DashboardWithFreshData playerId={user.userId} />;
+  return <DashboardWithAuthData user={user} />;
 }
 
-function DashboardWithFreshData({ playerId }: { playerId: string }) {
-  const {
-    dashboardData,
-    rawPlayerData,
-    loading,
-    error,
-    lastUpdated,
-    refreshData
-  } = useFreshDashboardData(playerId);
-
-  if (loading && !dashboardData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-boticario-pink mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando dados do Funifier...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error && !dashboardData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Erro ao carregar dados</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={refreshData}
-            className="bg-boticario-pink text-white px-6 py-2 rounded-lg hover:bg-boticario-purple transition-colors"
-          >
-            Tentar Novamente
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!dashboardData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Nenhum dado encontrado</p>
-        </div>
-      </div>
-    );
-  }
+function DashboardWithAuthData({ user }: { user: any }) {
+  // Extract dashboard data directly from existing player data
+  const dashboardData = DashboardService.extractDirectDashboardData(user.playerData);
 
   // Ensure the data matches the expected PlayerDashboard props
   const dashboardProps = {
@@ -116,7 +71,7 @@ function DashboardWithFreshData({ playerId }: { playerId: string }) {
               <div>
                 <h3 className="font-semibold text-sm text-gray-600 mb-2">Raw Funifier Data:</h3>
                 <pre className="bg-white p-3 rounded text-xs overflow-auto max-h-40 border">
-                  {JSON.stringify(rawPlayerData, null, 2)}
+                  {JSON.stringify(user.playerData, null, 2)}
                 </pre>
               </div>
               <div>
@@ -126,29 +81,22 @@ function DashboardWithFreshData({ playerId }: { playerId: string }) {
                 </pre>
               </div>
               <div>
-                <h3 className="font-semibold text-sm text-gray-600 mb-2">Cache Status:</h3>
+                <h3 className="font-semibold text-sm text-gray-600 mb-2">Page Refresh Info:</h3>
                 <pre className="bg-white p-3 rounded text-xs overflow-auto max-h-20 border">
                   {JSON.stringify({
-                    lastUpdated: lastUpdated?.toISOString(),
-                    loading,
-                    error
+                    refreshDetected: 'F5 refresh will fetch fresh data on next login',
+                    currentDataSource: 'AuthContext (cached from login)'
                   }, null, 2)}
                 </pre>
                 <div className="mt-2 flex space-x-2">
                   <button
                     onClick={() => {
-                      localStorage.removeItem('funifier_dashboard_data');
+                      localStorage.clear();
                       window.location.reload();
                     }}
                     className="px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
                   >
-                    Clear Cache & Reload
-                  </button>
-                  <button
-                    onClick={refreshData}
-                    className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                  >
-                    Force Refresh
+                    Clear All Cache & Reload
                   </button>
                 </div>
               </div>

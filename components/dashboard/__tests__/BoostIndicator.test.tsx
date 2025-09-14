@@ -40,11 +40,13 @@ describe('BoostIndicator', () => {
     expect(indicator).toHaveClass('custom-boost');
   });
 
-  it('does not have cursor-pointer class (not clickable)', () => {
+  it('has cursor-default class and proper hover behavior', () => {
     render(<BoostIndicator isActive={true} />);
     
     const indicator = screen.getByText('⚡').parentElement;
-    expect(indicator).not.toHaveClass('cursor-pointer');
+    expect(indicator).toHaveClass('cursor-default');
+    expect(indicator).toHaveClass('select-none');
+    expect(indicator).toHaveClass('hover:scale-110');
   });
 
   it('has proper styling for active boost with glow effect', () => {
@@ -53,5 +55,20 @@ describe('BoostIndicator', () => {
     const indicator = screen.getByText('⚡').parentElement;
     expect(indicator).toHaveClass('animate-pulse');
     expect(indicator).toHaveClass('shadow-lg');
+  });
+
+  it('has proper accessibility attributes', () => {
+    render(<BoostIndicator isActive={true} />);
+    
+    const indicator = screen.getByText('⚡').parentElement;
+    expect(indicator).toHaveAttribute('role', 'img');
+    expect(indicator).toHaveAttribute('aria-label', 'Boost Ativo!');
+  });
+
+  it('prevents text selection on the icon', () => {
+    render(<BoostIndicator isActive={true} />);
+    
+    const icon = screen.getByText('⚡');
+    expect(icon).toHaveClass('pointer-events-none');
   });
 });
