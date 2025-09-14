@@ -115,11 +115,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       const authResult = await authResponse.json();
-      console.log('🔐 Auth successful, token received:', authResult.access_token?.substring(0, 20) + '...');
+      console.log('🔐 Auth result type:', typeof authResult);
+      console.log('🔐 Auth result:', authResult);
+
+      // Handle both string and object responses for backward compatibility
+      let accessToken: string;
+      let expiresIn: number = 3600; // Default 1 hour
+
+      if (typeof authResult === 'string') {
+        // API returned raw token string
+        accessToken = authResult;
+        console.log('🔐 Auth successful, token received (string):', accessToken.substring(0, 20) + '...');
+      } else if (authResult && authResult.access_token) {
+        // API returned object with access_token
+        accessToken = authResult.access_token;
+        expiresIn = authResult.expires_in || 3600;
+        console.log('🔐 Auth successful, token received (object):', accessToken.substring(0, 20) + '...');
+      } else {
+        throw new Error('Invalid authentication response format');
+      }
 
       // Store the token in the auth service so other services can use it
       console.log('💾 Storing token in auth service...');
-      funifierAuthService.setAccessToken(authResult.access_token, authResult.expires_in);
+      funifierAuthService.setAccessToken(accessToken, expiresIn);
 
       // Identify user role and team
       console.log('👤 Identifying user role and team...');

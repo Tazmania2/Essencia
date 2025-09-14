@@ -15,6 +15,9 @@ export async function POST(request: NextRequest) {
     const authService = FunifierAuthService.getInstance();
     const authResponse = await authService.authenticate({ username, password });
 
+    console.log('🔐 API Route - Auth response type:', typeof authResponse);
+    console.log('🔐 API Route - Auth response:', authResponse);
+
     return NextResponse.json(authResponse);
   } catch (error) {
     console.error('Authentication error:', error);
