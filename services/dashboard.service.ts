@@ -200,4 +200,126 @@ export class DashboardService {
       throw error;
     }
   }
+
+  /**
+   * Extract dashboard data directly from Funifier API response for debugging
+   * This bypasses team processors and extracts data directly from the API response
+   */
+  static extractDirectDashboardData(playerStatus: FunifierPlayerStatus): DashboardData {
+    // Challenge IDs for goal tracking
+    const CHALLENGE_IDS = {
+      ATIVIDADE: 'E6FQIjs',
+      REAIS_POR_ATIVO: 'E6Gm8RI', 
+      FATURAMENTO: 'E6GglPq'
+    };
+
+    // Extract basic player info
+    const playerName = playerStatus.name;
+    const totalPoints = playerStatus.total_points;
+    
+    // Check if points are unlocked (E6F0O5f > 0)
+    const pointsLocked = !(playerStatus.catalog_items?.['E6F0O5f'] > 0);
+    
+    // Check boost status
+    const boost1Active = (playerStatus.catalog_items?.['E6F0WGc'] || 0) > 0;
+    const boost2Active = (playerStatus.catalog_items?.['E6K79Mt'] || 0) > 0;
+    
+    // Extract goal progress from challenge_progress
+    const getGoalProgress = (challengeId: string): number => {
+      const challenge = playerStatus.challenge_progress?.find(c => c.challenge === challengeId);
+      return challenge ? Math.round(challenge.percent_completed) : 0;
+    };
+
+    const atividadeProgress = getGoalProgress(CHALLENGE_IDS.ATIVIDADE);
+    const reaisProgress = getGoalProgress(CHALLENGE_IDS.REAIS_POR_ATIVO);
+    const faturamentoProgress = getGoalProgress(CHALLENGE_IDS.FATURAMENTO);
+
+    // Determine team type from teams array (simplified)
+    const teamId = playerStatus.teams?.[0];
+    let teamType: TeamType = TeamType.CARTEIRA_I; // Default
+    
+    switch (teamId) {
+      case 'E6F4sCh':
+        teamType = TeamType.CARTEIRA_I;
+        break;
+      case 'E6F4O1b':
+        teamType = TeamType.CARTEIRA_II;
+        break;
+      case 'E6F4Xf2':
+        teamType = TeamType.CARTEIRA_III;
+        break;
+      case 'E6F41Bb':
+        teamType = TeamType.CARTEIRA_IV;
+        break;
+    }
+
+    // Set goals based on team type
+    let primaryGoal: { name: string; percentage: number; emoji: string };
+    let secondaryGoal1: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
+    let secondaryGoal2: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
+    
+    switch (teamType) {
+      case TeamType.CARTEIRA_I:
+        primaryGoal = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯' };
+        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
+        secondaryGoal2 = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈', isBoostActive: boost2Active };
+        break;
+      case TeamType.CARTEIRA_II:
+        primaryGoal = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰' };
+        secondaryGoal1 = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯', isBoostActive: boost1Active };
+        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: 0, emoji: '🏪', isBoostActive: boost2Active }; // No data yet
+        break;
+      case TeamType.CARTEIRA_III:
+      case TeamType.CARTEIRA_IV:
+        primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
+        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
+        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: 0, emoji: '🏪', isBoostActive: boost2Active }; // No data yet
+        break;
+    }
+
+    const generateDescription = (percentage: number): string => {
+      if (percentage >= 100) {
+        return `Meta atingida! ${percentage}% concluído - Parabéns! 🎉`;
+      } else if (percentage >= 75) {
+        return `Quase lá! ${percentage}% concluído - Faltam apenas ${100 - percentage}%`;
+      } else if (percentage >= 50) {
+        return `Bom progresso! ${percentage}% concluído - Continue assim!`;
+      } else if (percentage >= 25) {
+        return `${percentage}% concluído - Vamos acelerar o ritmo!`;
+      } else {
+        return `${percentage}% concluído - Vamos começar forte!`;
+      }
+    };
+
+    return {
+      playerName,
+      totalPoints,
+      pointsLocked,
+      currentCycleDay: 15, // Default until we get from reports
+      totalCycleDays: 21, // Default until we get from reports
+      isDataFromCollection: false, // No report data yet
+      primaryGoal: {
+        name: primaryGoal.name,
+        percentage: primaryGoal.percentage,
+        description: generateDescription(primaryGoal.percentage),
+        emoji: primaryGoal.emoji
+      },
+      secondaryGoal1: {
+        name: secondaryGoal1.name,
+        percentage: secondaryGoal1.percentage,
+        description: generateDescription(secondaryGoal1.percentage),
+        emoji: secondaryGoal1.emoji,
+        hasBoost: true as const,
+        isBoostActive: secondaryGoal1.isBoostActive
+      },
+      secondaryGoal2: {
+        name: secondaryGoal2.name,
+        percentage: secondaryGoal2.percentage,
+        description: generateDescription(secondaryGoal2.percentage),
+        emoji: secondaryGoal2.emoji,
+        hasBoost: true as const,
+        isBoostActive: secondaryGoal2.isBoostActive
+      }
+    };
+  }
 }
