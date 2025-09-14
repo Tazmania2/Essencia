@@ -117,33 +117,41 @@ export class ReportSubmissionService {
    * Step 1: Store report data in report__c collection
    */
   private async storeReportData(reportData: ReportData[]): Promise<ReportRecord[]> {
-    const reportRecords: ReportRecord[] = reportData.map(data => ({
-      playerId: data.playerId,
-      diaDociclo: data.diaDociclo,
-      totalDiasCiclo: data.totalDiasCiclo,
-      faturamentoPercentual: data.faturamentoPercentual,
-      reaisPorAtivoPercentual: data.reaisPorAtivoPercentual,
-      multimarcasPorAtivoPercentual: data.multimarcasPorAtivoPercentual,
-      atividadePercentual: data.atividadePercentual,
-      reportDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }));
+    const reportRecords: ReportRecord[] = [];
 
-    // Store in report__c collection using bulk insert
-    const response = await axios.post(
-      `${FUNIFIER_BASE_URL}/database/report__c/bulk`,
-      reportRecords,
-      {
-        headers: {
-          'Authorization': FUNIFIER_AUTH_TOKEN,
-          'Content-Type': 'application/json'
+    // Insert records one by one to get their _id values
+    for (const data of reportData) {
+      const recordToInsert = {
+        playerId: data.playerId,
+        diaDociclo: data.diaDociclo,
+        totalDiasCiclo: data.totalDiasCiclo,
+        faturamentoPercentual: data.faturamentoPercentual,
+        reaisPorAtivoPercentual: data.reaisPorAtivoPercentual,
+        multimarcasPorAtivoPercentual: data.multimarcasPorAtivoPercentual,
+        atividadePercentual: data.atividadePercentual,
+        reportDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+        status: 'PENDING',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      // Insert individual record to get _id
+      const response = await axios.post(
+        `${FUNIFIER_BASE_URL}/database/report__c`,
+        recordToInsert,
+        {
+          headers: {
+            'Authorization': FUNIFIER_AUTH_TOKEN,
+            'Content-Type': 'application/json'
+          }
         }
-      }
-    );
+      );
 
-    console.log('Stored report data:', response.data);
+      // Add the returned record with _id to our array
+      reportRecords.push(response.data);
+    }
+
+    console.log('Stored report data:', reportRecords.length, 'records');
     return reportRecords;
   }
 
@@ -301,25 +309,31 @@ export class ReportSubmissionService {
    * Step 4: Update records with file URL and mark as REGISTERED
    */
   private async updateRecordsWithFileUrl(reportRecords: ReportRecord[], uploadUrl: string): Promise<void> {
-    // Update all records with the upload URL and mark as REGISTERED
-    const updates = reportRecords.map(record => ({
-      ...record,
-      uploadUrl,
-      status: 'REGISTERED' as const,
-      updatedAt: new Date().toISOString()
-    }));
-
-    // Update records in bulk
-    await axios.post(
-      `${FUNIFIER_BASE_URL}/database/report__c/bulk`,
-      updates,
-      {
-        headers: {
-          'Authorization': FUNIFIER_AUTH_TOKEN,
-          'Content-Type': 'application/json'
-        }
+    // Update each record individually using PUT with _id
+    for (const record of reportRecords) {
+      if (!record._id) {
+        throw new Error(`Record for player ${record.playerId} is missing _id`);
       }
-    );
+
+      const updatedRecord = {
+        ...record,
+        uploadUrl,
+        status: 'REGISTERED' as const,
+        updatedAt: new Date().toISOString()
+      };
+
+      // Use PUT to update the specific record by _id
+      await axios.put(
+        `${FUNIFIER_BASE_URL}/database/report__c`,
+        updatedRecord,
+        {
+          headers: {
+            'Authorization': FUNIFIER_AUTH_TOKEN,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+    }
 
     console.log('Updated records with file URL and REGISTERED status');
   }

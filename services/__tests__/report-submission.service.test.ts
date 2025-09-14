@@ -45,9 +45,22 @@ describe('ReportSubmissionService', () => {
 
       // Mock API responses
       mockedAxios.post
-        // Step 1: Store report data
+        // Step 1: Store report data (individual POST)
         .mockResolvedValueOnce({
-          data: { total: 1 }
+          data: { 
+            _id: 'record123',
+            playerId: 'player123',
+            diaDociclo: 15,
+            totalDiasCiclo: 21,
+            faturamentoPercentual: 80,
+            reaisPorAtivoPercentual: 90,
+            multimarcasPorAtivoPercentual: 90,
+            atividadePercentual: 95,
+            reportDate: '2024-01-15',
+            status: 'PENDING',
+            createdAt: '2024-01-15T10:00:00.000Z',
+            updatedAt: '2024-01-15T10:00:00.000Z'
+          }
         })
         // Step 2: Get previous data (no previous data)
         .mockResolvedValueOnce({
@@ -62,11 +75,16 @@ describe('ReportSubmissionService', () => {
           data: {
             uploads: [{ url: 'https://example.com/file.csv' }]
           }
-        })
-        // Step 4: Update records
-        .mockResolvedValueOnce({
-          data: { total: 1 }
         });
+
+      // Mock PUT for record updates
+      mockedAxios.put.mockResolvedValueOnce({
+        data: { 
+          _id: 'record123',
+          status: 'REGISTERED',
+          uploadUrl: 'https://example.com/file.csv'
+        }
+      });
 
       const result = await service.submitReport(mockParseResult, mockFile);
 
@@ -78,7 +96,8 @@ describe('ReportSubmissionService', () => {
       expect(result.errors).toHaveLength(0);
 
       // Verify API calls
-      expect(mockedAxios.post).toHaveBeenCalledTimes(5);
+      expect(mockedAxios.post).toHaveBeenCalledTimes(4); // Individual POST, aggregate, action logs, upload
+      expect(mockedAxios.put).toHaveBeenCalledTimes(1); // Individual PUT for update
     });
 
     it('should handle errors gracefully', async () => {
