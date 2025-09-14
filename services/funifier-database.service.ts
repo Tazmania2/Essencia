@@ -154,7 +154,7 @@ export class FunifierDatabaseService {
     try {
       const pipeline: AggregationPipeline[] = [
         { $match: { playerId: playerId } },
-        { $sort: { reportDate: -1 } },
+        { $sort: { updatedAt: -1, createdAt: -1, reportDate: -1 } }, // Use updatedAt first for most recent data
         { $limit: 1 }
       ];
 
@@ -189,7 +189,7 @@ export class FunifierDatabaseService {
             status: "REGISTERED"
           } 
         },
-        { $sort: { createdAt: -1 } },
+        { $sort: { updatedAt: -1, createdAt: -1 } }, // Use updatedAt first, then createdAt as fallback
         { $limit: 1 }
       ];
 
@@ -217,7 +217,16 @@ export class FunifierDatabaseService {
         console.log('✅ Found enhanced report record:', {
           playerId: result.playerId,
           hasUploadUrl: !!result.uploadUrl,
-          uploadUrl: result.uploadUrl
+          uploadUrl: result.uploadUrl,
+          createdAt: result.createdAt,
+          updatedAt: result.updatedAt,
+          reportDate: result.reportDate,
+          percentages: {
+            atividade: result.atividadePercentual,
+            reaisPorAtivo: result.reaisPorAtivoPercentual,
+            faturamento: result.faturamentoPercentual,
+            multimarcas: result.multimarcasPorAtivoPercentual
+          }
         });
       } else {
         console.log('❌ No enhanced report record found for player:', playerId);
