@@ -319,45 +319,39 @@ export class ReportProcessingService {
   private parseCSV(file: File): Promise<any[]> {
     return new Promise((resolve, reject) => {
       Papa.parse(file, {
-        header: true,
+        header: true, // Use first row as headers
         skipEmptyLines: true,
-        header: false, // Don't use first row as headers, we'll map by position
-        transform: (value: string, column: number) => {
-          // Convert string values to appropriate types
-          if (column === 0) return value; // playerId stays as string
-          return parseFloat(value) || 0; // All other columns are numeric
-        },
         complete: (results) => {
           if (results.errors.length > 0) {
             reject(
               new Error(`Erro ao processar CSV: ${results.errors[0].message}`)
             );
           } else {
-            // Map array data to objects with proper field names
-            const fieldMapping = [
-              'playerId', // 0 - Player ID (Funifier ID)
-              'diaDociclo', // 1 - Dia do Ciclo
-              'totalDiasCiclo', // 2 - Total Dias Ciclo
-              'faturamentoMeta', // 3 - Faturamento Meta
-              'faturamentoAtual', // 4 - Faturamento Atual
-              'faturamentoPercentual', // 5 - Faturamento %
-              'reaisPorAtivoMeta', // 6 - Reais por Ativo Meta
-              'reaisPorAtivoAtual', // 7 - Reais por Ativo Atual
-              'reaisPorAtivoPercentual', // 8 - Reais por Ativo %
-              'multimarcasPorAtivoMeta', // 9 - Multimarcas por Ativo Meta
-              'multimarcasPorAtivoAtual', // 10 - Multimarcas por Ativo Atual
-              'multimarcasPorAtivoPercentual', // 11 - Multimarcas por Ativo %
-              'atividadeMeta', // 12 - Atividade Meta
-              'atividadeAtual', // 13 - Atividade Atual
-              'atividadePercentual', // 14 - Atividade %
-            ];
-
-            const mappedData = (results.data as any[]).map((row: any[]) => {
-              const obj: any = {};
-              fieldMapping.forEach((fieldName, index) => {
-                obj[fieldName] = row[index];
-              });
-              return obj;
+            // Convert the parsed data to our expected format
+            // PapaParse with header:true returns objects with header names as keys
+            const rawData = results.data as any[];
+            
+            const mappedData = rawData.map((row: any) => {
+              // Get values by position since headers might vary
+              const values = Object.values(row);
+              
+              return {
+                playerId: String(values[0] || ''),
+                diaDociclo: String(values[1] || ''),
+                totalDiasCiclo: String(values[2] || ''),
+                faturamentoMeta: String(values[3] || ''),
+                faturamentoAtual: String(values[4] || ''),
+                faturamentoPercentual: String(values[5] || ''),
+                reaisPorAtivoMeta: String(values[6] || ''),
+                reaisPorAtivoAtual: String(values[7] || ''),
+                reaisPorAtivoPercentual: String(values[8] || ''),
+                multimarcasPorAtivoMeta: String(values[9] || ''),
+                multimarcasPorAtivoAtual: String(values[10] || ''),
+                multimarcasPorAtivoPercentual: String(values[11] || ''),
+                atividadeMeta: String(values[12] || ''),
+                atividadeAtual: String(values[13] || ''),
+                atividadePercentual: String(values[14] || '')
+              };
             });
 
             resolve(mappedData);

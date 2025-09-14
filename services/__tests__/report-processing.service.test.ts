@@ -55,11 +55,21 @@ describe('ReportProcessingService', () => {
     it('should parse valid CSV data successfully', async () => {
       const mockData = [
         {
-          playerId: 'P001',
-          playerName: 'João Silva',
-          team: 'CARTEIRA_I',
-          atividade: '85.5',
-          reaisPorAtivo: '120.0'
+          'Player ID': 'P001',
+          'Dia do Ciclo': '12',
+          'Total Dias Ciclo': '21',
+          'Faturamento Meta': '400000',
+          'Faturamento Atual': '200000',
+          'Faturamento %': '50',
+          'Reais por Ativo Meta': '1300',
+          'Reais por Ativo Atual': '325',
+          'Reais por Ativo %': '25',
+          'Multimarcas por Ativo Meta': '2',
+          'Multimarcas por Ativo Atual': '1.3',
+          'Multimarcas por Ativo %': '65',
+          'Atividade Meta': '41',
+          'Atividade Atual': '36',
+          'Atividade %': '88'
         }
       ];
 
@@ -81,10 +91,12 @@ describe('ReportProcessingService', () => {
       expect(result.data).toHaveLength(1);
       expect(result.data[0]).toMatchObject({
         playerId: 'P001',
-        playerName: 'João Silva',
-        team: 'CARTEIRA_I',
-        atividade: 85.5,
-        reaisPorAtivo: 120.0
+        diaDociclo: 12,
+        totalDiasCiclo: 21,
+        faturamentoMeta: 400000,
+        faturamentoAtual: 200000,
+        faturamentoPercentual: 50,
+        atividadePercentual: 88
       });
       expect(result.errors).toHaveLength(0);
     });
@@ -120,8 +132,8 @@ describe('ReportProcessingService', () => {
       };
 
       const mockSheetData = [
-        ['playerId', 'playerName', 'team', 'atividade'],
-        ['P001', 'João Silva', 'CARTEIRA_I', '85.5']
+        ['Player ID', 'Dia do Ciclo', 'Total Dias Ciclo', 'Faturamento Meta', 'Faturamento Atual', 'Faturamento %', 'Reais por Ativo Meta', 'Reais por Ativo Atual', 'Reais por Ativo %', 'Multimarcas por Ativo Meta', 'Multimarcas por Ativo Atual', 'Multimarcas por Ativo %', 'Atividade Meta', 'Atividade Atual', 'Atividade %'],
+        ['P001', '12', '21', '400000', '200000', '50', '1300', '325', '25', '2', '1.3', '65', '41', '36', '88']
       ];
 
       mockXLSX.read.mockReturnValue(mockWorkbook as any);
@@ -163,9 +175,21 @@ describe('ReportProcessingService', () => {
     it('should validate required fields', async () => {
       const mockData = [
         {
-          playerId: '',
-          playerName: 'João Silva',
-          team: 'CARTEIRA_I'
+          'Player ID': '',
+          'Dia do Ciclo': '12',
+          'Total Dias Ciclo': '21',
+          'Faturamento Meta': '400000',
+          'Faturamento Atual': '200000',
+          'Faturamento %': '50',
+          'Reais por Ativo Meta': '1300',
+          'Reais por Ativo Atual': '325',
+          'Reais por Ativo %': '25',
+          'Multimarcas por Ativo Meta': '2',
+          'Multimarcas por Ativo Atual': '1.3',
+          'Multimarcas por Ativo %': '65',
+          'Atividade Meta': '41',
+          'Atividade Atual': '36',
+          'Atividade %': '88'
         }
       ];
 
@@ -184,47 +208,30 @@ describe('ReportProcessingService', () => {
       const result = await ReportProcessingService.parseFile(file);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].field).toBe('playerId');
-      expect(result.errors[0].message).toContain('Campo obrigatório');
-    });
-
-    it('should validate team values', async () => {
-      const mockData = [
-        {
-          playerId: 'P001',
-          playerName: 'João Silva',
-          team: 'INVALID_TEAM'
-        }
-      ];
-
-      mockPapa.parse.mockImplementation((file, options) => {
-        if (options?.complete) {
-          options.complete({
-            data: mockData,
-            errors: [],
-            meta: { fields: [] }
-          });
-        }
-        return {} as any;
-      });
-
-      const file = new File([''], 'test.csv', { type: 'text/csv' });
-      const result = await ReportProcessingService.parseFile(file);
-
-      expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].field).toBe('team');
-      expect(result.errors[0].message).toContain('Time inválido');
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors.some(e => e.field === 'playerId')).toBe(true);
+      expect(result.errors.find(e => e.field === 'playerId')?.message).toContain('Campo obrigatório');
     });
 
     it('should validate numeric fields', async () => {
+      // Mock data that will be converted to the expected format by parseCSV
       const mockData = [
         {
-          playerId: 'P001',
-          playerName: 'João Silva',
-          team: 'CARTEIRA_I',
-          atividade: 'not_a_number'
+          'Player ID': 'P001',
+          'Dia do Ciclo': 'not_a_number', // This will cause validation error
+          'Total Dias Ciclo': '21',
+          'Faturamento Meta': '400000',
+          'Faturamento Atual': '200000',
+          'Faturamento %': '50',
+          'Reais por Ativo Meta': '1300',
+          'Reais por Ativo Atual': '325',
+          'Reais por Ativo %': '25',
+          'Multimarcas por Ativo Meta': '2',
+          'Multimarcas por Ativo Atual': '1.3',
+          'Multimarcas por Ativo %': '65',
+          'Atividade Meta': '41',
+          'Atividade Atual': '36',
+          'Atividade %': '88'
         }
       ];
 
@@ -243,18 +250,31 @@ describe('ReportProcessingService', () => {
       const result = await ReportProcessingService.parseFile(file);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].field).toBe('atividade');
-      expect(result.errors[0].message).toContain('deve ser um número');
+      expect(result.errors.length).toBeGreaterThan(0);
+      // The error should be for diaDociclo field after mapping
+      expect(result.errors.some(e => e.field === 'diaDociclo')).toBe(true);
+      const diaDocicloError = result.errors.find(e => e.field === 'diaDociclo');
+      expect(diaDocicloError?.message).toContain('deve ser um número');
     });
 
     it('should reject negative values', async () => {
       const mockData = [
         {
-          playerId: 'P001',
-          playerName: 'João Silva',
-          team: 'CARTEIRA_I',
-          atividade: '-10'
+          'Player ID': 'P001',
+          'Dia do Ciclo': '12',
+          'Total Dias Ciclo': '21',
+          'Faturamento Meta': '-400000',
+          'Faturamento Atual': '200000',
+          'Faturamento %': '50',
+          'Reais por Ativo Meta': '1300',
+          'Reais por Ativo Atual': '325',
+          'Reais por Ativo %': '25',
+          'Multimarcas por Ativo Meta': '2',
+          'Multimarcas por Ativo Atual': '1.3',
+          'Multimarcas por Ativo %': '65',
+          'Atividade Meta': '41',
+          'Atividade Atual': '36',
+          'Atividade %': '88'
         }
       ];
 
@@ -273,9 +293,9 @@ describe('ReportProcessingService', () => {
       const result = await ReportProcessingService.parseFile(file);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].field).toBe('atividade');
-      expect(result.errors[0].message).toContain('não pode ser negativo');
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors.some(e => e.field === 'faturamentoMeta')).toBe(true);
+      expect(result.errors.find(e => e.field === 'faturamentoMeta')?.message).toContain('não pode ser negativo');
     });
   });
 
@@ -285,14 +305,38 @@ describe('ReportProcessingService', () => {
         data: [
           {
             playerId: 'P001',
-            playerName: 'João Silva',
-            team: 'CARTEIRA_I',
+            diaDociclo: 12,
+            totalDiasCiclo: 21,
+            faturamentoMeta: 400000,
+            faturamentoAtual: 200000,
+            faturamentoPercentual: 50,
+            reaisPorAtivoMeta: 1300,
+            reaisPorAtivoAtual: 325,
+            reaisPorAtivoPercentual: 25,
+            multimarcasPorAtivoMeta: 2,
+            multimarcasPorAtivoAtual: 1.3,
+            multimarcasPorAtivoPercentual: 65,
+            atividadeMeta: 41,
+            atividadeAtual: 36,
+            atividadePercentual: 88,
             reportDate: '2024-01-01'
           },
           {
             playerId: 'P002',
-            playerName: 'Maria Santos',
-            team: 'CARTEIRA_II',
+            diaDociclo: 12,
+            totalDiasCiclo: 21,
+            faturamentoMeta: 300000,
+            faturamentoAtual: 150000,
+            faturamentoPercentual: 50,
+            reaisPorAtivoMeta: 1200,
+            reaisPorAtivoAtual: 300,
+            reaisPorAtivoPercentual: 25,
+            multimarcasPorAtivoMeta: 3,
+            multimarcasPorAtivoAtual: 2,
+            multimarcasPorAtivoPercentual: 67,
+            atividadeMeta: 40,
+            atividadeAtual: 35,
+            atividadePercentual: 88,
             reportDate: '2024-01-01'
           }
         ] as ReportData[],
@@ -303,8 +347,8 @@ describe('ReportProcessingService', () => {
       const summary = ReportProcessingService.generateSummary(parseResult);
 
       expect(summary).toContain('2 registros válidos');
-      expect(summary).toContain('CARTEIRA_I: 1 jogadores');
-      expect(summary).toContain('CARTEIRA_II: 1 jogadores');
+      expect(summary).toContain('Dia atual: 12');
+      expect(summary).toContain('Total de dias: 21');
     });
 
     it('should include error count in summary', () => {

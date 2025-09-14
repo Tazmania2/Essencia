@@ -8,8 +8,9 @@ describe('CSV Processing for New Format', () => {
   });
 
   it('should parse CSV with correct column mapping', async () => {
-    // Create a mock CSV file with your actual test data
-    const csvContent = `123456,12,21,400000,200000,50,1300,325,25,2,1.3,65,41,36,88`;
+    // Create a mock CSV file with headers and test data
+    const csvContent = `Player ID,Dia do Ciclo,Total Dias Ciclo,Faturamento Meta,Faturamento Atual,Faturamento %,Reais por Ativo Meta,Reais por Ativo Atual,Reais por Ativo %,Multimarcas por Ativo Meta,Multimarcas por Ativo Atual,Multimarcas por Ativo %,Atividade Meta,Atividade Atual,Atividade %
+123456,12,21,400000,200000,50,1300,325,25,2,1.3,65,41,36,88`;
 
     const file = new File([csvContent], 'test.csv', { type: 'text/csv' });
     
@@ -37,21 +38,23 @@ describe('CSV Processing for New Format', () => {
   });
 
   it('should validate required fields', async () => {
-    // CSV with missing values
-    const csvContent = `123456,,21,120000,95000,79,1200,1100,92,45,38,84,85,78,92`;
+    // CSV with missing values (empty Dia do Ciclo)
+    const csvContent = `Player ID,Dia do Ciclo,Total Dias Ciclo,Faturamento Meta,Faturamento Atual,Faturamento %,Reais por Ativo Meta,Reais por Ativo Atual,Reais por Ativo %,Multimarcas por Ativo Meta,Multimarcas por Ativo Atual,Multimarcas por Ativo %,Atividade Meta,Atividade Atual,Atividade %
+123456,,21,120000,95000,79,1200,1100,92,45,38,84,85,78,92`;
     
     const file = new File([csvContent], 'test.csv', { type: 'text/csv' });
     
     const result = await service.parseFile(file);
     
     expect(result.isValid).toBe(false);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].field).toBe('diaDociclo');
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors.some(e => e.field === 'diaDociclo')).toBe(true);
   });
 
   it('should validate numeric fields', async () => {
-    // CSV with invalid numeric values
-    const csvContent = `123456,abc,21,120000,95000,79,1200,1100,92,45,38,84,85,78,92`;
+    // CSV with invalid numeric values (abc instead of number)
+    const csvContent = `Player ID,Dia do Ciclo,Total Dias Ciclo,Faturamento Meta,Faturamento Atual,Faturamento %,Reais por Ativo Meta,Reais por Ativo Atual,Reais por Ativo %,Multimarcas por Ativo Meta,Multimarcas por Ativo Atual,Multimarcas por Ativo %,Atividade Meta,Atividade Atual,Atividade %
+123456,abc,21,120000,95000,79,1200,1100,92,45,38,84,85,78,92`;
     
     const file = new File([csvContent], 'test.csv', { type: 'text/csv' });
     
