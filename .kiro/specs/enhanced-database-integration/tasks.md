@@ -5,7 +5,7 @@
 Simple enhancement to existing dashboard system - add database integration to fill missing data and provide goal details when available.
 
 - [x] 1. Update database service for new auth token
-  - Add method to use Basic auth token `Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==`
+  - Add method to use Basic auth token from environment variable `FUNIFIER_BASIC_TOKEN`
   - Create new method for enhanced player report with uploadUrl field
   - Leverage existing aggregateReportData method with new auth
   - _Requirements: 1.1, 1.2, 1.3_
@@ -41,7 +41,6 @@ Simple enhancement to existing dashboard system - add database integration to fi
   - _Requirements: 6.1, 6.2_
 
 - [x] 7. Add error handling for database integration
-
   - Log database errors and continue with existing Funifier data
   - Handle CSV download/parsing failures gracefully
   - Ensure dashboard never breaks due to database issues

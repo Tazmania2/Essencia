@@ -9,7 +9,7 @@ This document explains how to configure environment variables for the Funifier G
 ```bash
 FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
-FUNIFIER_BASIC_TOKEN=Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==
+FUNIFIER_BASIC_TOKEN=Basic [your_basic_token_here]
 ```
 
 ### 2. NextAuth Configuration
@@ -36,9 +36,9 @@ NEXTAUTH_URL=https://your-app-name.vercel.app
    - Environment: Production, Preview, Development
 
    **FUNIFIER_BASIC_TOKEN**
-   - Value: `Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==`
+   - Value: `Basic [your_basic_token_here]`
    - Environment: Production, Preview, Development
-   - **Important**: This is a sensitive credential for enhanced database access
+   - **Important**: This is a sensitive credential for enhanced database access - use the actual token provided by Funifier
 
    **NEXTAUTH_SECRET**
    - Value: Generate a secure 32+ character string
@@ -70,7 +70,7 @@ vercel env add FUNIFIER_BASE_URL
 # Select: Production, Preview, Development
 
 vercel env add FUNIFIER_BASIC_TOKEN
-# Enter: Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==
+# Enter: Basic [your_basic_token_here]
 # Select: Production, Preview, Development
 
 vercel env add NEXTAUTH_SECRET
@@ -89,7 +89,7 @@ Create a `.env.production` file (do not commit this):
 ```bash
 FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
-FUNIFIER_BASIC_TOKEN=Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==
+FUNIFIER_BASIC_TOKEN=Basic [your_basic_token_here]
 NEXTAUTH_SECRET=your_super_secure_nextauth_secret_key_here_32_chars_minimum
 NEXTAUTH_URL=https://your-app-name.vercel.app
 ```
@@ -112,12 +112,15 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ## Environment-Specific URLs
 
 ### Production
+
 - **NEXTAUTH_URL**: `https://your-production-domain.com`
 
 ### Preview (Branch Deployments)
+
 - **NEXTAUTH_URL**: `https://your-app-name-git-branch-name.vercel.app`
 
 ### Development
+
 - **NEXTAUTH_URL**: `http://localhost:3000`
 
 ## Verification
@@ -157,6 +160,7 @@ After setting up the environment variables:
 ### Debugging
 
 Enable debug mode by adding:
+
 ```bash
 NEXTAUTH_DEBUG=true
 ```

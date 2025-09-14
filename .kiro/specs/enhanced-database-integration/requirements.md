@@ -12,7 +12,7 @@ This feature enhances the existing dashboard system to integrate with the Funifi
 
 #### Acceptance Criteria
 
-1. WHEN the system needs report data THEN it SHALL authenticate using the Basic token `Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==`
+1. WHEN the system needs report data THEN it SHALL authenticate using the Basic token from environment variable `FUNIFIER_BASIC_TOKEN`
 2. WHEN making database requests THEN the system SHALL use the POST endpoint `{{funifier_server}}/v3/database/:collection/aggregate?strict=true`
 3. WHEN querying player data THEN the system SHALL use MongoDB aggregate syntax to find the most recent record matching the player ID
 4. IF the database request fails THEN the system SHALL gracefully fallback to existing Funifier API data
