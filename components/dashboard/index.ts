@@ -14,3 +14,4 @@ export { CarteiraIIDashboard } from './CarteiraIIDashboard';
 export { CarteiraIIIDashboard } from './CarteiraIIIDashboard';
 export { CarteiraIVDashboard } from './CarteiraIVDashboard';
 export { DebugDashboard } from './DebugDashboard';
+export { RefreshButton } from './RefreshButton';

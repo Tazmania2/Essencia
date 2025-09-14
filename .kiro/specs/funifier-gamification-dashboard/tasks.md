@@ -314,3 +314,65 @@
     - Ensure test coverage remains high after mock removal
     - Clear all the lint errors and warnings
     - _Requirements: Test quality and maintainability_
+
+- [ ] 12. Fix data refresh and caching system
+  - [ ] 12.1 Implement proper cache management with page refresh support
+    - Create useFreshDashboardData hook that bypasses cache on page refresh
+    - Implement localStorage cache with 24-hour expiration
+    - Add cache invalidation logic for browser refresh events (F5, Ctrl+R)
+    - Handle cache corruption and invalid data gracefully
+    - Write unit tests for cache management logic
+    - _Requirements: 8.1, 8.2_
+
+  - [ ] 12.2 Create manual refresh button component
+    - Build RefreshButton component with loading states
+    - Display last updated timestamp in user-friendly format
+    - Show refresh status (updating, success, error) with appropriate icons
+    - Implement manual refresh functionality that bypasses cache
+    - Add proper error handling and retry mechanisms
+    - Write unit tests for RefreshButton component
+    - _Requirements: 8.3, 8.4, 8.5, 8.6_
+
+  - [ ] 12.3 Update player dashboard to use new refresh system (all 4 teams)
+    - Replace existing AuthContext caching with new refresh system
+    - Integrate RefreshButton into dashboard header for all team dashboards
+    - Implement automatic refresh on page visibility change
+    - Add debug panel for cache status in development mode
+    - Ensure all team dashboards (Carteira I, II, III, IV) use the new refresh system
+    - Write integration tests for complete refresh workflow across all teams
+    - _Requirements: 8.1, 8.3, 8.7, 8.8_
+
+  - [ ] 12.4 Remove old caching mechanisms and test thoroughly
+    - Remove or update AuthContext to not cache player data
+    - Clear any existing localStorage cache on first load with new system
+    - Test page refresh behavior across all browsers for all team dashboards
+    - Test daily automatic refresh functionality
+    - Verify manual refresh works correctly in all scenarios
+    - Test error scenarios and recovery mechanisms
+    - _Requirements: 8.1, 8.2, 8.7_
+
+- [ ] 13. Implement data refresh system for admin dashboard
+  - [ ] 13.1 Create admin-specific data refresh hooks
+    - Create useAdminDashboardData hook for admin player data management
+    - Implement cache management for admin player selection and data viewing
+    - Add refresh functionality for admin when viewing player data
+    - Handle multiple player data caching efficiently
+    - Write unit tests for admin data refresh logic
+    - _Requirements: 8.1, 8.2, 8.3_
+
+  - [ ] 13.2 Add refresh controls to admin interface
+    - Integrate RefreshButton into admin dashboard when viewing player data
+    - Add refresh functionality to player selector component
+    - Implement automatic refresh for admin dashboard data
+    - Add cache status indicators in admin interface
+    - Write unit tests for admin refresh components
+    - _Requirements: 8.3, 8.4, 8.5, 8.6_
+
+  - [ ] 13.3 Update admin dashboard to use new refresh system
+    - Replace any existing admin data caching with new refresh system
+    - Ensure admin can refresh data when switching between players
+    - Implement page refresh support for admin dashboard
+    - Add debug information for admin cache management
+    - Test admin refresh functionality thoroughly
+    - Write integration tests for admin refresh workflow
+    - _Requirements: 8.1, 8.3, 8.7, 8.8_
