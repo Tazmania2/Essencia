@@ -183,10 +183,7 @@ export class FunifierAuthService {
       this.tokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
     }
 
-    console.log(
-      '💾 Token stored in auth service, expires at:',
-      this.tokenExpiry
-    );
+    // Token stored successfully (expiry time not logged for security)
   }
 
   private isTokenExpired(): boolean {

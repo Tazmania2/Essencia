@@ -7,6 +7,7 @@ const nextConfig = {
   env: {
     FUNIFIER_API_KEY: process.env.FUNIFIER_API_KEY,
     FUNIFIER_BASE_URL: process.env.FUNIFIER_BASE_URL,
+    FUNIFIER_BASIC_TOKEN: process.env.FUNIFIER_BASIC_TOKEN,
   },
   
   // Production optimizations

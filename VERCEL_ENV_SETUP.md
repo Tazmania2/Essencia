@@ -9,6 +9,7 @@ This document explains how to configure environment variables for the Funifier G
 ```bash
 FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
+FUNIFIER_BASIC_TOKEN=Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==
 ```
 
 ### 2. NextAuth Configuration
@@ -33,6 +34,11 @@ NEXTAUTH_URL=https://your-app-name.vercel.app
    **FUNIFIER_BASE_URL**
    - Value: `https://service2.funifier.com/v3`
    - Environment: Production, Preview, Development
+
+   **FUNIFIER_BASIC_TOKEN**
+   - Value: `Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==`
+   - Environment: Production, Preview, Development
+   - **Important**: This is a sensitive credential for enhanced database access
 
    **NEXTAUTH_SECRET**
    - Value: Generate a secure 32+ character string
@@ -63,6 +69,10 @@ vercel env add FUNIFIER_BASE_URL
 # Enter: https://service2.funifier.com/v3
 # Select: Production, Preview, Development
 
+vercel env add FUNIFIER_BASIC_TOKEN
+# Enter: Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==
+# Select: Production, Preview, Development
+
 vercel env add NEXTAUTH_SECRET
 # Enter: your_generated_secret_here
 # Select: Production, Preview, Development
@@ -79,6 +89,7 @@ Create a `.env.production` file (do not commit this):
 ```bash
 FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
+FUNIFIER_BASIC_TOKEN=Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==
 NEXTAUTH_SECRET=your_super_secure_nextauth_secret_key_here_32_chars_minimum
 NEXTAUTH_URL=https://your-app-name.vercel.app
 ```

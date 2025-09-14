@@ -33,12 +33,12 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      console.log('🔐 Login page: Starting login for', credentials.username);
+      // Login process started for user
       await login(credentials);
-      console.log('✅ Login page: Login successful');
+      // Login successful
       // Redirect will be handled by the useEffect above
     } catch (err) {
-      console.error('❌ Login page: Login failed', err);
+      // Login failed - error handled by AuthContext
       // Error handling is done in the AuthContext
       // But let's also set a local error as backup
       if (err instanceof Error) {

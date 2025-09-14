@@ -8,6 +8,7 @@ import React, {
   ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
+import { secureLogger } from '../utils/logger';
 import { funifierAuthService } from '../services/funifier-auth.service';
 import {
   userIdentificationService,
@@ -57,7 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           try {
             await refreshToken();
           } catch (error) {
-            console.warn('Token refresh failed:', error);
+            secureLogger.warn('Token refresh failed:', error);
             // Don't logout automatically on refresh failure
             // Let the user continue until they make a request that fails
           }
@@ -83,7 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // or get it from a /me endpoint
       }
     } catch (error) {
-      console.error('Auth initialization error:', error);
+      secureLogger.error('Auth initialization error:', error);
       setError('Erro ao inicializar autenticação');
     } finally {
       setIsLoading(false);
@@ -95,7 +96,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔐 Starting login process for:', credentials.username);
+      secureLogger.log('🔐 Starting login process for:', credentials.username);
 
       // Call the API route for authentication
       const authResponse = await fetch('/api/auth', {
@@ -106,17 +107,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
         body: JSON.stringify(credentials),
       });
 
-      console.log('🔐 Auth API response status:', authResponse.status);
+      secureLogger.log('🔐 Auth API response status:', authResponse.status);
 
       if (!authResponse.ok) {
         const errorData = await authResponse.json();
-        console.error('🔐 Auth API error:', errorData);
+        secureLogger.error('🔐 Auth API error:', errorData);
         throw new Error(errorData.error || 'Authentication failed');
       }
 
       const authResult = await authResponse.json();
-      console.log('🔐 Auth result type:', typeof authResult);
-      console.log('🔐 Auth result:', authResult);
+      secureLogger.log('🔐 Auth result type:', typeof authResult);
+      secureLogger.log('🔐 Auth result:', authResult);
 
       // Handle both string and object responses for backward compatibility
       let accessToken: string;
@@ -125,26 +126,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (typeof authResult === 'string') {
         // API returned raw token string
         accessToken = authResult;
-        console.log('🔐 Auth successful, token received (string):', accessToken.substring(0, 20) + '...');
+        secureLogger.log('🔐 Auth successful, token received (string)');
       } else if (authResult && authResult.access_token) {
         // API returned object with access_token
         accessToken = authResult.access_token;
         expiresIn = authResult.expires_in || 3600;
-        console.log('🔐 Auth successful, token received (object):', accessToken.substring(0, 20) + '...');
+        secureLogger.log('🔐 Auth successful, token received (object)');
       } else {
         throw new Error('Invalid authentication response format');
       }
 
       // Store the token in the auth service so other services can use it
-      console.log('💾 Storing token in auth service...');
+      secureLogger.log('💾 Storing token in auth service...');
       funifierAuthService.setAccessToken(accessToken, expiresIn);
 
       // Identify user role and team
-      console.log('👤 Identifying user role and team...');
+      secureLogger.log('👤 Identifying user role and team...');
       const userInfo = await userIdentificationService.identifyUser(
         credentials.username
       );
-      console.log('👤 User identified:', userInfo);
+      secureLogger.log('👤 User identified:', userInfo);
 
       // Update state
       setUser(userInfo);
@@ -156,9 +157,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('tokenExpiry', (Date.now() + expiresIn * 1000).toString());
 
-      console.log('✅ Login completed successfully');
+      secureLogger.log('✅ Login completed successfully');
     } catch (err) {
-      console.error('❌ Login error:', err);
+      secureLogger.error('❌ Login error:', err);
 
       let errorMessage = 'Erro inesperado durante o login';
 
@@ -209,7 +210,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Redirect to login
       router.push('/login');
     } catch (error) {
-      console.error('Logout error:', error);
+      secureLogger.error('Logout error:', error);
     }
   };
 
@@ -217,7 +218,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       await funifierAuthService.refreshAccessToken();
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      secureLogger.error('Token refresh failed:', error);
       throw error;
     }
   };
@@ -229,7 +230,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setIsLoading(true);
         setError(null);
 
-        console.log('🔄 Initializing authentication...');
+        secureLogger.log('🔄 Initializing authentication...');
 
         // Try to restore user from localStorage
         const storedUser = localStorage.getItem('user');
@@ -244,8 +245,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             
             // Check if token is still valid
             if (Date.now() < tokenExpiry) {
-              console.log('👤 Restored user from localStorage:', userInfo.userName);
-              console.log('🔑 Restored token from localStorage');
+              secureLogger.log('👤 Restored user from localStorage:', userInfo.userName);
+              secureLogger.log('🔑 Restored token from localStorage');
               
               // Restore token to auth service
               const expiresIn = Math.floor((tokenExpiry - Date.now()) / 1000);
@@ -254,14 +255,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
               setUser(userInfo);
               setIsAuthenticated(true);
             } else {
-              console.log('🔑 Stored token has expired, clearing localStorage');
+              secureLogger.log('🔑 Stored token has expired, clearing localStorage');
               localStorage.removeItem('user');
               localStorage.removeItem('username');
               localStorage.removeItem('accessToken');
               localStorage.removeItem('tokenExpiry');
             }
           } catch (error) {
-            console.error('❌ Failed to restore user from localStorage:', error);
+            secureLogger.error('❌ Failed to restore user from localStorage:', error);
             localStorage.removeItem('user');
             localStorage.removeItem('username');
             localStorage.removeItem('accessToken');
@@ -269,9 +270,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
 
-        console.log('✅ Auth initialization complete');
+        secureLogger.log('✅ Auth initialization complete');
       } catch (error) {
-        console.error('❌ Auth initialization error:', error);
+        secureLogger.error('❌ Auth initialization error:', error);
         setError('Erro ao inicializar autenticação');
       } finally {
         setIsLoading(false);

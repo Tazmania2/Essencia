@@ -29,7 +29,7 @@ export const useDashboard = (playerId: string, token: string): UseDashboardResul
 
   const fetchDashboardData = async () => {
     try {
-      console.log('🎯 useDashboard: Starting fetch for player:', playerId);
+      // Starting dashboard fetch for player
       setLoading(true);
       setError(null);
       
@@ -44,12 +44,12 @@ export const useDashboard = (playerId: string, token: string): UseDashboardResul
       
       const authToken = token;
       
-      console.log('🔑 useDashboard: Got auth token, calling dashboard service');
+      // Got auth token, calling dashboard service
       const data = await dashboardService.getDashboardData(playerId, authToken);
-      console.log('✅ useDashboard: Dashboard data received successfully');
+      // Dashboard data received successfully
       setDashboardData(data);
     } catch (err) {
-      console.error('❌ useDashboard: Dashboard fetch error:', err);
+      // Dashboard fetch error - handled by error boundary
       
       if (err instanceof ApiError) {
         switch (err.type) {

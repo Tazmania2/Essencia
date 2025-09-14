@@ -7,6 +7,7 @@ import {
 } from '../types';
 import { funifierAuthService } from './funifier-auth.service';
 import { errorHandlerService } from './error-handler.service';
+import { secureLogger } from '../utils/logger';
 
 export class FunifierPlayerService {
   private static instance: FunifierPlayerService;
@@ -47,8 +48,8 @@ export class FunifierPlayerService {
 
       const playerData = response.data;
       
-      // Log the actual response to understand the structure
-      console.log('🎮 Funifier API Response:', JSON.stringify(playerData, null, 2));
+      // Log the actual response to understand the structure (sanitized)
+      secureLogger.log('🎮 Funifier API Response:', playerData);
       
       // Validate the response structure
       this.validatePlayerStatusResponse(playerData);

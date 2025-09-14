@@ -10,6 +10,7 @@ import {
 import { funifierAuthService } from './funifier-auth.service';
 import { csvProcessingService } from './csv-processing.service';
 import { enhancedReportCache, csvDataCache, CacheKeys } from './cache.service';
+import { secureLogger } from '../utils/logger';
 
 export interface BulkInsertResult {
   insertedCount: number;
@@ -206,7 +207,7 @@ export class FunifierDatabaseService {
         pipeline,
         {
           headers: {
-            'Authorization': 'Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==',
+            'Authorization': process.env.FUNIFIER_BASIC_TOKEN || '',
             'Content-Type': 'application/json',
           },
           timeout: 25000,

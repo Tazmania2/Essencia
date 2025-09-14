@@ -10,7 +10,7 @@ export async function GET() {
       environment: process.env.NODE_ENV || 'development',
       services: {
         funifier: {
-          configured: !!process.env.FUNIFIER_API_KEY && !!process.env.FUNIFIER_BASE_URL,
+          configured: !!process.env.FUNIFIER_API_KEY && !!process.env.FUNIFIER_BASE_URL && !!process.env.FUNIFIER_BASIC_TOKEN,
           baseUrl: process.env.FUNIFIER_BASE_URL || 'not configured'
         },
         auth: {

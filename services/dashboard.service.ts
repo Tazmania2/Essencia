@@ -3,6 +3,7 @@ import { FunifierDatabaseService } from './funifier-database.service';
 import { TeamProcessorFactory } from './team-processor-factory.service';
 import { UserIdentificationService } from './user-identification.service';
 import { dashboardCache, playerDataCache, CacheKeys } from './cache.service';
+import { secureLogger } from '../utils/logger';
 import { 
   FunifierPlayerStatus, 
   EssenciaReportRecord, 
@@ -24,26 +25,26 @@ export class DashboardService {
 
   async getDashboardData(playerId: string, token: string): Promise<DashboardData> {
     try {
-      console.log('🚀 Dashboard service called for player:', playerId);
+      secureLogger.log('🚀 Dashboard service called for player:', playerId);
       
       // Check cache first
       const cacheKey = CacheKeys.dashboardData(playerId, 'unknown');
       const cachedData = dashboardCache.get<DashboardData>(cacheKey);
       
       if (cachedData) {
-        console.log('📋 Returning cached dashboard data for:', playerId);
+        secureLogger.log('📋 Returning cached dashboard data for:', playerId);
         return cachedData;
       }
 
       // Get player status from Funifier (with caching) - PRIMARY DATA SOURCE
-      console.log('🔍 Fetching player status from Funifier for:', playerId);
+      secureLogger.log('🔍 Fetching player status from Funifier for:', playerId);
       const playerStatus = await playerDataCache.getOrSet(
         CacheKeys.playerStatus(playerId),
         () => this.playerService.getPlayerStatus(playerId),
         2 * 60 * 1000 // 2 minutes TTL
       );
       
-      console.log('👤 Player status received:', {
+      secureLogger.log('👤 Player status received:', {
         name: playerStatus.name,
         totalPoints: playerStatus.total_points,
         challengeProgressCount: playerStatus.challenge_progress?.length || 0
@@ -79,7 +80,7 @@ export class DashboardService {
       
       return dashboardData;
     } catch (error) {
-      console.error('Error getting dashboard data:', error);
+      secureLogger.error('Error getting dashboard data:', error);
       throw error;
     }
   }
@@ -89,7 +90,7 @@ export class DashboardService {
       const result = await this.databaseService.getLatestPlayerReport(playerId);
       return result || undefined;
     } catch (error) {
-      console.warn('Could not fetch report data, using defaults:', error);
+      secureLogger.warn('Could not fetch report data, using defaults:', error);
       return undefined;
     }
   }
@@ -99,9 +100,9 @@ export class DashboardService {
     csvData: any;
   }> {
     try {
-      console.log('🔍 Fetching enhanced report data for player:', playerId);
+      secureLogger.log('🔍 Fetching enhanced report data for player:', playerId);
       const result = await this.databaseService.getCompletePlayerData(playerId);
-      console.log('📊 Enhanced data result:', {
+      secureLogger.log('📊 Enhanced data result:', {
         hasReportRecord: !!result.reportRecord,
         hasCsvData: !!result.csvData,
         reportRecord: result.reportRecord ? 'Found' : 'Not found',
@@ -109,7 +110,7 @@ export class DashboardService {
       });
       return result;
     } catch (error) {
-      console.warn('Could not fetch enhanced report data, continuing with Funifier data only:', error);
+      secureLogger.warn('Could not fetch enhanced report data, continuing with Funifier data only:', error);
       // Always return safe defaults to prevent dashboard breakage
       return { reportRecord: null, csvData: null };
     }
@@ -121,7 +122,7 @@ export class DashboardService {
   ): EssenciaReportRecord | undefined {
     // If we have enhanced data, use it to supplement regular data
     if (enhancedReportRecord) {
-      console.log('🔄 Creating enhanced report data from database record');
+      secureLogger.log('🔄 Creating enhanced report data from database record');
       
       const enhancedData: EssenciaReportRecord = {
         _id: enhancedReportRecord._id || 'enhanced',
@@ -141,7 +142,7 @@ export class DashboardService {
         updatedAt: enhancedReportRecord.updatedAt || enhancedReportRecord.createdAt
       };
 
-      console.log('✅ Enhanced report data created:', {
+      secureLogger.log('✅ Enhanced report data created:', {
         atividade: enhancedData.atividade,
         reaisPorAtivo: enhancedData.reaisPorAtivo,
         faturamento: enhancedData.faturamento,
@@ -154,7 +155,7 @@ export class DashboardService {
     }
 
     // Fallback to regular report data
-    console.log('📋 Using regular report data as fallback');
+    secureLogger.log('📋 Using regular report data as fallback');
     return regularReportData;
   }
 
@@ -184,7 +185,7 @@ export class DashboardService {
         
         // Validate data before using
         if (typeof goalData.target !== 'number' || typeof goalData.current !== 'number') {
-          console.warn(`Invalid goal data for ${goalName}:`, goalData);
+          secureLogger.warn(`Invalid goal data for ${goalName}:`, goalData);
           return {};
         }
         
@@ -195,7 +196,7 @@ export class DashboardService {
           daysRemaining: daysRemaining
         };
       } catch (error) {
-        console.warn(`Error processing enhanced goal data for ${goalName}:`, error);
+        secureLogger.warn(`Error processing enhanced goal data for ${goalName}:`, error);
         return {};
       }
     };
@@ -338,7 +339,7 @@ export class DashboardService {
       
       return dashboardData;
     } catch (error) {
-      console.error('Error processing player data to dashboard:', error);
+      secureLogger.error('Error processing player data to dashboard:', error);
       throw error;
     }
   }

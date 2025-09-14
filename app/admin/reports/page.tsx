@@ -26,7 +26,7 @@ function AdminReportsContent() {
   };
 
   const handleSubmissionComplete = (result: any) => {
-    console.log('Submission completed:', result);
+    // Submission completed successfully
     // You can add additional handling here if needed
   };
 

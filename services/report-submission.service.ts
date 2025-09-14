@@ -1,9 +1,14 @@
 import axios from 'axios';
 import { ReportData, ParseResult } from './report-processing.service';
+import { secureLogger } from '../utils/logger';
 
-// Basic auth token for Funifier API
-const FUNIFIER_AUTH_TOKEN = 'Basic NjhhNjczN2E2ZTFkMGUyMTk2ZGIxYjFlOjY3ZWM0ZTRhMjMyN2Y3NGYzYTJmOTZmNQ==';
-const FUNIFIER_BASE_URL = 'https://service2.funifier.com/v3';
+// Get Basic auth token from environment variables
+const FUNIFIER_AUTH_TOKEN = process.env.FUNIFIER_BASIC_TOKEN;
+const FUNIFIER_BASE_URL = process.env.FUNIFIER_BASE_URL || 'https://service2.funifier.com/v3';
+
+if (!FUNIFIER_AUTH_TOKEN) {
+  throw new Error('FUNIFIER_BASIC_TOKEN environment variable is required');
+}
 
 export interface ReportRecord {
   _id?: string;
