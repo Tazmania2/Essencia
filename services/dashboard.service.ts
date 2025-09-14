@@ -177,4 +177,27 @@ export class DashboardService {
       boost2Active: boost2 > 0
     };
   }
+
+  /**
+   * Process player data directly to dashboard format without making API calls
+   * This is used when we already have the player data from login
+   */
+  async processPlayerDataToDashboard(playerStatus: FunifierPlayerStatus, teamType: TeamType): Promise<DashboardData> {
+    try {
+      // Get report data from custom collection (optional)
+      const reportData = await this.getLatestReportData(playerStatus._id);
+      
+      // Process data using appropriate team processor
+      const processor = this.teamProcessorFactory.getProcessor(teamType);
+      const playerMetrics = processor.processPlayerData(playerStatus, reportData);
+      
+      // Convert to dashboard format
+      const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData);
+      
+      return dashboardData;
+    } catch (error) {
+      console.error('Error processing player data to dashboard:', error);
+      throw error;
+    }
+  }
 }
