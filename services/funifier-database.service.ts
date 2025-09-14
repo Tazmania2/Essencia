@@ -153,8 +153,13 @@ export class FunifierDatabaseService {
   public async getLatestPlayerReport(playerId: string): Promise<EssenciaReportRecord | null> {
     try {
       const pipeline: AggregationPipeline[] = [
-        { $match: { playerId: playerId } },
-        { $sort: { time: -1, updatedAt: -1, createdAt: -1 } }, // Use Unix timestamp first for most accurate data
+        { 
+          $match: { 
+            playerId: playerId,
+            time: { $exists: true }
+          } 
+        },
+        { $sort: { time: -1 } },
         { $limit: 1 }
       ];
 
@@ -186,10 +191,11 @@ export class FunifierDatabaseService {
         { 
           $match: { 
             playerId: playerId,
-            status: "REGISTERED"
+            status: "REGISTERED",
+            time: { $exists: true }
           } 
         },
-        { $sort: { time: -1 } }, // Use Unix timestamp for most accurate recent data
+        { $sort: { time: -1 } },
         { $limit: 1 }
       ];
 
