@@ -173,50 +173,7 @@ export class FunifierDatabaseService {
     }
   }
 
-  /**
-   * Get collection data with optional filtering
-   */
-  public static async getCollectionData(collectionName: string, token: string, filter?: any): Promise<any[]> {
-    try {
-      const url = `${FUNIFIER_CONFIG.BASE_URL}/database/${collectionName}`;
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        timeout: 20000,
-        params: filter ? { filter: JSON.stringify(filter) } : undefined
-      };
-
-      const response = await axios.get(url, config);
-      return response.data || [];
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Aggregate collection data
-   */
-  public static async aggregateCollectionData(collectionName: string, pipeline: AggregationPipeline[], token: string): Promise<any[]> {
-    try {
-      const response = await axios.post(
-        `${FUNIFIER_CONFIG.BASE_URL}/database/${collectionName}/aggregate?strict=true`,
-        pipeline,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          timeout: 25000,
-        }
-      );
-
-      return response.data || [];
-    } catch (error) {
-      throw error;
-    }
-  }
+  // Static methods removed - use instance methods instead
 
   /**
    * Perform aggregation queries on the custom collection
@@ -299,33 +256,66 @@ export class FunifierDatabaseService {
   }
 
   /**
-   * Instance method wrapper for getCollectionData
+   * Get collection data with optional filtering
    */
   public async getCollectionData(filter?: any): Promise<any[]> {
-    const token = await funifierAuthService.getAccessToken();
-    if (!token) {
-      throw new ApiError({
-        type: ErrorType.AUTHENTICATION_ERROR,
-        message: 'No valid authentication token available',
-        timestamp: new Date()
-      });
+    try {
+      const token = await funifierAuthService.getAccessToken();
+      if (!token) {
+        throw new ApiError({
+          type: ErrorType.AUTHENTICATION_ERROR,
+          message: 'No valid authentication token available',
+          timestamp: new Date()
+        });
+      }
+
+      const url = `${FUNIFIER_CONFIG.BASE_URL}/database/${FUNIFIER_CONFIG.CUSTOM_COLLECTION}`;
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 20000,
+        params: filter ? { filter: JSON.stringify(filter) } : undefined
+      };
+
+      const response = await axios.get(url, config);
+      return response.data || [];
+    } catch (error) {
+      throw this.handleDatabaseError(error, 'get collection data');
     }
-    return FunifierDatabaseService.getCollectionData(FUNIFIER_CONFIG.CUSTOM_COLLECTION, token, filter);
   }
 
   /**
-   * Instance method wrapper for aggregateCollectionData
+   * Aggregate collection data
    */
   public async aggregateCollectionData(pipeline: AggregationPipeline[]): Promise<any[]> {
-    const token = await funifierAuthService.getAccessToken();
-    if (!token) {
-      throw new ApiError({
-        type: ErrorType.AUTHENTICATION_ERROR,
-        message: 'No valid authentication token available',
-        timestamp: new Date()
-      });
+    try {
+      const token = await funifierAuthService.getAccessToken();
+      if (!token) {
+        throw new ApiError({
+          type: ErrorType.AUTHENTICATION_ERROR,
+          message: 'No valid authentication token available',
+          timestamp: new Date()
+        });
+      }
+
+      const response = await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/${FUNIFIER_CONFIG.CUSTOM_COLLECTION}/aggregate?strict=true`,
+        pipeline,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 25000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw this.handleDatabaseError(error, 'aggregate collection data');
     }
-    return FunifierDatabaseService.aggregateCollectionData(FUNIFIER_CONFIG.CUSTOM_COLLECTION, pipeline, token);
   }
 
   /**

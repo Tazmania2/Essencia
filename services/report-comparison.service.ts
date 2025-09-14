@@ -42,7 +42,7 @@ export class ReportComparisonService {
   ): Promise<ComparisonReport> {
     try {
       // Get current data from Funifier custom collection
-      const storedData = await this.getStoredData(token);
+      const storedData = await this.getStoredData();
       
       // Create lookup map for stored data
       const storedDataMap = new Map<string, any>();
@@ -80,9 +80,10 @@ export class ReportComparisonService {
   /**
    * Get stored data from Funifier custom collection
    */
-  private static async getStoredData(token: string): Promise<any[]> {
+  private static async getStoredData(): Promise<any[]> {
     try {
-      return await FunifierDatabaseService.getCollectionData(this.COLLECTION_NAME, token);
+      const databaseService = FunifierDatabaseService.getInstance();
+      return await databaseService.getCollectionData();
     } catch (error) {
       // If collection doesn't exist or is empty, return empty array
       console.warn('No stored data found in Funifier collection:', error);
