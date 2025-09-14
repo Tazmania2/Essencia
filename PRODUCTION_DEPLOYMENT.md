@@ -65,7 +65,7 @@ Set these in Vercel Dashboard → Project Settings → Environment Variables:
 
 ```bash
 # Funifier API Configuration
-FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
+FUNIFIER_API_KEY=[your_funifier_api_key]
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
 
 # Authentication

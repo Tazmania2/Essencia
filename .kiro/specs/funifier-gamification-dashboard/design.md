@@ -249,7 +249,7 @@ interface ActionLog {
 
 // Configuração da API Funifier
 const FUNIFIER_CONFIG = {
-  API_KEY: '68a6737a6e1d0e2196db1b1e',
+  API_KEY: process.env.FUNIFIER_API_KEY,
   BASE_URL: 'https://service2.funifier.com/v3',
   CUSTOM_COLLECTION: 'essencia_reports__c',
   CATALOG_ITEMS: {

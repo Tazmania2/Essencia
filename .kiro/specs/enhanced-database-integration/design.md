@@ -238,7 +238,7 @@ const MOCK_DATABASE_RESPONSE = {
   "faturamentoPercentual": 50,
   "atividadePercentual": 88,
   "multimarcasPorAtivoPercentual": 65,
-  "uploadUrl": "https://s3.amazonaws.com/funifier/games/68a6737a6e1d0e2196db1b1e/reports/68c68ca3b907ef364c4d4c2a_taira-rabelo-test.csv",
+  "uploadUrl": "https://s3.amazonaws.com/funifier/games/[api_key]/reports/68c68ca3b907ef364c4d4c2a_taira-rabelo-test.csv",
   "reportDate": "2025-09-14",
   "createdAt": "2025-09-14T09:36:34.688Z",
   "status": "REGISTERED"

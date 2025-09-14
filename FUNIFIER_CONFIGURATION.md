@@ -159,7 +159,7 @@ calculateProgressBar(percentage: number): ProgressBarConfig {
 - `GET /v3/virtualgoods/item` - List catalog items
 
 ### Authentication
-- Uses API key: `68a6737a6e1d0e2196db1b1e`
+- Uses API key: `[configured_via_environment_variable]`
 - Base URL: `https://service2.funifier.com/v3`
 
 ## Usage Examples

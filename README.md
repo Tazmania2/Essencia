@@ -106,7 +106,7 @@ O sistema integra com a API Funifier v3 para:
 ### Configuração da API
 
 A integração utiliza:
-- **API Key**: `68a6737a6e1d0e2196db1b1e`
+- **API Key**: `[configured_via_environment_variable]`
 - **Base URL**: `https://service2.funifier.com/v3`
 - **Collection**: `essencia_reports__c`
 
@@ -146,7 +146,7 @@ O projeto está configurado para deploy automático no Vercel. Consulte o [Guia 
 
 #### Variáveis de Ambiente Obrigatórias
 ```env
-FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
+FUNIFIER_API_KEY=[your_funifier_api_key]
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
 NEXTAUTH_SECRET=your_secure_random_string
 NEXTAUTH_URL=https://your-domain.vercel.app

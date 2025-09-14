@@ -240,7 +240,7 @@ export interface GoalDetail {
 }
 
 export const FUNIFIER_CONFIG = {
-  API_KEY: process.env.FUNIFIER_API_KEY || '68a6737a6e1d0e2196db1b1e',
+  API_KEY: process.env.FUNIFIER_API_KEY || '',
   BASE_URL: process.env.FUNIFIER_BASE_URL || 'https://service2.funifier.com/v3',
   CUSTOM_COLLECTION: 'report__c',
   CATALOG_ITEMS: {

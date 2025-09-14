@@ -6,6 +6,19 @@ import axios from 'axios';
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
+// Mock environment variable for testing
+const originalEnv = process.env;
+beforeAll(() => {
+  process.env = {
+    ...originalEnv,
+    FUNIFIER_API_KEY: 'fake_test_api_key_123'
+  };
+});
+
+afterAll(() => {
+  process.env = originalEnv;
+});
+
 describe('FunifierAuthService Integration Tests', () => {
   let authService: FunifierAuthService;
 
@@ -40,7 +53,7 @@ describe('FunifierAuthService Integration Tests', () => {
       expect(mockedAxios.post).toHaveBeenCalledWith(
         'https://service2.funifier.com/v3/auth/token',
         {
-          apiKey: '68a6737a6e1d0e2196db1b1e',
+          apiKey: 'fake_test_api_key_123',
           grant_type: 'password',
           username: 'testuser',
           password: 'testpass'
@@ -80,7 +93,7 @@ describe('FunifierAuthService Integration Tests', () => {
       expect(mockedAxios.post).toHaveBeenCalledWith(
         'https://service2.funifier.com/v3/auth/token',
         {
-          apiKey: '68a6737a6e1d0e2196db1b1e',
+          apiKey: 'fake_test_api_key_123',
           grant_type: 'password',
           username: 'invaliduser',
           password: 'wrongpass'

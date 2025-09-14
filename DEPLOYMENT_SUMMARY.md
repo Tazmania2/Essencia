@@ -49,7 +49,7 @@ This document summarizes all the deployment configurations and files created for
 
 ### Environment Variables Required
 ```bash
-FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
+FUNIFIER_API_KEY=[Your_API_key_here]
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
 NEXTAUTH_SECRET=your_secure_secret_here
 NEXTAUTH_URL=https://your-domain.vercel.app

@@ -24,7 +24,7 @@ function createEnvFile() {
   const nextAuthSecret = generateSecret();
   
   const envContent = `# Funifier API Configuration
-FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
+FUNIFIER_API_KEY=[your_funifier_api_key]
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
 
 # NextAuth Configuration
@@ -46,7 +46,7 @@ function displayVercelInstructions() {
   console.log('='.repeat(60));
   console.log('\nTo deploy to Vercel, set these environment variables:');
   console.log('\n📋 Required Variables:');
-  console.log('FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e');
+  console.log('FUNIFIER_API_KEY=[your_funifier_api_key]');
   console.log('FUNIFIER_BASE_URL=https://service2.funifier.com/v3');
   console.log('NEXTAUTH_SECRET=<generate-a-secure-32-char-secret>');
   console.log('NEXTAUTH_URL=https://your-app-name.vercel.app');

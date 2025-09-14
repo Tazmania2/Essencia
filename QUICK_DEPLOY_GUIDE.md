@@ -6,7 +6,7 @@ Follow these steps to deploy the Funifier Gamification Dashboard to Vercel.
 
 - Vercel account
 - GitHub repository connected to Vercel
-- Funifier API key: `68a6737a6e1d0e2196db1b1e`
+- Funifier API key: `[provided_by_funifier]`
 
 ## Step 1: Set Environment Variables in Vercel
 
@@ -16,7 +16,7 @@ Go to your Vercel project dashboard → Settings → Environment Variables and a
 
 | Variable | Value | Environment |
 |----------|-------|-------------|
-| `FUNIFIER_API_KEY` | `68a6737a6e1d0e2196db1b1e` | Production, Preview, Development |
+| `FUNIFIER_API_KEY` | `[your_funifier_api_key]` | Production, Preview, Development |
 | `FUNIFIER_BASE_URL` | `https://service2.funifier.com/v3` | Production, Preview, Development |
 | `NEXTAUTH_SECRET` | [Generate secure 32+ char string] | Production, Preview, Development |
 | `NEXTAUTH_URL` | `https://your-app-name.vercel.app` | Production |

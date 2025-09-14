@@ -17,9 +17,9 @@ vercel login
 
 # Set FUNIFIER_API_KEY
 echo "📝 Setting FUNIFIER_API_KEY..."
-echo "68a6737a6e1d0e2196db1b1e" | vercel env add FUNIFIER_API_KEY production
-echo "68a6737a6e1d0e2196db1b1e" | vercel env add FUNIFIER_API_KEY preview
-echo "68a6737a6e1d0e2196db1b1e" | vercel env add FUNIFIER_API_KEY development
+echo "[your_funifier_api_key]" | vercel env add FUNIFIER_API_KEY production
+echo "[your_funifier_api_key]" | vercel env add FUNIFIER_API_KEY preview
+echo "[your_funifier_api_key]" | vercel env add FUNIFIER_API_KEY development
 
 # Set FUNIFIER_BASE_URL
 echo "📝 Setting FUNIFIER_BASE_URL..."

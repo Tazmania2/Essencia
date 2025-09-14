@@ -27,7 +27,7 @@ Removed the environment variable references from `vercel.json` since Vercel auto
 
 ## Environment Variables (Set in Vercel Dashboard)
 ```
-FUNIFIER_API_KEY=68a6737a6e1d0e2196db1b1e
+FUNIFIER_API_KEY=[Your_API_key_here]
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
 NEXTAUTH_SECRET=<your-secure-secret>
 NEXTAUTH_URL=https://your-app-name.vercel.app
