@@ -9,7 +9,16 @@ jest.mock('../funifier-database.service', () => ({
   }
 }));
 
-const mockGetCollectionData = FunifierDatabaseService.getCollectionData as jest.Mock;
+// Mock the database service instance
+const mockDatabaseService = {
+  getCollectionData: jest.fn()
+};
+
+jest.mock('../funifier-database.service', () => ({
+  FunifierDatabaseService: {
+    getInstance: () => mockDatabaseService
+  }
+}));
 
 describe('ReportComparisonService', () => {
   const mockToken = 'test-token';
