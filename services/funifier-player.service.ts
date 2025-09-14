@@ -35,14 +35,11 @@ export class FunifierPlayerService {
       }
 
       const response = await axios.get<FunifierPlayerStatus>(
-        `${FUNIFIER_CONFIG.BASE_URL}/player_status`,
+        `${FUNIFIER_CONFIG.BASE_URL}/player/me/status`,
         {
           headers: {
             ...funifierAuthService.getAuthHeader(),
             'Content-Type': 'application/json',
-          },
-          params: {
-            id: playerId
           },
           timeout: 15000, // 15 second timeout for player data
         }
