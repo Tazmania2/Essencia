@@ -154,7 +154,7 @@ export class FunifierDatabaseService {
     try {
       const pipeline: AggregationPipeline[] = [
         { $match: { playerId: playerId } },
-        { $sort: { updatedAt: -1, createdAt: -1, reportDate: -1 } }, // Use updatedAt first for most recent data
+        { $sort: { time: -1, updatedAt: -1, createdAt: -1 } }, // Use Unix timestamp first for most accurate data
         { $limit: 1 }
       ];
 
@@ -189,7 +189,7 @@ export class FunifierDatabaseService {
             status: "REGISTERED"
           } 
         },
-        { $sort: { updatedAt: -1, createdAt: -1 } }, // Use updatedAt first, then createdAt as fallback
+        { $sort: { time: -1 } }, // Use Unix timestamp for most accurate recent data
         { $limit: 1 }
       ];
 
