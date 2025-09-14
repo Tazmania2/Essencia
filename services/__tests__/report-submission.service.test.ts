@@ -57,6 +57,7 @@ describe('ReportSubmissionService', () => {
             multimarcasPorAtivoPercentual: 90,
             atividadePercentual: 95,
             reportDate: '2024-01-15',
+            time: 1695147234712, // Unix timestamp with milliseconds
             status: 'PENDING',
             createdAt: '2024-01-15T10:00:00.000Z',
             updatedAt: '2024-01-15T10:00:00.000Z'
@@ -83,6 +84,7 @@ describe('ReportSubmissionService', () => {
         data: { 
           _id: 'record123',
           status: 'REGISTERED',
+          time: 1695147234712,
           uploadUrl: 'https://example.com/file.csv'
         }
       });

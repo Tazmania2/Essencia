@@ -15,6 +15,7 @@ export interface ReportRecord {
   multimarcasPorAtivoPercentual: number;
   atividadePercentual: number;
   reportDate: string;
+  time: number; // Unix timestamp with milliseconds (Funifier pattern)
   uploadUrl?: string;
   status: 'PENDING' | 'REGISTERED';
   createdAt: string;
@@ -121,6 +122,8 @@ export class ReportSubmissionService {
 
     // Insert records one by one to get their _id values
     for (const data of reportData) {
+      const currentTime = Date.now(); // Unix timestamp with milliseconds (Funifier pattern)
+      
       const recordToInsert = {
         playerId: data.playerId,
         diaDociclo: data.diaDociclo,
@@ -130,6 +133,7 @@ export class ReportSubmissionService {
         multimarcasPorAtivoPercentual: data.multimarcasPorAtivoPercentual,
         atividadePercentual: data.atividadePercentual,
         reportDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+        time: currentTime, // Unix timestamp with milliseconds
         status: 'PENDING',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -263,11 +267,8 @@ export class ReportSubmissionService {
                  (!currentRecordId || record._id !== currentRecordId);
         })
         .sort((a, b) => {
-          // Sort by reportDate descending, then by createdAt descending
-          if (b.reportDate !== a.reportDate) {
-            return b.reportDate.localeCompare(a.reportDate);
-          }
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          // Sort by time descending (most recent first) - Unix timestamp with milliseconds
+          return b.time - a.time;
         });
 
       console.log(`Found ${playerRecords.length} previous records for player ${playerId}`);
@@ -304,7 +305,7 @@ export class ReportSubmissionService {
           "$match": matchConditions
         },
         {
-          "$sort": { "reportDate": -1, "createdAt": -1 }
+          "$sort": { "time": -1 }
         },
         {
           "$limit": 1
@@ -375,6 +376,7 @@ export class ReportSubmissionService {
         ...record,
         uploadUrl,
         status: 'REGISTERED' as const,
+        time: Date.now(), // Update time when marking as REGISTERED
         updatedAt: new Date().toISOString()
       };
 
