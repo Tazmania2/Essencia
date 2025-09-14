@@ -49,13 +49,16 @@ export class DashboardService {
       // Get regular report data as fallback
       const reportData = await this.getLatestReportData(playerId);
       
+      // Create enhanced report data that combines both sources
+      const enhancedReportData = this.createEnhancedReportData(reportData, reportRecord);
+      
       // Process data using appropriate team processor
       if (!teamType) {
         throw new Error(`Unable to determine team type for player ${playerId}`);
       }
       
       const processor = this.teamProcessorFactory.getProcessor(teamType);
-      const playerMetrics = processor.processPlayerData(playerStatus, reportData);
+      const playerMetrics = processor.processPlayerData(playerStatus, enhancedReportData);
       
       // Convert to dashboard format with enhanced data
       const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData, reportRecord, csvData);
@@ -86,13 +89,63 @@ export class DashboardService {
     csvData: any;
   }> {
     try {
+      console.log('🔍 Fetching enhanced report data for player:', playerId);
       const result = await this.databaseService.getCompletePlayerData(playerId);
+      console.log('📊 Enhanced data result:', {
+        hasReportRecord: !!result.reportRecord,
+        hasCsvData: !!result.csvData,
+        reportRecord: result.reportRecord ? 'Found' : 'Not found',
+        csvData: result.csvData ? 'Found' : 'Not found'
+      });
       return result;
     } catch (error) {
       console.warn('Could not fetch enhanced report data, continuing with Funifier data only:', error);
       // Always return safe defaults to prevent dashboard breakage
       return { reportRecord: null, csvData: null };
     }
+  }
+
+  private createEnhancedReportData(
+    regularReportData: EssenciaReportRecord | undefined,
+    enhancedReportRecord: any
+  ): EssenciaReportRecord | undefined {
+    // If we have enhanced data, use it to supplement regular data
+    if (enhancedReportRecord) {
+      console.log('🔄 Creating enhanced report data from database record');
+      
+      const enhancedData: EssenciaReportRecord = {
+        _id: enhancedReportRecord._id || 'enhanced',
+        playerId: enhancedReportRecord.playerId,
+        playerName: regularReportData?.playerName || 'Unknown',
+        team: regularReportData?.team || TeamType.CARTEIRA_I,
+        // Use enhanced percentages from database
+        atividade: enhancedReportRecord.atividadePercentual,
+        reaisPorAtivo: enhancedReportRecord.reaisPorAtivoPercentual,
+        faturamento: enhancedReportRecord.faturamentoPercentual,
+        multimarcasPorAtivo: enhancedReportRecord.multimarcasPorAtivoPercentual,
+        // Use enhanced cycle data
+        currentCycleDay: enhancedReportRecord.diaDociclo,
+        totalCycleDays: enhancedReportRecord.totalDiasCiclo,
+        reportDate: enhancedReportRecord.reportDate,
+        createdAt: enhancedReportRecord.createdAt,
+        updatedAt: enhancedReportRecord.updatedAt || enhancedReportRecord.createdAt
+      };
+
+      console.log('✅ Enhanced report data created:', {
+        atividade: enhancedData.atividade,
+        reaisPorAtivo: enhancedData.reaisPorAtivo,
+        faturamento: enhancedData.faturamento,
+        multimarcasPorAtivo: enhancedData.multimarcasPorAtivo,
+        currentCycleDay: enhancedData.currentCycleDay,
+        totalCycleDays: enhancedData.totalCycleDays
+      });
+
+      return enhancedData;
+    }
+
+    // Fallback to regular report data
+    console.log('📋 Using regular report data as fallback');
+    return regularReportData;
   }
 
   private convertTodashboardData(

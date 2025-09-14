@@ -171,11 +171,14 @@ export class FunifierDatabaseService {
    */
   public async getEnhancedPlayerReport(playerId: string): Promise<EnhancedReportRecord | null> {
     try {
+      console.log('🔍 Getting enhanced player report for:', playerId);
+      
       // Check cache first
       const cacheKey = CacheKeys.enhancedReport(playerId);
       const cachedData = enhancedReportCache.get<EnhancedReportRecord>(cacheKey);
       
       if (cachedData) {
+        console.log('📋 Found cached enhanced report for:', playerId);
         return cachedData;
       }
 
@@ -190,6 +193,8 @@ export class FunifierDatabaseService {
         { $limit: 1 }
       ];
 
+      console.log('🚀 Making enhanced database request with pipeline:', JSON.stringify(pipeline));
+
       const response = await axios.post(
         `${FUNIFIER_CONFIG.BASE_URL}/database/${FUNIFIER_CONFIG.CUSTOM_COLLECTION}/aggregate?strict=true`,
         pipeline,
@@ -202,8 +207,21 @@ export class FunifierDatabaseService {
         }
       );
 
+      console.log('📊 Enhanced database response status:', response.status);
+      console.log('📊 Enhanced database response data length:', response.data?.length || 0);
+
       const results = response.data || [];
       const result = results.length > 0 ? results[0] : null;
+      
+      if (result) {
+        console.log('✅ Found enhanced report record:', {
+          playerId: result.playerId,
+          hasUploadUrl: !!result.uploadUrl,
+          uploadUrl: result.uploadUrl
+        });
+      } else {
+        console.log('❌ No enhanced report record found for player:', playerId);
+      }
       
       // Cache the result
       if (result) {
@@ -212,8 +230,11 @@ export class FunifierDatabaseService {
       
       return result;
     } catch (error) {
-      console.warn('Enhanced database access failed, falling back to regular method:', error);
-      // Fallback to regular method if enhanced access fails
+      console.error('❌ Enhanced database access failed:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Response status:', error.response?.status);
+        console.error('Response data:', error.response?.data);
+      }
       return null;
     }
   }
@@ -223,20 +244,34 @@ export class FunifierDatabaseService {
    */
   public async getCSVGoalData(reportRecord: EnhancedReportRecord): Promise<CSVGoalData | null> {
     if (!reportRecord.uploadUrl) {
-      console.log('No CSV URL available in report record');
+      console.log('❌ No CSV URL available in report record for player:', reportRecord.playerId);
       return null;
     }
 
     try {
+      console.log('📄 Processing CSV from URL:', reportRecord.uploadUrl);
+      
       // Check cache first
       const cacheKey = CacheKeys.csvData(reportRecord.uploadUrl);
       const cachedData = csvDataCache.get<CSVGoalData>(cacheKey);
       
       if (cachedData) {
+        console.log('📋 Found cached CSV data');
         return cachedData;
       }
 
       const csvData = await csvProcessingService.downloadAndParseCSV(reportRecord.uploadUrl);
+      
+      if (csvData) {
+        console.log('✅ Successfully processed CSV data:', {
+          playerId: csvData.playerId,
+          cycleDay: csvData.cycleDay,
+          totalCycleDays: csvData.totalCycleDays,
+          hasGoalData: !!(csvData.faturamento && csvData.reaisPorAtivo && csvData.atividade)
+        });
+      } else {
+        console.log('❌ Failed to process CSV data');
+      }
       
       // Cache the result
       if (csvData) {
@@ -245,7 +280,7 @@ export class FunifierDatabaseService {
       
       return csvData;
     } catch (error) {
-      console.error('Failed to process CSV goal data:', error);
+      console.error('❌ Failed to process CSV goal data:', error);
       return null;
     }
   }

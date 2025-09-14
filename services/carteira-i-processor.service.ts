@@ -95,20 +95,24 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
   ): number {
     // Priority 1: Funifier challenge progress (primary source)
     const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].atividade;
-    const challengePercentage = this.extractChallengePercentage(
-      rawData.challenge_progress || [],
-      challengeIds
-    );
-
-    if (challengePercentage > 0) {
+    const challengeFound = this.hasChallengeData(rawData.challenge_progress || [], challengeIds);
+    
+    if (challengeFound) {
+      const challengePercentage = this.extractChallengePercentage(
+        rawData.challenge_progress || [],
+        challengeIds
+      );
+      console.log('🎯 Atividade from Funifier challenge:', challengePercentage);
       return this.validatePercentage(challengePercentage);
     }
 
     // Priority 2: Report data (fallback when Funifier data is missing)
     if (reportData?.atividade !== undefined) {
+      console.log('🎯 Atividade from report data:', reportData.atividade);
       return this.validatePercentage(reportData.atividade);
     }
 
+    console.log('🎯 No Atividade data found, using 0');
     return 0;
   }
 
@@ -121,20 +125,24 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
   ): number {
     // Priority 1: Funifier challenge progress (primary source)
     const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].reaisPorAtivo;
-    const challengePercentage = this.extractChallengePercentage(
-      rawData.challenge_progress || [],
-      challengeIds
-    );
-
-    if (challengePercentage > 0) {
+    const challengeFound = this.hasChallengeData(rawData.challenge_progress || [], challengeIds);
+    
+    if (challengeFound) {
+      const challengePercentage = this.extractChallengePercentage(
+        rawData.challenge_progress || [],
+        challengeIds
+      );
+      console.log('💰 Reais por Ativo from Funifier challenge:', challengePercentage);
       return this.validatePercentage(challengePercentage);
     }
 
     // Priority 2: Report data (fallback when Funifier data is missing)
     if (reportData?.reaisPorAtivo !== undefined) {
+      console.log('💰 Reais por Ativo from report data:', reportData.reaisPorAtivo);
       return this.validatePercentage(reportData.reaisPorAtivo);
     }
 
+    console.log('💰 No Reais por Ativo data found, using 0');
     return 0;
   }
 
@@ -147,21 +155,34 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
   ): number {
     // Priority 1: Funifier challenge progress (primary source)
     const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].faturamento;
-    const challengePercentage = this.extractChallengePercentage(
-      rawData.challenge_progress || [],
-      challengeIds
-    );
-
-    if (challengePercentage > 0) {
+    const challengeFound = this.hasChallengeData(rawData.challenge_progress || [], challengeIds);
+    
+    if (challengeFound) {
+      const challengePercentage = this.extractChallengePercentage(
+        rawData.challenge_progress || [],
+        challengeIds
+      );
+      console.log('📈 Faturamento from Funifier challenge:', challengePercentage);
       return this.validatePercentage(challengePercentage);
     }
 
     // Priority 2: Report data (fallback when Funifier data is missing)
     if (reportData?.faturamento !== undefined) {
+      console.log('📈 Faturamento from report data:', reportData.faturamento);
       return this.validatePercentage(reportData.faturamento);
     }
 
+    console.log('📈 No Faturamento data found, using 0');
     return 0;
+  }
+
+  /**
+   * Check if challenge data exists for given challenge IDs
+   */
+  private hasChallengeData(challengeProgress: any[], challengeIds: string[]): boolean {
+    return challengeProgress.some(progress => 
+      challengeIds.includes(progress.challengeId || progress.id || progress.challenge)
+    );
   }
 
   /**
