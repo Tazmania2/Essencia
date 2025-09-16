@@ -34,9 +34,9 @@ describe('FunifierAuthService', () => {
     it('should authenticate successfully with valid credentials', async () => {
       mockedAxios.post.mockResolvedValueOnce(mockAuthResponse);
 
-      const token = await authService.authenticate(mockCredentials);
+      const response = await authService.authenticate(mockCredentials);
 
-      expect(token).toBe('mock_access_token');
+      expect(response.access_token).toBe('mock_access_token');
       expect(mockedAxios.post).toHaveBeenCalledWith(
         `${FUNIFIER_CONFIG.BASE_URL}/auth/token`,
         {
@@ -338,6 +338,82 @@ describe('FunifierAuthService', () => {
       
       expect(instance1).toBe(instance2);
       expect(instance1).toBe(funifierAuthService);
+    });
+  });
+
+  describe('password reset', () => {
+    describe('requestPasswordReset', () => {
+      it('should request password reset successfully', async () => {
+        const userId = 'testuser';
+        mockedAxios.get.mockResolvedValue({ data: {} });
+
+        await authService.requestPasswordReset(userId);
+
+        expect(mockedAxios.get).toHaveBeenCalledWith(
+          `https://service2.funifier.com/v3/system/user/password/code?user=${userId}`,
+          {
+            timeout: 10000,
+          }
+        );
+      });
+
+      it('should handle request password reset error', async () => {
+        const userId = 'testuser';
+        const error = new Error('Network error');
+        mockedAxios.get.mockRejectedValue(error);
+
+        await expect(authService.requestPasswordReset(userId)).rejects.toThrow();
+      });
+
+      it('should encode user ID in URL', async () => {
+        const userId = 'test@user.com';
+        mockedAxios.get.mockResolvedValue({ data: {} });
+
+        await authService.requestPasswordReset(userId);
+
+        expect(mockedAxios.get).toHaveBeenCalledWith(
+          `https://service2.funifier.com/v3/system/user/password/code?user=${encodeURIComponent(userId)}`,
+          {
+            timeout: 10000,
+          }
+        );
+      });
+    });
+
+    describe('resetPassword', () => {
+      it('should reset password successfully', async () => {
+        const userId = 'testuser';
+        const code = '123456';
+        const newPassword = 'newpassword';
+        mockedAxios.put.mockResolvedValue({ data: {} });
+
+        await authService.resetPassword(userId, code, newPassword);
+
+        expect(mockedAxios.put).toHaveBeenCalledWith(
+          'https://service2.funifier.com/v3/system/user/password/code',
+          {
+            code,
+            new_password: newPassword,
+            user: userId,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            timeout: 10000,
+          }
+        );
+      });
+
+      it('should handle reset password error', async () => {
+        const userId = 'testuser';
+        const code = '123456';
+        const newPassword = 'newpassword';
+        const error = new Error('Invalid code');
+        mockedAxios.put.mockRejectedValue(error);
+
+        await expect(authService.resetPassword(userId, code, newPassword)).rejects.toThrow();
+      });
     });
   });
 });

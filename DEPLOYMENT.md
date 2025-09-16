@@ -48,6 +48,12 @@ NEXTAUTH_URL=https://your-domain.vercel.app
 
 # Environment
 NODE_ENV=production
+
+# Team Configuration (New Dashboard Types)
+# Note: These are configured in the application code, not as environment variables
+# Carteira 0 Team ID: E6F5k30
+# ER Team ID: E500AbT
+# Challenge IDs - Conversões: E6GglPq, UPA: E62x2PW
 ```
 
 ### Setting Environment Variables in Vercel Dashboard
@@ -158,7 +164,11 @@ git push origin main
 2. **API Health**: Test `/api/health` endpoint (if implemented)
 3. **Authentication**: Test login flow
 4. **Funifier Integration**: Verify API connections work
-5. **Error Handling**: Check error boundaries and fallbacks
+5. **Dashboard Types**: Test all dashboard types (Carteira 0, I, II, III, IV, ER)
+6. **Multi-Team Selection**: Test team selection modal for users with multiple teams
+7. **New Metrics**: Verify Conversões and UPA metrics display correctly
+8. **CSV Upload**: Test CSV upload with new metric columns
+9. **Error Handling**: Check error boundaries and fallbacks
 
 ## Step 7: Configure Custom Domain (Optional)
 

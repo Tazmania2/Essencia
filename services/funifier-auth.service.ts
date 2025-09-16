@@ -186,6 +186,58 @@ export class FunifierAuthService {
     // Token stored successfully (expiry time not logged for security)
   }
 
+  /**
+   * Request password reset code - sends code to user's email
+   */
+  public async requestPasswordReset(userId: string): Promise<void> {
+    try {
+      await axios.get(
+        `https://service2.funifier.com/v3/system/user/password/code?user=${encodeURIComponent(userId)}`,
+        {
+          timeout: 10000, // 10 second timeout
+        }
+      );
+    } catch (error) {
+      const apiError = errorHandlerService.handleFunifierError(
+        error,
+        'password_reset_request'
+      );
+      throw apiError;
+    }
+  }
+
+  /**
+   * Reset password using code received via email
+   */
+  public async resetPassword(
+    userId: string,
+    code: string,
+    newPassword: string
+  ): Promise<void> {
+    try {
+      await axios.put(
+        'https://service2.funifier.com/v3/system/user/password/code',
+        {
+          code,
+          new_password: newPassword,
+          user: userId,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000,
+        }
+      );
+    } catch (error) {
+      const apiError = errorHandlerService.handleFunifierError(
+        error,
+        'password_reset'
+      );
+      throw apiError;
+    }
+  }
+
   private isTokenExpired(): boolean {
     if (!this.tokenExpiry) {
       return true;

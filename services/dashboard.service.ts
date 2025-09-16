@@ -238,6 +238,11 @@ export class DashboardService {
 
   private getGoalEmojis(teamType: TeamType): { primary: string; secondary1: string; secondary2: string } {
     const emojiMap = {
+      [TeamType.CARTEIRA_0]: {
+        primary: '🔄', // Conversões
+        secondary1: '💰', // Reais por Ativo
+        secondary2: '📈' // Faturamento
+      },
       [TeamType.CARTEIRA_I]: {
         primary: '🎯', // Atividade
         secondary1: '💰', // Reais por Ativo
@@ -257,6 +262,11 @@ export class DashboardService {
         primary: '📈', // Faturamento
         secondary1: '💰', // Reais por Ativo
         secondary2: '🏪' // Multimarcas por Ativo
+      },
+      [TeamType.ER]: {
+        primary: '📈', // Faturamento
+        secondary1: '💰', // Reais por Ativo
+        secondary2: '📊' // UPA
       }
     };
 
@@ -368,6 +378,9 @@ export class DashboardService {
     let teamType: TeamType = TeamType.CARTEIRA_I; // Default
     
     switch (teamId) {
+      case 'E6F5k30':
+        teamType = TeamType.CARTEIRA_0;
+        break;
       case 'E6F4sCh':
         teamType = TeamType.CARTEIRA_I;
         break;
@@ -380,12 +393,22 @@ export class DashboardService {
       case 'E6F41Bb':
         teamType = TeamType.CARTEIRA_IV;
         break;
+      case 'E500AbT':
+        teamType = TeamType.ER;
+        break;
     }
 
     // Team-specific challenge IDs for goal tracking
-    let challengeIds: { atividade?: string; reaisPorAtivo: string; faturamento?: string; multimarcas?: string };
+    let challengeIds: { atividade?: string; reaisPorAtivo: string; faturamento?: string; multimarcas?: string; conversoes?: string; upa?: string };
     
     switch (teamType) {
+      case TeamType.CARTEIRA_0:
+        challengeIds = {
+          conversoes: 'E6GglPq',     // Carteira 0 - Conversões (reusing challenge ID)
+          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
+          faturamento: 'E6GglPq'     // Carteira I - Bater Faturamento (Meta)
+        };
+        break;
       case TeamType.CARTEIRA_I:
         challengeIds = {
           atividade: 'E6FQIjs',      // Carteira I - Bater Meta Atividade %
@@ -408,6 +431,13 @@ export class DashboardService {
           multimarcas: 'E6MMH5v'     // Carteira III & IV - Subir Multimarcas por Ativo
         };
         break;
+      case TeamType.ER:
+        challengeIds = {
+          faturamento: 'E6Gahd4',    // Carteira III & IV - Subir Faturamento (Pre-Meta) (reused)
+          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo (reused)
+          upa: 'E62x2PW'             // ER - UPA metric
+        };
+        break;
     }
 
     // Extract goal progress from challenge_progress using team-specific challenge IDs
@@ -420,6 +450,8 @@ export class DashboardService {
     let reaisProgress = getGoalProgress(challengeIds.reaisPorAtivo);
     let faturamentoProgress = challengeIds.faturamento ? getGoalProgress(challengeIds.faturamento) : 0;
     let multimarcasProgress = challengeIds.multimarcas ? getGoalProgress(challengeIds.multimarcas) : 0;
+    let conversoesProgress = challengeIds.conversoes ? getGoalProgress(challengeIds.conversoes) : 0;
+    let upaProgress = challengeIds.upa ? getGoalProgress(challengeIds.upa) : 0;
 
     // IMPORTANT: When boosts are active, it means the player reached 100% on those goals
     // and Funifier stops tracking progress. We need to show 100%+ for those goals to trigger green color.
@@ -428,6 +460,14 @@ export class DashboardService {
     // For now, if boost is active, show 101% minimum for the corresponding secondary goals
     // This ensures the progress bar shows green (100%+ range) instead of yellow (50-100% range)
     switch (teamType) {
+      case TeamType.CARTEIRA_0:
+        if (boost1Active && reaisProgress <= 100) {
+          reaisProgress = 101; // Reais por Ativo reached 100%+ (boost1 = secondary goal 1)
+        }
+        if (boost2Active && faturamentoProgress <= 100) {
+          faturamentoProgress = 101; // Faturamento reached 100%+ (boost2 = secondary goal 2)
+        }
+        break;
       case TeamType.CARTEIRA_I:
         if (boost1Active && reaisProgress <= 100) {
           reaisProgress = 101; // Reais por Ativo reached 100%+ (boost1 = secondary goal 1)
@@ -453,6 +493,14 @@ export class DashboardService {
           multimarcasProgress = 101; // Multimarcas por Ativo reached 100%+ (boost2 = secondary goal 2)
         }
         break;
+      case TeamType.ER:
+        if (boost1Active && reaisProgress <= 100) {
+          reaisProgress = 101; // Reais por Ativo reached 100%+ (boost1 = secondary goal 1)
+        }
+        if (boost2Active && upaProgress <= 100) {
+          upaProgress = 101; // UPA reached 100%+ (boost2 = secondary goal 2)
+        }
+        break;
     }
 
     // Set goals based on team type
@@ -461,6 +509,11 @@ export class DashboardService {
     let secondaryGoal2: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
     
     switch (teamType) {
+      case TeamType.CARTEIRA_0:
+        primaryGoal = { name: 'Conversões', percentage: conversoesProgress, emoji: '🔄' };
+        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
+        secondaryGoal2 = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈', isBoostActive: boost2Active };
+        break;
       case TeamType.CARTEIRA_I:
         primaryGoal = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯' };
         secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
@@ -476,6 +529,11 @@ export class DashboardService {
         primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
         secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
         secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: multimarcasProgress, emoji: '🏪', isBoostActive: boost2Active };
+        break;
+      case TeamType.ER:
+        primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
+        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
+        secondaryGoal2 = { name: 'UPA', percentage: upaProgress, emoji: '📊', isBoostActive: boost2Active };
         break;
     }
 

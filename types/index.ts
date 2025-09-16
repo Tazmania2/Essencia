@@ -58,6 +58,8 @@ export interface EssenciaReportRecord {
   reaisPorAtivo?: number;
   faturamento?: number;
   multimarcasPorAtivo?: number;
+  conversoes?: number;
+  upa?: number;
   currentCycleDay?: number;
   totalCycleDays?: number;
   reportDate: string;
@@ -106,13 +108,25 @@ export interface CSVGoalData {
     current: number;
     percentage: number;
   };
+  conversoes?: {
+    target: number;
+    current: number;
+    percentage: number;
+  };
+  upa?: {
+    target: number;
+    current: number;
+    percentage: number;
+  };
 }
 
 export enum TeamType {
+  CARTEIRA_0 = 'CARTEIRA_0',
   CARTEIRA_I = 'CARTEIRA_I',
   CARTEIRA_II = 'CARTEIRA_II',
   CARTEIRA_III = 'CARTEIRA_III',
-  CARTEIRA_IV = 'CARTEIRA_IV'
+  CARTEIRA_IV = 'CARTEIRA_IV',
+  ER = 'ER'
 }
 
 export enum ErrorType {
@@ -149,6 +163,16 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface PasswordResetRequest {
+  userId: string;
+}
+
+export interface PasswordResetConfirm {
+  userId: string;
+  code: string;
+  newPassword: string;
+}
+
 // Funifier Configuration Constants
 // Team Processing Types
 export interface GoalMetric {
@@ -183,6 +207,11 @@ export interface TeamProcessor {
 }
 
 export interface ChallengeMapping {
+  [TeamType.CARTEIRA_0]: {
+    conversoes: string[];
+    reaisPorAtivo: string[];
+    faturamento: string[];
+  };
   [TeamType.CARTEIRA_I]: {
     atividade: string[];
     reaisPorAtivo: string[];
@@ -202,6 +231,11 @@ export interface ChallengeMapping {
     faturamento: string[];
     reaisPorAtivo: string[];
     multimarcasPorAtivo: string[];
+  };
+  [TeamType.ER]: {
+    faturamento: string[];
+    reaisPorAtivo: string[];
+    upa: string[];
   };
 }
 
@@ -250,16 +284,20 @@ export const FUNIFIER_CONFIG = {
     BOOST_SECONDARY_2: 'E6K79Mt'
   },
   TEAM_IDS: {
+    CARTEIRA_0: 'E6F5k30',
     CARTEIRA_I: 'E6F4sCh',
     CARTEIRA_II: 'E6F4O1b', 
     CARTEIRA_III: 'E6F4Xf2',
     CARTEIRA_IV: 'E6F41Bb',
+    ER: 'E500AbT',
     ADMIN: 'E6U1B1p'
   },
   ACTION_IDS: {
     ATIVIDADE: 'atividade',
     REAIS_POR_ATIVO: 'reais_por_ativo',
     FATURAMENTO: 'faturamento',
-    MULTIMARCAS_POR_ATIVO: 'multimarcas_por_ativo'
+    MULTIMARCAS_POR_ATIVO: 'multimarcas_por_ativo',
+    CONVERSOES: 'conversoes',
+    UPA: 'upa'
   }
 } as const;

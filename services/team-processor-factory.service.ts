@@ -8,6 +8,8 @@ import {
 import { carteiraIProcessor } from './carteira-i-processor.service';
 import { carteiraIIProcessor } from './carteira-ii-processor.service';
 import { carteiraIIIProcessor, carteiraIVProcessor } from './carteira-iii-iv-processor.service';
+import { carteira0Processor } from './carteira-0-processor.service';
+import { erProcessor } from './er-processor.service';
 import { TeamProcessorUtils } from './team-processor.service';
 
 /**
@@ -33,6 +35,8 @@ export class TeamProcessorFactory {
    */
   public getProcessor(teamType: TeamType): TeamProcessor {
     switch (teamType) {
+      case TeamType.CARTEIRA_0:
+        return carteira0Processor;
       case TeamType.CARTEIRA_I:
         return carteiraIProcessor;
       case TeamType.CARTEIRA_II:
@@ -41,6 +45,8 @@ export class TeamProcessorFactory {
         return carteiraIIIProcessor;
       case TeamType.CARTEIRA_IV:
         return carteiraIVProcessor;
+      case TeamType.ER:
+        return erProcessor;
       default:
         throw new Error(`Unsupported team type: ${teamType}`);
     }
@@ -76,6 +82,9 @@ export class TeamProcessorFactory {
     const playerId = playerData._id?.toLowerCase() || '';
     
     // Check for team-related patterns in player ID (fallback)
+    if (playerId.includes('carteira0') || playerId.includes('c0')) {
+      return TeamType.CARTEIRA_0;
+    }
     if (playerId.includes('carteira1') || playerId.includes('c1')) {
       return TeamType.CARTEIRA_I;
     }
@@ -87,6 +96,9 @@ export class TeamProcessorFactory {
     }
     if (playerId.includes('carteira4') || playerId.includes('c4')) {
       return TeamType.CARTEIRA_IV;
+    }
+    if (playerId.includes('er') || playerId.includes('external')) {
+      return TeamType.ER;
     }
 
     return null;
@@ -140,10 +152,12 @@ export class TeamProcessorFactory {
    */
   public getAvailableTeamTypes(): TeamType[] {
     return [
+      TeamType.CARTEIRA_0,
       TeamType.CARTEIRA_I,
       TeamType.CARTEIRA_II,
       TeamType.CARTEIRA_III,
-      TeamType.CARTEIRA_IV
+      TeamType.CARTEIRA_IV,
+      TeamType.ER
     ];
   }
 
@@ -157,6 +171,13 @@ export class TeamProcessorFactory {
     specialFeatures: string[];
   } {
     switch (teamType) {
+      case TeamType.CARTEIRA_0:
+        return {
+          name: 'Carteira 0',
+          primaryGoal: 'Conversões',
+          secondaryGoals: ['Reais por Ativo', 'Faturamento'],
+          specialFeatures: ['Direct Funifier integration', 'Conversion-based metrics']
+        };
       case TeamType.CARTEIRA_I:
         return {
           name: 'Carteira I',
@@ -189,6 +210,13 @@ export class TeamProcessorFactory {
           primaryGoal: 'Faturamento',
           secondaryGoals: ['Reais por Ativo', 'Multimarcas por Ativo'],
           specialFeatures: ['Challenge data priority', 'Direct Funifier integration']
+        };
+      case TeamType.ER:
+        return {
+          name: 'ER',
+          primaryGoal: 'Faturamento',
+          secondaryGoals: ['Reais por Ativo', 'UPA'],
+          specialFeatures: ['Challenge data priority', 'UPA metrics', 'Medalhas functionality']
         };
       default:
         throw new Error(`Unknown team type: ${teamType}`);
@@ -223,10 +251,12 @@ export class TeamProcessorFactory {
 
       // Check if all required processors are available
       const requiredProcessors = [
+        carteira0Processor,
         carteiraIProcessor,
         carteiraIIProcessor,
         carteiraIIIProcessor,
-        carteiraIVProcessor
+        carteiraIVProcessor,
+        erProcessor
       ];
 
       for (let i = 0; i < requiredProcessors.length; i++) {

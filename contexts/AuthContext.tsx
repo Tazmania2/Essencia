@@ -14,7 +14,8 @@ import {
   userIdentificationService,
   UserIdentification,
 } from '../services/user-identification.service';
-import { LoginCredentials, ApiError, ErrorType } from '../types';
+import { LoginCredentials, ApiError, ErrorType, TeamType } from '../types';
+import { TeamSelectionModal, TeamOption } from '../components/auth/TeamSelectionModal';
 
 interface AuthContextType {
   // Authentication state
@@ -25,9 +26,16 @@ interface AuthContextType {
   // User information
   user: UserIdentification | null;
 
+  // Team selection state
+  showTeamSelection: boolean;
+  availableTeams: TeamOption[];
+  selectedTeam: TeamType | 'ADMIN' | null;
+
   // Authentication methods
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
+  selectTeam: (teamType: TeamType | 'ADMIN') => void;
+  cancelTeamSelection: () => void;
 
   // Convenience getters
   isPlayer: boolean;
@@ -48,6 +56,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<UserIdentification | null>(null);
+  const [showTeamSelection, setShowTeamSelection] = useState(false);
+  const [availableTeams, setAvailableTeams] = useState<TeamOption[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<TeamType | 'ADMIN' | null>(null);
   const router = useRouter();
 
   // Set up token refresh interval
@@ -158,6 +169,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem('tokenExpiry', (Date.now() + expiresIn * 1000).toString());
 
       secureLogger.log('✅ Login completed successfully');
+
+      // Handle post-login routing based on team assignments
+      handlePostLoginRouting(userInfo);
     } catch (err) {
       secureLogger.error('❌ Login error:', err);
 
@@ -200,12 +214,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsAuthenticated(false);
       setUser(null);
       setError(null);
+      setShowTeamSelection(false);
+      setAvailableTeams([]);
+      setSelectedTeam(null);
 
       // Clear localStorage
       localStorage.removeItem('user');
       localStorage.removeItem('username');
       localStorage.removeItem('accessToken');
       localStorage.removeItem('tokenExpiry');
+      localStorage.removeItem('selectedTeam');
 
       // Redirect to login
       router.push('/login');
@@ -223,6 +241,65 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const selectTeam = (teamType: TeamType | 'ADMIN') => {
+    setSelectedTeam(teamType);
+    setShowTeamSelection(false);
+    
+    // Route user to appropriate dashboard
+    if (teamType === 'ADMIN') {
+      router.push('/admin');
+    } else {
+      router.push('/dashboard');
+    }
+    
+    // Store selected team for future sessions
+    localStorage.setItem('selectedTeam', teamType);
+  };
+
+  const cancelTeamSelection = () => {
+    setShowTeamSelection(false);
+    logout(); // Log out user if they cancel team selection
+  };
+
+  const handlePostLoginRouting = (userInfo: UserIdentification) => {
+    if (!userInfo.playerData) {
+      secureLogger.error('No player data available for routing');
+      setError('Dados do usuário não disponíveis');
+      return;
+    }
+
+    // Check if user has multiple team assignments
+    const hasMultipleTeams = userIdentificationService.hasMultipleTeamAssignments(userInfo.playerData);
+    
+    if (hasMultipleTeams) {
+      // Show team selection modal
+      const teams = userIdentificationService.getAvailableTeamsForUser(userInfo.playerData);
+      setAvailableTeams(teams);
+      setShowTeamSelection(true);
+      secureLogger.log('👥 Multiple teams detected, showing team selection modal');
+    } else {
+      // Single team assignment - route directly
+      const primaryTeam = userIdentificationService.getPrimaryTeam(userInfo.playerData);
+      
+      if (primaryTeam) {
+        setSelectedTeam(primaryTeam.teamType);
+        
+        if (primaryTeam.teamType === 'ADMIN') {
+          router.push('/admin');
+        } else {
+          router.push('/dashboard');
+        }
+        
+        // Store selected team for future sessions
+        localStorage.setItem('selectedTeam', primaryTeam.teamType);
+        secureLogger.log('🎯 Single team detected, routing to:', primaryTeam.teamType);
+      } else {
+        secureLogger.error('No valid team assignment found');
+        setError('Nenhuma equipe válida encontrada');
+      }
+    }
+  };
+
   // Initialize authentication state on mount
   useEffect(() => {
     const initializeAuth = async () => {
@@ -237,6 +314,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const storedUsername = localStorage.getItem('username');
         const storedToken = localStorage.getItem('accessToken');
         const storedTokenExpiry = localStorage.getItem('tokenExpiry');
+        const storedSelectedTeam = localStorage.getItem('selectedTeam');
 
         if (storedUser && storedUsername && storedToken && storedTokenExpiry) {
           try {
@@ -254,12 +332,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
               
               setUser(userInfo);
               setIsAuthenticated(true);
+
+              // Restore selected team if available
+              if (storedSelectedTeam) {
+                setSelectedTeam(storedSelectedTeam as TeamType | 'ADMIN');
+                secureLogger.log('🎯 Restored selected team:', storedSelectedTeam);
+              }
             } else {
               secureLogger.log('🔑 Stored token has expired, clearing localStorage');
               localStorage.removeItem('user');
               localStorage.removeItem('username');
               localStorage.removeItem('accessToken');
               localStorage.removeItem('tokenExpiry');
+              localStorage.removeItem('selectedTeam');
             }
           } catch (error) {
             secureLogger.error('❌ Failed to restore user from localStorage:', error);
@@ -267,6 +352,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             localStorage.removeItem('username');
             localStorage.removeItem('accessToken');
             localStorage.removeItem('tokenExpiry');
+            localStorage.removeItem('selectedTeam');
           }
         }
 
@@ -287,15 +373,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoading,
     error,
     user,
+    showTeamSelection,
+    availableTeams,
+    selectedTeam,
     login,
     logout,
+    selectTeam,
+    cancelTeamSelection,
     refreshToken,
     isPlayer: user?.role.isPlayer || false,
     isAdmin: user?.role.isAdmin || false,
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>
+      {children}
+      {showTeamSelection && (
+        <TeamSelectionModal
+          availableTeams={availableTeams}
+          onTeamSelect={selectTeam}
+          onClose={cancelTeamSelection}
+          isLoading={isLoading}
+        />
+      )}
+    </AuthContext.Provider>
   );
 }
 

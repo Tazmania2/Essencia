@@ -402,6 +402,212 @@ test.describe('Player Dashboard', () => {
     await expect(page.locator('[data-testid="goal-details"], .goal-details')).not.toBeVisible();
   });
 
+  test('should display Carteira 0 dashboard with Conversões metric', async ({ page }) => {
+    // Mock Carteira 0 player data
+    await page.route('**/player_status*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          _id: 'carteira_0_player',
+          name: 'Ana Costa',
+          total_points: 1200,
+          teams: ['E6F5k30'], // Carteira 0 team ID
+          catalog_items: {
+            'E6F0O5f': 1, // Points unlocked
+            'E6F0WGc': 1, // Boost 1 active
+            'E6K79Mt': 0  // Boost 2 inactive
+          },
+          level_progress: {
+            percent_completed: 60,
+            next_points: 800,
+            total_levels: 10,
+            percent: 0.6
+          },
+          challenge_progress: [],
+          total_challenges: 3,
+          challenges: {},
+          point_categories: {},
+          total_catalog_items: 2,
+          positions: [],
+          time: Date.now(),
+          extra: {},
+          pointCategories: {}
+        })
+      });
+    });
+
+    // Mock collection data for Carteira 0 with Conversões
+    await page.route('**/database/essencia_reports__c*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            _id: 'carteira_0_player_2024-01-15',
+            playerId: 'carteira_0_player',
+            playerName: 'Ana Costa',
+            team: 'CARTEIRA_0',
+            conversoes: 92, // Primary goal for Carteira 0
+            reaisPorAtivo: 105,
+            faturamento: 88,
+            currentCycleDay: 12,
+            totalCycleDays: 21,
+            reportDate: '2024-01-15T00:00:00.000Z'
+          }
+        ])
+      });
+    });
+
+    // Submit login
+    await page.click('button[type="submit"]');
+    
+    // Wait for dashboard to load
+    await expect(page).toHaveURL('/dashboard');
+    
+    // Check player name
+    await expect(page.locator('text=Ana Costa')).toBeVisible();
+    
+    // Check points display (should be unlocked - blue background)
+    const pointsCard = page.locator('[data-testid="points-card"], .points-card');
+    await expect(pointsCard).toBeVisible();
+    await expect(pointsCard.locator('text=1.200, text=1200')).toBeVisible();
+    
+    // Check cycle information
+    await expect(page.locator('text=12, text=Dia 12')).toBeVisible();
+    await expect(page.locator('text=9, text=restam')).toBeVisible(); // 21 - 12 = 9 days remaining
+    
+    // Check primary goal (Conversões)
+    const primaryGoal = page.locator('[data-testid="primary-goal"], .primary-goal');
+    await expect(primaryGoal.locator('text=Conversões')).toBeVisible();
+    await expect(primaryGoal.locator('text=92%')).toBeVisible();
+    
+    // Check secondary goals
+    const secondaryGoal1 = page.locator('[data-testid="secondary-goal-1"], .secondary-goal:first-of-type');
+    await expect(secondaryGoal1.locator('text=Reais por Ativo')).toBeVisible();
+    await expect(secondaryGoal1.locator('text=105%')).toBeVisible();
+    
+    const secondaryGoal2 = page.locator('[data-testid="secondary-goal-2"], .secondary-goal:last-of-type');
+    await expect(secondaryGoal2.locator('text=Faturamento')).toBeVisible();
+    await expect(secondaryGoal2.locator('text=88%')).toBeVisible();
+    
+    // Check boost indicators
+    await expect(page.locator('[data-testid="boost-active"], .boost-active')).toBeVisible();
+    
+    // Verify identical UI structure to existing Carteira dashboards
+    await expect(page.locator('[data-testid="dashboard-header"], .dashboard-header')).toBeVisible();
+    await expect(page.locator('[data-testid="cycle-card"], .cycle-card')).toBeVisible();
+    await expect(page.locator('[data-testid="goal-card"], .goal-card')).toHaveCount(3); // Primary + 2 secondary
+  });
+
+  test('should display ER dashboard with UPA metric and Medalhas button', async ({ page }) => {
+    // Mock ER player data
+    await page.route('**/player_status*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          _id: 'er_player',
+          name: 'Carlos Mendes',
+          total_points: 1800,
+          teams: ['E500AbT'], // ER team ID
+          catalog_items: {
+            'E6F0O5f': 1, // Points unlocked
+            'E6F0WGc': 0, // Boost 1 inactive
+            'E6K79Mt': 1  // Boost 2 active
+          },
+          level_progress: {
+            percent_completed: 90,
+            next_points: 200,
+            total_levels: 10,
+            percent: 0.9
+          },
+          challenge_progress: [],
+          total_challenges: 3,
+          challenges: {},
+          point_categories: {},
+          total_catalog_items: 2,
+          positions: [],
+          time: Date.now(),
+          extra: {},
+          pointCategories: {}
+        })
+      });
+    });
+
+    // Mock collection data for ER with UPA
+    await page.route('**/database/essencia_reports__c*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            _id: 'er_player_2024-01-15',
+            playerId: 'er_player',
+            playerName: 'Carlos Mendes',
+            team: 'ER',
+            faturamento: 115, // Primary goal for ER
+            reaisPorAtivo: 98,
+            upa: 87, // UPA metric specific to ER
+            currentCycleDay: 18,
+            totalCycleDays: 21,
+            reportDate: '2024-01-15T00:00:00.000Z'
+          }
+        ])
+      });
+    });
+
+    // Submit login
+    await page.click('button[type="submit"]');
+    
+    // Wait for dashboard to load
+    await expect(page).toHaveURL('/dashboard');
+    
+    // Check player name
+    await expect(page.locator('text=Carlos Mendes')).toBeVisible();
+    
+    // Check points display
+    const pointsCard = page.locator('[data-testid="points-card"], .points-card');
+    await expect(pointsCard).toBeVisible();
+    await expect(pointsCard.locator('text=1.800, text=1800')).toBeVisible();
+    
+    // Check cycle information
+    await expect(page.locator('text=18, text=Dia 18')).toBeVisible();
+    await expect(page.locator('text=3, text=restam')).toBeVisible(); // 21 - 18 = 3 days remaining
+    
+    // Check primary goal (Faturamento)
+    const primaryGoal = page.locator('[data-testid="primary-goal"], .primary-goal');
+    await expect(primaryGoal.locator('text=Faturamento')).toBeVisible();
+    await expect(primaryGoal.locator('text=115%')).toBeVisible();
+    
+    // Check secondary goals
+    const secondaryGoal1 = page.locator('[data-testid="secondary-goal-1"], .secondary-goal:first-of-type');
+    await expect(secondaryGoal1.locator('text=Reais por Ativo')).toBeVisible();
+    await expect(secondaryGoal1.locator('text=98%')).toBeVisible();
+    
+    const secondaryGoal2 = page.locator('[data-testid="secondary-goal-2"], .secondary-goal:last-of-type');
+    await expect(secondaryGoal2.locator('text=UPA')).toBeVisible();
+    await expect(secondaryGoal2.locator('text=87%')).toBeVisible();
+    
+    // Check that Medalhas button is present alongside Histórico and Ranking
+    await expect(page.locator('button:has-text("Histórico"), button:has-text("History")')).toBeVisible();
+    await expect(page.locator('button:has-text("Ranking")')).toBeVisible();
+    await expect(page.locator('button:has-text("Medalhas"), button:has-text("Medals")')).toBeVisible();
+    
+    // Verify identical UI structure to existing dashboards
+    await expect(page.locator('[data-testid="dashboard-header"], .dashboard-header')).toBeVisible();
+    await expect(page.locator('[data-testid="cycle-card"], .cycle-card')).toBeVisible();
+    await expect(page.locator('[data-testid="goal-card"], .goal-card')).toHaveCount(3); // Primary + 2 secondary
+    
+    // Click Medalhas button and check "Em Breve" message
+    await page.click('button:has-text("Medalhas"), button:has-text("Medals")');
+    await expect(page.locator('text=Em Breve, text=Coming Soon')).toBeVisible();
+    
+    // Verify Medalhas button positioning alongside other buttons
+    const actionButtons = page.locator('[data-testid="action-buttons"], .action-buttons');
+    await expect(actionButtons.locator('button')).toHaveCount(3); // Histórico, Ranking, Medalhas
+  });
+
   test('should handle data loading errors gracefully', async ({ page }) => {
     // Mock authentication success
     await page.route('**/player_status*', async route => {
@@ -445,5 +651,190 @@ test.describe('Player Dashboard', () => {
     
     // Should show error message or fallback data
     await expect(page.locator('text=erro, text=error, text=falha')).toBeVisible();
+  });
+
+  test('should test complete user flows for new dashboard types', async ({ page }) => {
+    // Test complete Carteira 0 user flow
+    await page.route('**/player_status*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          _id: 'carteira_0_flow_user',
+          name: 'Flow Test User',
+          total_points: 1500,
+          teams: ['E6F5k30'], // Carteira 0 team ID
+          catalog_items: {
+            'E6F0O5f': 1, // Points unlocked
+            'E6F0WGc': 1, // Boost 1 active
+            'E6K79Mt': 0  // Boost 2 inactive
+          },
+          level_progress: {
+            percent_completed: 70,
+            next_points: 600,
+            total_levels: 10,
+            percent: 0.7
+          },
+          challenge_progress: [],
+          total_challenges: 3,
+          challenges: {},
+          point_categories: {},
+          total_catalog_items: 2,
+          positions: [],
+          time: Date.now(),
+          extra: {},
+          pointCategories: {}
+        })
+      });
+    });
+
+    await page.route('**/database/essencia_reports__c*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            _id: 'carteira_0_flow_user_2024-01-15',
+            playerId: 'carteira_0_flow_user',
+            playerName: 'Flow Test User',
+            team: 'CARTEIRA_0',
+            conversoes: 78, // Primary goal
+            reaisPorAtivo: 95,
+            faturamento: 102,
+            currentCycleDay: 14,
+            totalCycleDays: 21,
+            reportDate: '2024-01-15T00:00:00.000Z'
+          }
+        ])
+      });
+    });
+
+    // Submit login
+    await page.click('button[type="submit"]');
+    
+    // Wait for dashboard to load
+    await expect(page).toHaveURL('/dashboard');
+    
+    // Verify complete Carteira 0 dashboard functionality
+    await expect(page.locator('text=Flow Test User')).toBeVisible();
+    await expect(page.locator('text=Conversões')).toBeVisible(); // Primary goal
+    await expect(page.locator('text=78%')).toBeVisible(); // Primary goal value
+    await expect(page.locator('text=Reais por Ativo')).toBeVisible(); // Secondary goal 1
+    await expect(page.locator('text=95%')).toBeVisible(); // Secondary goal 1 value
+    await expect(page.locator('text=Faturamento')).toBeVisible(); // Secondary goal 2
+    await expect(page.locator('text=102%')).toBeVisible(); // Secondary goal 2 value
+    
+    // Test goal details accordion functionality
+    const primaryGoalCard = page.locator('[data-testid="primary-goal"], .primary-goal');
+    await primaryGoalCard.click();
+    await expect(page.locator('[data-testid="goal-details"], .goal-details')).toBeVisible();
+    
+    // Test refresh functionality
+    const refreshButton = page.locator('[data-testid="refresh-button"], button:has-text("Atualizar")');
+    if (await refreshButton.isVisible()) {
+      await refreshButton.click();
+      await expect(page.locator('text=Conversões')).toBeVisible(); // Should still show after refresh
+    }
+    
+    // Test navigation buttons (Histórico, Ranking)
+    await expect(page.locator('button:has-text("Histórico"), button:has-text("History")')).toBeVisible();
+    await expect(page.locator('button:has-text("Ranking")')).toBeVisible();
+    
+    // Verify no Medalhas button for Carteira 0 (only for ER)
+    await expect(page.locator('button:has-text("Medalhas"), button:has-text("Medals")')).not.toBeVisible();
+  });
+
+  test('should test complete ER user flow with Medalhas functionality', async ({ page }) => {
+    // Test complete ER user flow
+    await page.route('**/player_status*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          _id: 'er_flow_user',
+          name: 'ER Flow User',
+          total_points: 2200,
+          teams: ['E500AbT'], // ER team ID
+          catalog_items: {
+            'E6F0O5f': 1, // Points unlocked
+            'E6F0WGc': 0, // Boost 1 inactive
+            'E6K79Mt': 1  // Boost 2 active
+          },
+          level_progress: {
+            percent_completed: 85,
+            next_points: 300,
+            total_levels: 10,
+            percent: 0.85
+          },
+          challenge_progress: [],
+          total_challenges: 3,
+          challenges: {},
+          point_categories: {},
+          total_catalog_items: 2,
+          positions: [],
+          time: Date.now(),
+          extra: {},
+          pointCategories: {}
+        })
+      });
+    });
+
+    await page.route('**/database/essencia_reports__c*', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            _id: 'er_flow_user_2024-01-15',
+            playerId: 'er_flow_user',
+            playerName: 'ER Flow User',
+            team: 'ER',
+            faturamento: 118, // Primary goal for ER
+            reaisPorAtivo: 92,
+            upa: 84, // UPA metric specific to ER
+            currentCycleDay: 16,
+            totalCycleDays: 21,
+            reportDate: '2024-01-15T00:00:00.000Z'
+          }
+        ])
+      });
+    });
+
+    // Submit login
+    await page.click('button[type="submit"]');
+    
+    // Wait for dashboard to load
+    await expect(page).toHaveURL('/dashboard');
+    
+    // Verify complete ER dashboard functionality
+    await expect(page.locator('text=ER Flow User')).toBeVisible();
+    await expect(page.locator('text=Faturamento')).toBeVisible(); // Primary goal
+    await expect(page.locator('text=118%')).toBeVisible(); // Primary goal value
+    await expect(page.locator('text=Reais por Ativo')).toBeVisible(); // Secondary goal 1
+    await expect(page.locator('text=92%')).toBeVisible(); // Secondary goal 1 value
+    await expect(page.locator('text=UPA')).toBeVisible(); // Secondary goal 2 (ER specific)
+    await expect(page.locator('text=84%')).toBeVisible(); // Secondary goal 2 value
+    
+    // Test all three action buttons for ER
+    await expect(page.locator('button:has-text("Histórico"), button:has-text("History")')).toBeVisible();
+    await expect(page.locator('button:has-text("Ranking")')).toBeVisible();
+    await expect(page.locator('button:has-text("Medalhas"), button:has-text("Medals")')).toBeVisible();
+    
+    // Test Medalhas button functionality
+    await page.click('button:has-text("Medalhas"), button:has-text("Medals")');
+    await expect(page.locator('text=Em Breve, text=Coming Soon')).toBeVisible();
+    
+    // Test goal details accordion for ER dashboard
+    const primaryGoalCard = page.locator('[data-testid="primary-goal"], .primary-goal');
+    await primaryGoalCard.click();
+    await expect(page.locator('[data-testid="goal-details"], .goal-details')).toBeVisible();
+    
+    // Verify cycle information
+    await expect(page.locator('text=16, text=Dia 16')).toBeVisible();
+    await expect(page.locator('text=5, text=restam')).toBeVisible(); // 21 - 16 = 5 days remaining
+    
+    // Verify points calculation with boost
+    await expect(page.locator('text=2.200, text=2200')).toBeVisible();
+    await expect(page.locator('[data-testid="boost-active"], .boost-active')).toBeVisible();
   });
 });

@@ -50,6 +50,19 @@ import {
  * - Points lock/unlock status via catalog_items (E6F0O5f, E6F0MJ3)
  */
 export const CHALLENGE_MAPPING: ChallengeMapping = {
+  [TeamType.CARTEIRA_0]: {
+    conversoes: [
+      'E6GglPq'  // Carteira 0 - Conversões (using challenge ID from design)
+    ],
+    reaisPorAtivo: [
+      'E6Gm8RI', // Carteira I, III & IV - Subir Reais por Ativo (reused from Carteira I)
+      'E6Gke5g'  // Carteira I, III & IV - Descer Reais Ativo (reused from Carteira I)
+    ],
+    faturamento: [
+      'E6GglPq', // Carteira I - Bater Faturamento (Meta) (reused from Carteira I)
+      'E6LIVVX'  // Carteira I - Perder Faturamento (Meta) (reused from Carteira I)
+    ]
+  },
   [TeamType.CARTEIRA_I]: {
     atividade: [
       'E6FO12f', // Carteira I - Subir Atividade (Pré Meta)
@@ -106,6 +119,20 @@ export const CHALLENGE_MAPPING: ChallengeMapping = {
     multimarcasPorAtivo: [
       'E6MMH5v', // Carteira III & IV - Subir Multimarcas por Ativo
       'E6MM3eK'  // Carteira III & IV - Perder Multimarcas por Ativo
+    ]
+  },
+  [TeamType.ER]: {
+    faturamento: [
+      'E6F8HMK', // Carteira III & IV - Bater Meta Faturamento (reused from Carteira III/IV)
+      'E6Gahd4', // Carteira III & IV - Subir Faturamento (Pre-Meta) (reused from Carteira III/IV)
+      'E6MLv3L'  // Carteira III & IV - Subir Faturamento (Pós-Meta) (reused from Carteira III/IV)
+    ],
+    reaisPorAtivo: [
+      'E6Gm8RI', // Carteira I, III & IV - Subir Reais por Ativo (reused from Carteira III/IV)
+      'E6Gke5g'  // Carteira I, III & IV - Descer Reais Ativo (reused from Carteira III/IV)
+    ],
+    upa: [
+      'E62x2PW'  // ER - UPA metric (from design document)
     ]
   }
 };
@@ -306,6 +333,9 @@ export class TeamProcessorUtils {
     const teamIdLower = teamId.toLowerCase();
     
     // Check for actual Funifier team IDs first
+    if (teamId === FUNIFIER_CONFIG.TEAM_IDS.CARTEIRA_0) {
+      return TeamType.CARTEIRA_0;
+    }
     if (teamId === FUNIFIER_CONFIG.TEAM_IDS.CARTEIRA_I) {
       return TeamType.CARTEIRA_I;
     }
@@ -318,8 +348,14 @@ export class TeamProcessorUtils {
     if (teamId === FUNIFIER_CONFIG.TEAM_IDS.CARTEIRA_IV) {
       return TeamType.CARTEIRA_IV;
     }
+    if (teamId === FUNIFIER_CONFIG.TEAM_IDS.ER) {
+      return TeamType.ER;
+    }
     
     // Fallback to name-based detection for flexibility
+    if (teamIdLower.includes('carteira_0') || teamIdLower.includes('carteira0') || teamIdLower.includes('carteira 0')) {
+      return TeamType.CARTEIRA_0;
+    }
     if (teamIdLower.includes('carteira_iv') || teamIdLower.includes('carteira4') || teamIdLower.includes('carteira iv')) {
       return TeamType.CARTEIRA_IV;
     }
@@ -331,6 +367,9 @@ export class TeamProcessorUtils {
     }
     if (teamIdLower.includes('carteira_i') || teamIdLower.includes('carteira1') || teamIdLower.includes('carteira i')) {
       return TeamType.CARTEIRA_I;
+    }
+    if (teamIdLower.includes('er') || teamIdLower === 'er') {
+      return TeamType.ER;
     }
     
     return null;

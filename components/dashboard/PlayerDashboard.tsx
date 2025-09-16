@@ -8,6 +8,15 @@ import { GoalCard } from './GoalCard';
 import { GoalDetailsAccordion } from './GoalDetailsAccordion';
 import { QuickActions } from './QuickActions';
 
+interface QuickAction {
+  icon: string;
+  label: string;
+  onClick: () => void;
+  gradient: string;
+  disabled?: boolean;
+  comingSoon?: boolean;
+}
+
 interface PlayerDashboardProps {
   playerName: string;
   totalPoints: number;
@@ -55,6 +64,7 @@ interface PlayerDashboardProps {
     bgColor: string;
     textColor: string;
   }>;
+  customActions?: QuickAction[];
 }
 
 export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
@@ -67,7 +77,8 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
   primaryGoal,
   secondaryGoal1,
   secondaryGoal2,
-  goalDetails = []
+  goalDetails = [],
+  customActions
 }) => {
   // Use boost status directly from props (no toggle functionality)
   const boost1Active = secondaryGoal1.isBoostActive;
@@ -202,7 +213,7 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
         <GoalDetailsAccordion goals={goalDetails.length > 0 ? goalDetails : defaultGoalDetails} />
 
         {/* Ações Rápidas */}
-        <QuickActions />
+        <QuickActions actions={customActions} />
       </main>
     </div>
   );

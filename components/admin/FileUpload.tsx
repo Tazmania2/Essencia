@@ -224,14 +224,25 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     
     if (errors.length > 0) {
       message += `❌ ${errors.length} erros encontrados\n\n`;
-      message += 'Primeiros erros:\n';
-      errors.slice(0, 5).forEach(error => {
-        message += `• Linha ${error.row}, campo '${error.field}': ${error.message}\n`;
-      });
       
-      if (errors.length > 5) {
-        message += `... e mais ${errors.length - 5} erros\n`;
-      }
+      // Group errors by type for better readability
+      const fieldErrors = errors.reduce((acc, error) => {
+        if (!acc[error.field]) acc[error.field] = [];
+        acc[error.field].push(error);
+        return acc;
+      }, {} as Record<string, typeof errors>);
+
+      message += 'Erros por campo:\n';
+      Object.entries(fieldErrors).forEach(([field, fieldErrorList]) => {
+        const fieldDisplayName = getFieldDisplayName(field);
+        message += `• ${fieldDisplayName}: ${fieldErrorList.length} erro(s)\n`;
+        fieldErrorList.slice(0, 2).forEach(error => {
+          message += `  - Linha ${error.row}: ${error.message}\n`;
+        });
+        if (fieldErrorList.length > 2) {
+          message += `  - ... e mais ${fieldErrorList.length - 2} erros\n`;
+        }
+      });
     }
 
     if (uploadedFile.summary) {
@@ -240,6 +251,33 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
     alert(message);
   }, []);
+
+  const getFieldDisplayName = (field: string): string => {
+    const fieldNames: Record<string, string> = {
+      playerId: 'Player ID',
+      diaDociclo: 'Dia do Ciclo',
+      totalDiasCiclo: 'Total Dias Ciclo',
+      faturamentoMeta: 'Faturamento Meta',
+      faturamentoAtual: 'Faturamento Atual',
+      faturamentoPercentual: 'Faturamento %',
+      reaisPorAtivoMeta: 'Reais por Ativo Meta',
+      reaisPorAtivoAtual: 'Reais por Ativo Atual',
+      reaisPorAtivoPercentual: 'Reais por Ativo %',
+      multimarcasPorAtivoMeta: 'Multimarcas por Ativo Meta',
+      multimarcasPorAtivoAtual: 'Multimarcas por Ativo Atual',
+      multimarcasPorAtivoPercentual: 'Multimarcas por Ativo %',
+      atividadeMeta: 'Atividade Meta',
+      atividadeAtual: 'Atividade Atual',
+      atividadePercentual: 'Atividade %',
+      conversoesMeta: 'Conversões Meta',
+      conversoesAtual: 'Conversões Atual',
+      conversoesPercentual: 'Conversões %',
+      upaMeta: 'UPA Meta',
+      upaAtual: 'UPA Atual',
+      upaPercentual: 'UPA %'
+    };
+    return fieldNames[field] || field;
+  };
 
   const downloadErrorReport = useCallback((uploadedFile: UploadedFile) => {
     if (!uploadedFile.parseResult?.errors.length) return;
@@ -388,6 +426,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             </p>
             <p className="text-sm text-gray-500">
               Formatos aceitos: {acceptedTypes.join(', ')} • Tamanho máximo: {maxFileSize}MB
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Suporte para métricas opcionais: Conversões e UPA (colunas 16-21)
             </p>
           </div>
 

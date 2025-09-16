@@ -69,7 +69,13 @@ describe('ReportProcessingService', () => {
           'Multimarcas por Ativo %': '65',
           'Atividade Meta': '41',
           'Atividade Atual': '36',
-          'Atividade %': '88'
+          'Atividade %': '88',
+          'Conversões Meta': '100',
+          'Conversões Atual': '75',
+          'Conversões %': '75',
+          'UPA Meta': '50',
+          'UPA Atual': '40',
+          'UPA %': '80'
         }
       ];
 
@@ -96,7 +102,9 @@ describe('ReportProcessingService', () => {
         faturamentoMeta: 400000,
         faturamentoAtual: 200000,
         faturamentoPercentual: 50,
-        atividadePercentual: 88
+        atividadePercentual: 88,
+        conversoesPercentual: 75,
+        upaPercentual: 80
       });
       expect(result.errors).toHaveLength(0);
     });
@@ -132,8 +140,8 @@ describe('ReportProcessingService', () => {
       };
 
       const mockSheetData = [
-        ['Player ID', 'Dia do Ciclo', 'Total Dias Ciclo', 'Faturamento Meta', 'Faturamento Atual', 'Faturamento %', 'Reais por Ativo Meta', 'Reais por Ativo Atual', 'Reais por Ativo %', 'Multimarcas por Ativo Meta', 'Multimarcas por Ativo Atual', 'Multimarcas por Ativo %', 'Atividade Meta', 'Atividade Atual', 'Atividade %'],
-        ['P001', '12', '21', '400000', '200000', '50', '1300', '325', '25', '2', '1.3', '65', '41', '36', '88']
+        ['Player ID', 'Dia do Ciclo', 'Total Dias Ciclo', 'Faturamento Meta', 'Faturamento Atual', 'Faturamento %', 'Reais por Ativo Meta', 'Reais por Ativo Atual', 'Reais por Ativo %', 'Multimarcas por Ativo Meta', 'Multimarcas por Ativo Atual', 'Multimarcas por Ativo %', 'Atividade Meta', 'Atividade Atual', 'Atividade %', 'Conversões Meta', 'Conversões Atual', 'Conversões %', 'UPA Meta', 'UPA Atual', 'UPA %'],
+        ['P001', '12', '21', '400000', '200000', '50', '1300', '325', '25', '2', '1.3', '65', '41', '36', '88', '100', '75', '75', '50', '40', '80']
       ];
 
       mockXLSX.read.mockReturnValue(mockWorkbook as any);
@@ -297,6 +305,102 @@ describe('ReportProcessingService', () => {
       expect(result.errors.some(e => e.field === 'faturamentoMeta')).toBe(true);
       expect(result.errors.find(e => e.field === 'faturamentoMeta')?.message).toContain('não pode ser negativo');
     });
+
+    it('should handle optional new metrics correctly', async () => {
+      const mockData = [
+        {
+          'Player ID': 'P001',
+          'Dia do Ciclo': '12',
+          'Total Dias Ciclo': '21',
+          'Faturamento Meta': '400000',
+          'Faturamento Atual': '200000',
+          'Faturamento %': '50',
+          'Reais por Ativo Meta': '1300',
+          'Reais por Ativo Atual': '325',
+          'Reais por Ativo %': '25',
+          'Multimarcas por Ativo Meta': '2',
+          'Multimarcas por Ativo Atual': '1.3',
+          'Multimarcas por Ativo %': '65',
+          'Atividade Meta': '41',
+          'Atividade Atual': '36',
+          'Atividade %': '88',
+          'Conversões Meta': '100',
+          'Conversões Atual': '75',
+          'Conversões %': '75',
+          'UPA Meta': '',
+          'UPA Atual': '',
+          'UPA %': ''
+        }
+      ];
+
+      mockPapa.parse.mockImplementation((file, options) => {
+        if (options?.complete) {
+          options.complete({
+            data: mockData,
+            errors: [],
+            meta: { fields: [] }
+          });
+        }
+        return {} as any;
+      });
+
+      const file = new File([''], 'test.csv', { type: 'text/csv' });
+      const result = await ReportProcessingService.parseFile(file);
+
+      expect(result.isValid).toBe(true);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].conversoesPercentual).toBe(75);
+      expect(result.data[0].upaPercentual).toBeUndefined();
+    });
+
+    it('should validate new metrics when provided', async () => {
+      const mockData = [
+        {
+          'Player ID': 'P001',
+          'Dia do Ciclo': '12',
+          'Total Dias Ciclo': '21',
+          'Faturamento Meta': '400000',
+          'Faturamento Atual': '200000',
+          'Faturamento %': '50',
+          'Reais por Ativo Meta': '1300',
+          'Reais por Ativo Atual': '325',
+          'Reais por Ativo %': '25',
+          'Multimarcas por Ativo Meta': '2',
+          'Multimarcas por Ativo Atual': '1.3',
+          'Multimarcas por Ativo %': '65',
+          'Atividade Meta': '41',
+          'Atividade Atual': '36',
+          'Atividade %': '88',
+          'Conversões Meta': 'invalid_number',
+          'Conversões Atual': '75',
+          'Conversões %': '75',
+          'UPA Meta': '50',
+          'UPA Atual': '40',
+          'UPA %': '-10'
+        }
+      ];
+
+      mockPapa.parse.mockImplementation((file, options) => {
+        if (options?.complete) {
+          options.complete({
+            data: mockData,
+            errors: [],
+            meta: { fields: [] }
+          });
+        }
+        return {} as any;
+      });
+
+      const file = new File([''], 'test.csv', { type: 'text/csv' });
+      const result = await ReportProcessingService.parseFile(file);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors.some(e => e.field === 'conversoesMeta')).toBe(true);
+      expect(result.errors.some(e => e.field === 'upaPercentual')).toBe(true);
+      expect(result.errors.find(e => e.field === 'conversoesMeta')?.message).toContain('deve ser um número');
+      expect(result.errors.find(e => e.field === 'upaPercentual')?.message).toContain('não pode ser negativo');
+    });
   });
 
   describe('generateSummary', () => {
@@ -319,6 +423,7 @@ describe('ReportProcessingService', () => {
             atividadeMeta: 41,
             atividadeAtual: 36,
             atividadePercentual: 88,
+            conversoesPercentual: 75,
             reportDate: '2024-01-01'
           },
           {
@@ -337,6 +442,7 @@ describe('ReportProcessingService', () => {
             atividadeMeta: 40,
             atividadeAtual: 35,
             atividadePercentual: 88,
+            upaPercentual: 80,
             reportDate: '2024-01-01'
           }
         ] as ReportData[],
@@ -349,6 +455,8 @@ describe('ReportProcessingService', () => {
       expect(summary).toContain('2 registros válidos');
       expect(summary).toContain('Dia atual: 12');
       expect(summary).toContain('Total de dias: 21');
+      expect(summary).toContain('Conversões: 1 registros');
+      expect(summary).toContain('UPA: 1 registros');
     });
 
     it('should include error count in summary', () => {

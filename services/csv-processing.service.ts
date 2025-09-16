@@ -146,9 +146,34 @@ export class CSVProcessingService {
         }
       };
 
+      // Add optional new metrics if present in CSV
+      if (csvData['Conversões Meta'] !== undefined && csvData['Conversões Atual'] !== undefined && csvData['Conversões %'] !== undefined) {
+        goalData.conversoes = {
+          target: safeParseFloat(csvData['Conversões Meta'], 'Conversões Meta'),
+          current: safeParseFloat(csvData['Conversões Atual'], 'Conversões Atual'),
+          percentage: safeParseFloat(csvData['Conversões %'], 'Conversões %')
+        };
+      }
+
+      if (csvData['UPA Meta'] !== undefined && csvData['UPA Atual'] !== undefined && csvData['UPA %'] !== undefined) {
+        goalData.upa = {
+          target: safeParseFloat(csvData['UPA Meta'], 'UPA Meta'),
+          current: safeParseFloat(csvData['UPA Atual'], 'UPA Atual'),
+          percentage: safeParseFloat(csvData['UPA %'], 'UPA %')
+        };
+      }
+
       // Final validation
       if (goalData.cycleDay < 0 || goalData.cycleDay > goalData.totalCycleDays) {
         console.warn(`Invalid cycle day: ${goalData.cycleDay} (total: ${goalData.totalCycleDays})`);
+      }
+
+      // Validate new metrics if present
+      const newMetricErrors = this.validateNewMetrics(goalData);
+      if (newMetricErrors.length > 0) {
+        console.warn('New metric validation errors:', newMetricErrors);
+        // Log warnings but don't fail parsing for backward compatibility
+        newMetricErrors.forEach(error => console.warn(`Metric validation: ${error}`));
       }
 
       console.log('Successfully parsed CSV goal data for player:', goalData.playerId);
@@ -172,7 +197,7 @@ export class CSVProcessingService {
 
       const headers = lines[0].split(',').map(h => h.trim());
       
-      // Check for required headers
+      // Check for required headers (core metrics that must be present)
       const requiredHeaders = [
         'Player ID',
         'Dia do Ciclo',
@@ -188,8 +213,44 @@ export class CSVProcessingService {
         'Atividade %'
       ];
 
-      return requiredHeaders.every(header => headers.includes(header));
+      // Optional headers for new metrics (backward compatibility)
+      const optionalHeaders = [
+        'Conversões Meta',
+        'Conversões Atual', 
+        'Conversões %',
+        'UPA Meta',
+        'UPA Atual',
+        'UPA %',
+        'Multimarcas por Ativo Meta',
+        'Multimarcas por Ativo Atual',
+        'Multimarcas por Ativo %'
+      ];
+
+      // All required headers must be present
+      const hasRequiredHeaders = requiredHeaders.every(header => headers.includes(header));
+      
+      // Validate that if any new metric headers are present, all related headers are present
+      const hasConversoes = headers.includes('Conversões Meta') || headers.includes('Conversões Atual') || headers.includes('Conversões %');
+      const hasCompleteConversoes = headers.includes('Conversões Meta') && headers.includes('Conversões Atual') && headers.includes('Conversões %');
+      
+      const hasUPA = headers.includes('UPA Meta') || headers.includes('UPA Atual') || headers.includes('UPA %');
+      const hasCompleteUPA = headers.includes('UPA Meta') && headers.includes('UPA Atual') && headers.includes('UPA %');
+
+      // If any conversoes headers are present, all must be present
+      if (hasConversoes && !hasCompleteConversoes) {
+        console.warn('Incomplete Conversões headers - all three (Meta, Atual, %) must be present if any are included');
+        return false;
+      }
+
+      // If any UPA headers are present, all must be present  
+      if (hasUPA && !hasCompleteUPA) {
+        console.warn('Incomplete UPA headers - all three (Meta, Atual, %) must be present if any are included');
+        return false;
+      }
+
+      return hasRequiredHeaders;
     } catch (error) {
+      console.error('Error validating CSV structure:', error);
       return false;
     }
   }
@@ -197,12 +258,14 @@ export class CSVProcessingService {
   /**
    * Get unit for a specific goal type
    */
-  public getGoalUnit(goalType: 'faturamento' | 'reaisPorAtivo' | 'multimarcasPorAtivo' | 'atividade'): string {
+  public getGoalUnit(goalType: 'faturamento' | 'reaisPorAtivo' | 'multimarcasPorAtivo' | 'atividade' | 'conversoes' | 'upa'): string {
     const units = {
       faturamento: 'R$',
       reaisPorAtivo: 'R$',
       multimarcasPorAtivo: 'marcas',
-      atividade: 'pontos'
+      atividade: 'pontos',
+      conversoes: 'conversões',
+      upa: 'UPA'
     };
 
     return units[goalType] || '';
@@ -211,7 +274,7 @@ export class CSVProcessingService {
   /**
    * Format goal value for display
    */
-  public formatGoalValue(value: number, goalType: 'faturamento' | 'reaisPorAtivo' | 'multimarcasPorAtivo' | 'atividade'): string {
+  public formatGoalValue(value: number, goalType: 'faturamento' | 'reaisPorAtivo' | 'multimarcasPorAtivo' | 'atividade' | 'conversoes' | 'upa'): string {
     if (goalType === 'faturamento' || goalType === 'reaisPorAtivo') {
       return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -225,7 +288,74 @@ export class CSVProcessingService {
       return value.toFixed(1);
     }
 
+    if (goalType === 'conversoes') {
+      return Math.round(value).toString();
+    }
+
+    if (goalType === 'upa') {
+      return value.toFixed(2);
+    }
+
     return Math.round(value).toString();
+  }
+
+  /**
+   * Validate new metric data for consistency and business rules
+   */
+  public validateNewMetrics(goalData: CSVGoalData): string[] {
+    const errors: string[] = [];
+
+    // Validate Conversões if present
+    if (goalData.conversoes) {
+      const { target, current, percentage } = goalData.conversoes;
+      
+      if (target < 0) {
+        errors.push('Conversões Meta must be non-negative');
+      }
+      
+      if (current < 0) {
+        errors.push('Conversões Atual must be non-negative');
+      }
+      
+      if (percentage < 0 || percentage > 100) {
+        errors.push('Conversões % must be between 0 and 100');
+      }
+      
+      // Validate percentage calculation (with tolerance for rounding)
+      if (target > 0) {
+        const calculatedPercentage = (current / target) * 100;
+        if (Math.abs(calculatedPercentage - percentage) > 1) {
+          errors.push(`Conversões percentage mismatch: expected ~${calculatedPercentage.toFixed(1)}%, got ${percentage}%`);
+        }
+      }
+    }
+
+    // Validate UPA if present
+    if (goalData.upa) {
+      const { target, current, percentage } = goalData.upa;
+      
+      if (target < 0) {
+        errors.push('UPA Meta must be non-negative');
+      }
+      
+      if (current < 0) {
+        errors.push('UPA Atual must be non-negative');
+      }
+      
+      if (percentage < 0 || percentage > 100) {
+        errors.push('UPA % must be between 0 and 100');
+      }
+      
+      // Validate percentage calculation (with tolerance for rounding)
+      if (target > 0) {
+        const calculatedPercentage = (current / target) * 100;
+        if (Math.abs(calculatedPercentage - percentage) > 1) {
+          errors.push(`UPA percentage mismatch: expected ~${calculatedPercentage.toFixed(1)}%, got ${percentage}%`);
+        }
+      }
+    }
+
+    return errors;
   }
 }
 

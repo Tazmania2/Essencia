@@ -11,8 +11,8 @@ const mockReportProcessingService = ReportProcessingService as jest.Mocked<typeo
 
 // Helper function to get file input
 const getFileInput = () => {
-  const container = screen.getByText('Arraste arquivos ou clique para selecionar').closest('div');
-  return container?.querySelector('input[type="file"]') as HTMLInputElement;
+  const inputs = document.querySelectorAll('input[type="file"]');
+  return inputs[0] as HTMLInputElement;
 };
 
 describe('FileUpload', () => {
@@ -30,8 +30,22 @@ describe('FileUpload', () => {
       data: [
         {
           playerId: 'P001',
-          playerName: 'João Silva',
-          team: 'CARTEIRA_I',
+          diaDociclo: 12,
+          totalDiasCiclo: 21,
+          faturamentoMeta: 400000,
+          faturamentoAtual: 200000,
+          faturamentoPercentual: 50,
+          reaisPorAtivoMeta: 1300,
+          reaisPorAtivoAtual: 325,
+          reaisPorAtivoPercentual: 25,
+          multimarcasPorAtivoMeta: 2,
+          multimarcasPorAtivoAtual: 1.3,
+          multimarcasPorAtivoPercentual: 65,
+          atividadeMeta: 41,
+          atividadeAtual: 36,
+          atividadePercentual: 88,
+          conversoesPercentual: 75,
+          upaPercentual: 80,
           reportDate: '2024-01-01'
         }
       ],
@@ -41,7 +55,7 @@ describe('FileUpload', () => {
 
     // Mock generateSummary
     mockReportProcessingService.generateSummary.mockReturnValue(
-      'Processamento concluído:\n• 1 registros válidos\n\nDistribuição por time:\n• CARTEIRA_I: 1 jogadores'
+      'Processamento concluído:\n• 1 registros válidos\n\nInformações do ciclo:\n• Dia atual: 12\n• Total de dias: 21\n\nMétricas adicionais detectadas:\n• Conversões: 1 registros\n• UPA: 1 registros'
     );
   });
 
@@ -267,6 +281,39 @@ describe('FileUpload', () => {
           })
         ])
       );
+    });
+  });
+
+  it('should display new metrics information in file description', () => {
+    render(<FileUpload onFileUpload={mockOnFileUpload} />);
+    
+    expect(screen.getByText(/Suporte para métricas opcionais: Conversões e UPA/)).toBeInTheDocument();
+  });
+
+  it('should handle validation errors for new metrics with proper field names', async () => {
+    mockReportProcessingService.parseFile.mockResolvedValue({
+      data: [],
+      errors: [
+        { row: 1, field: 'conversoesPercentual', message: 'Campo deve ser um número', value: 'invalid' },
+        { row: 2, field: 'upaPercentual', message: 'Campo não pode ser negativo', value: '-10' }
+      ],
+      isValid: false
+    });
+
+    mockReportProcessingService.generateSummary.mockReturnValue(
+      'Processamento concluído:\n• 0 registros válidos\n• 2 erros encontrados'
+    );
+
+    const user = userEvent.setup();
+    render(<FileUpload onFileUpload={mockOnFileUpload} />);
+    
+    const file = new File(['test content'], 'test.csv', { type: 'text/csv' });
+    const input = getFileInput();
+    
+    await user.upload(input, file);
+    
+    await waitFor(() => {
+      expect(screen.getByText('0 registros válidos')).toBeInTheDocument();
     });
   });
 });

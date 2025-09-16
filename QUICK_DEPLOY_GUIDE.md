@@ -61,8 +61,13 @@ vercel --prod
 
 1. Visit your deployed URL
 2. Test login functionality
-3. Check dashboard displays
-4. Verify API endpoints work
+3. Check dashboard displays for all team types:
+   - Carteira 0 (with Conversões metric)
+   - Carteira I, II, III, IV
+   - ER (with UPA metric and Medalhas button)
+4. Test multi-team selection modal (if applicable)
+5. Verify CSV upload with new metrics
+6. Verify API endpoints work
 
 ## Step 4: Monitor
 

@@ -72,19 +72,25 @@ describe('TeamProcessorFactory', () => {
 
   describe('getProcessor', () => {
     it('should return correct processor for each team type', () => {
+      const carteira0Processor = factory.getProcessor(TeamType.CARTEIRA_0);
       const carteiraIProcessor = factory.getProcessor(TeamType.CARTEIRA_I);
       const carteiraIIProcessor = factory.getProcessor(TeamType.CARTEIRA_II);
       const carteiraIIIProcessor = factory.getProcessor(TeamType.CARTEIRA_III);
       const carteiraIVProcessor = factory.getProcessor(TeamType.CARTEIRA_IV);
+      const erProcessor = factory.getProcessor(TeamType.ER);
 
+      expect(carteira0Processor).toBeDefined();
       expect(carteiraIProcessor).toBeDefined();
       expect(carteiraIIProcessor).toBeDefined();
       expect(carteiraIIIProcessor).toBeDefined();
       expect(carteiraIVProcessor).toBeDefined();
+      expect(erProcessor).toBeDefined();
 
       // Verify they are different instances for different teams
+      expect(carteira0Processor).not.toBe(carteiraIProcessor);
       expect(carteiraIProcessor).not.toBe(carteiraIIProcessor);
       expect(carteiraIIIProcessor).not.toBe(carteiraIVProcessor);
+      expect(carteiraIVProcessor).not.toBe(erProcessor);
     });
 
     it('should throw error for unsupported team type', () => {
@@ -142,36 +148,105 @@ describe('TeamProcessorFactory', () => {
       expect(result.primaryGoal.name).toBe('Faturamento'); // Carteira III primary goal
       expect(result.primaryGoal.percentage).toBe(90); // Should use challenge data, not report data
     });
+
+    it('should process Carteira 0 data with Conversões as primary goal', () => {
+      const carteira0Data = {
+        ...mockPlayerData,
+        teams: ['E6F5k30'], // Carteira 0 team ID
+        challenge_progress: [
+          {
+            challengeId: 'E6GglPq', // Carteira 0 - Conversões
+            percentage: 75
+          }
+        ]
+      };
+
+      const carteira0ReportData = {
+        ...mockReportData,
+        team: TeamType.CARTEIRA_0,
+        conversoes: 80, // Different from challenge data
+        reaisPorAtivo: 110,
+        faturamento: 95
+      };
+
+      const result = factory.processPlayerData(TeamType.CARTEIRA_0, carteira0Data, carteira0ReportData);
+
+      expect(result.primaryGoal.name).toBe('Conversões'); // Carteira 0 primary goal
+      expect(result.secondaryGoal1.name).toBe('Reais por Ativo');
+      expect(result.secondaryGoal2.name).toBe('Faturamento');
+      expect(result.primaryGoal.percentage).toBe(75); // Should use challenge data, not report data
+    });
+
+    it('should process ER data with Faturamento as primary goal and UPA as secondary', () => {
+      const erData = {
+        ...mockPlayerData,
+        teams: ['E500AbT'], // ER team ID
+        challenge_progress: [
+          {
+            challengeId: 'E6F8HMK', // ER - Faturamento (reused from Carteira III/IV)
+            percentage: 85
+          },
+          {
+            challengeId: 'E62x2PW', // ER - UPA
+            percentage: 70
+          }
+        ]
+      };
+
+      const erReportData = {
+        ...mockReportData,
+        team: TeamType.ER,
+        faturamento: 90, // Different from challenge data
+        reaisPorAtivo: 105,
+        upa: 65 // Different from challenge data
+      };
+
+      const result = factory.processPlayerData(TeamType.ER, erData, erReportData);
+
+      expect(result.primaryGoal.name).toBe('Faturamento'); // ER primary goal
+      expect(result.secondaryGoal1.name).toBe('Reais por Ativo');
+      expect(result.secondaryGoal2.name).toBe('UPA'); // ER specific metric
+      expect(result.primaryGoal.percentage).toBe(85); // Should use challenge data, not report data
+      expect(result.secondaryGoal2.percentage).toBe(70); // Should use challenge data for UPA
+    });
   });
 
   describe('determineTeamType', () => {
     it('should determine team type from teams array', () => {
+      const playerData0 = { ...mockPlayerData, teams: ['E6F5k30'] }; // Actual Funifier team ID for Carteira 0
       const playerDataI = { ...mockPlayerData, teams: ['E6F4sCh'] }; // Actual Funifier team ID
       const playerDataII = { ...mockPlayerData, teams: ['E6F4O1b'] }; // Actual Funifier team ID
       const playerDataIII = { ...mockPlayerData, teams: ['E6F4Xf2'] }; // Actual Funifier team ID
       const playerDataIV = { ...mockPlayerData, teams: ['E6F41Bb'] }; // Actual Funifier team ID
+      const playerDataER = { ...mockPlayerData, teams: ['E500AbT'] }; // Actual Funifier team ID for ER
 
+      expect(factory.determineTeamType(playerData0)).toBe(TeamType.CARTEIRA_0);
       expect(factory.determineTeamType(playerDataI)).toBe(TeamType.CARTEIRA_I);
       expect(factory.determineTeamType(playerDataII)).toBe(TeamType.CARTEIRA_II);
       expect(factory.determineTeamType(playerDataIII)).toBe(TeamType.CARTEIRA_III);
       expect(factory.determineTeamType(playerDataIV)).toBe(TeamType.CARTEIRA_IV);
+      expect(factory.determineTeamType(playerDataER)).toBe(TeamType.ER);
     });
 
     it('should determine team type from player ID', () => {
+      const playerDataC0 = { ...mockPlayerData, _id: 'player_carteira0_123', teams: [] };
       const playerDataC1 = { ...mockPlayerData, _id: 'player_carteira1_123', teams: [] };
       const playerDataC2 = { ...mockPlayerData, _id: 'player_c2_456', teams: [] };
+      const playerDataER = { ...mockPlayerData, _id: 'player_er_789', teams: [] };
 
+      expect(factory.determineTeamType(playerDataC0)).toBe(TeamType.CARTEIRA_0);
       expect(factory.determineTeamType(playerDataC1)).toBe(TeamType.CARTEIRA_I);
       expect(factory.determineTeamType(playerDataC2)).toBe(TeamType.CARTEIRA_II);
+      expect(factory.determineTeamType(playerDataER)).toBe(TeamType.ER);
     });
 
     it('should return null for unknown team type', () => {
-      const unknownPlayerData = { ...mockPlayerData, teams: ['unknown_team'], _id: 'unknown_player' };
+      const unknownPlayerData = { ...mockPlayerData, teams: ['unknown_team'], _id: 'unknown_playid_123' };
       expect(factory.determineTeamType(unknownPlayerData)).toBeNull();
     });
 
     it('should handle empty teams array', () => {
-      const emptyTeamsData = { ...mockPlayerData, teams: [] };
+      const emptyTeamsData = { ...mockPlayerData, teams: [], _id: 'unknown_playid_456' };
       expect(factory.determineTeamType(emptyTeamsData)).toBeNull();
     });
   });
@@ -201,7 +276,7 @@ describe('TeamProcessorFactory', () => {
       const unknownPlayerData = {
         ...mockPlayerData,
         teams: [],
-        _id: 'unknown_player'
+        _id: 'unknown_playid_789'
       };
 
       const result = factory.processPlayerDataAuto(unknownPlayerData);
@@ -233,15 +308,27 @@ describe('TeamProcessorFactory', () => {
     it('should return all team types', () => {
       const teamTypes = factory.getAvailableTeamTypes();
 
-      expect(teamTypes).toHaveLength(4);
+      expect(teamTypes).toHaveLength(6);
+      expect(teamTypes).toContain(TeamType.CARTEIRA_0);
       expect(teamTypes).toContain(TeamType.CARTEIRA_I);
       expect(teamTypes).toContain(TeamType.CARTEIRA_II);
       expect(teamTypes).toContain(TeamType.CARTEIRA_III);
       expect(teamTypes).toContain(TeamType.CARTEIRA_IV);
+      expect(teamTypes).toContain(TeamType.ER);
     });
   });
 
   describe('getTeamInfo', () => {
+    it('should return correct info for Carteira 0', () => {
+      const info = factory.getTeamInfo(TeamType.CARTEIRA_0);
+
+      expect(info.name).toBe('Carteira 0');
+      expect(info.primaryGoal).toBe('Conversões');
+      expect(info.secondaryGoals).toEqual(['Reais por Ativo', 'Faturamento']);
+      expect(info.specialFeatures).toContain('Direct Funifier integration');
+      expect(info.specialFeatures).toContain('Conversion-based metrics');
+    });
+
     it('should return correct info for Carteira I', () => {
       const info = factory.getTeamInfo(TeamType.CARTEIRA_I);
 
@@ -277,6 +364,17 @@ describe('TeamProcessorFactory', () => {
       expect(info.primaryGoal).toBe('Faturamento');
       expect(info.secondaryGoals).toEqual(['Reais por Ativo', 'Multimarcas por Ativo']);
       expect(info.specialFeatures).toContain('Challenge data priority');
+    });
+
+    it('should return correct info for ER', () => {
+      const info = factory.getTeamInfo(TeamType.ER);
+
+      expect(info.name).toBe('ER');
+      expect(info.primaryGoal).toBe('Faturamento');
+      expect(info.secondaryGoals).toEqual(['Reais por Ativo', 'UPA']);
+      expect(info.specialFeatures).toContain('Challenge data priority');
+      expect(info.specialFeatures).toContain('UPA metrics');
+      expect(info.specialFeatures).toContain('Medalhas functionality');
     });
 
     it('should throw error for unknown team type', () => {
@@ -319,9 +417,9 @@ describe('TeamProcessorFactory', () => {
     it('should return processing statistics', () => {
       const stats = factory.getProcessingStats();
 
-      expect(stats.availableProcessors).toBe(4);
-      expect(stats.supportedTeamTypes).toHaveLength(4);
-      expect(stats.processorInfo).toHaveLength(4);
+      expect(stats.availableProcessors).toBe(6);
+      expect(stats.supportedTeamTypes).toHaveLength(6);
+      expect(stats.processorInfo).toHaveLength(6);
 
       // Check that all processors are available
       stats.processorInfo.forEach(info => {
@@ -330,11 +428,15 @@ describe('TeamProcessorFactory', () => {
       });
 
       // Check specific processor names
+      const carteira0Info = stats.processorInfo.find(p => p.teamType === TeamType.CARTEIRA_0);
       const carteiraIInfo = stats.processorInfo.find(p => p.teamType === TeamType.CARTEIRA_I);
       const carteiraIIInfo = stats.processorInfo.find(p => p.teamType === TeamType.CARTEIRA_II);
+      const erInfo = stats.processorInfo.find(p => p.teamType === TeamType.ER);
 
+      expect(carteira0Info?.processorName).toBe('Carteira0Processor');
       expect(carteiraIInfo?.processorName).toBe('CarteiraIProcessor');
       expect(carteiraIIInfo?.processorName).toBe('CarteiraIIProcessor');
+      expect(erInfo?.processorName).toBe('ERProcessor');
     });
 
     it('should handle unavailable processors in stats', () => {
@@ -349,7 +451,7 @@ describe('TeamProcessorFactory', () => {
 
       const stats = factory.getProcessingStats();
 
-      expect(stats.availableProcessors).toBe(3); // One less than total
+      expect(stats.availableProcessors).toBe(5); // One less than total (6-1=5)
       
       const carteiraIInfo = stats.processorInfo.find(p => p.teamType === TeamType.CARTEIRA_I);
       expect(carteiraIInfo?.isAvailable).toBe(false);
@@ -364,10 +466,12 @@ describe('TeamProcessorFactory', () => {
     it('should process all team types without errors', () => {
       const teamTypes = factory.getAvailableTeamTypes();
       const teamIdMap = {
+        [TeamType.CARTEIRA_0]: 'E6F5k30',
         [TeamType.CARTEIRA_I]: 'E6F4sCh',
         [TeamType.CARTEIRA_II]: 'E6F4O1b',
         [TeamType.CARTEIRA_III]: 'E6F4Xf2',
-        [TeamType.CARTEIRA_IV]: 'E6F41Bb'
+        [TeamType.CARTEIRA_IV]: 'E6F41Bb',
+        [TeamType.ER]: 'E500AbT'
       };
 
       teamTypes.forEach(teamType => {
@@ -392,10 +496,12 @@ describe('TeamProcessorFactory', () => {
     it('should handle auto processing for all team types', () => {
       const teamTypes = factory.getAvailableTeamTypes();
       const teamIdMap = {
+        [TeamType.CARTEIRA_0]: 'E6F5k30',
         [TeamType.CARTEIRA_I]: 'E6F4sCh',
         [TeamType.CARTEIRA_II]: 'E6F4O1b',
         [TeamType.CARTEIRA_III]: 'E6F4Xf2',
-        [TeamType.CARTEIRA_IV]: 'E6F41Bb'
+        [TeamType.CARTEIRA_IV]: 'E6F41Bb',
+        [TeamType.ER]: 'E500AbT'
       };
 
       teamTypes.forEach(teamType => {

@@ -5,10 +5,11 @@ Dashboard de gamificação integrado com a plataforma Funifier para o grupo Ess�
 ## Funcionalidades
 
 ### Dashboard do Jogador
-- Visualização personalizada de métricas por time (Carteira I, II, III, IV)
+- Visualização personalizada de métricas por time (Carteira 0, Carteira I, II, III, IV, ER)
 - Acompanhamento de pontos, metas e progresso do ciclo
 - Interface responsiva com design O Boticário
 - Indicadores visuais de boost e desbloqueio de pontos
+- Seleção automática de time ou modal de seleção para usuários com múltiplos times
 
 ### Dashboard Administrativo
 - Visualização de dados de todos os jogadores
@@ -115,7 +116,40 @@ A integração utiliza:
 - `E6F0WGc`: Boost meta secundária 1
 - `E6K79Mt`: Boost meta secundária 2
 
+### Challenge IDs por Métrica
+- **Conversões**: `E6GglPq` (Carteira 0)
+- **UPA**: `E62x2PW` (ER)
+- **Faturamento**: Reutiliza IDs existentes das Carteiras
+- **Reais por Ativo**: Reutiliza IDs existentes das Carteiras
+
+## Formato CSV Estendido
+
+### Estrutura do Arquivo
+O sistema suporta upload de arquivos CSV com as seguintes colunas:
+
+**Colunas Obrigatórias:**
+- Player ID, Dia do Ciclo, Total Dias Ciclo
+- Faturamento Meta, Faturamento Atual, Faturamento %
+- Reais por Ativo Meta, Reais por Ativo Atual, Reais por Ativo %
+- Atividade Meta, Atividade Atual, Atividade %
+- Multimarcas por Ativo Meta, Multimarcas por Ativo Atual, Multimarcas por Ativo %
+
+**Colunas Opcionais (Novas Métricas):**
+- Conversões Meta, Conversões Atual, Conversões % (para Carteira 0)
+- UPA Meta, UPA Atual, UPA % (para ER)
+
+### Compatibilidade
+- **Retrocompatibilidade**: Arquivos CSV existentes continuam funcionando
+- **Validação Flexível**: Novas métricas são opcionais e validadas conforme o tipo de time
+- **Mensagens de Erro**: Indicações claras sobre campos ausentes ou inválidos
+
 ## Times e Processamento
+
+### Carteira 0
+- Meta principal: Conversões
+- Metas secundárias: Reais por ativo, Faturamento
+- Pontos diretos da Funifier
+- Team ID: E6F5k30
 
 ### Carteira I
 - Meta principal: Atividade
@@ -131,6 +165,23 @@ A integração utiliza:
 - Meta principal: Faturamento
 - Metas secundárias: Reais por ativo, Multimarcas por ativo
 - Pontos diretos da Funifier
+
+### ER (Equipe de Relacionamento)
+- Meta principal: Faturamento
+- Metas secundárias: Reais por ativo, UPA
+- Funcionalidade adicional: Botão Medalhas (Em Breve)
+- Team ID: E500AbT
+
+## Seleção de Times
+
+### Fluxo de Autenticação
+- **Time único**: Redirecionamento automático para o dashboard correspondente
+- **Múltiplos times**: Modal de seleção apresenta todas as opções disponíveis
+- **Acesso Admin**: Disponível através do modal de seleção para usuários com privilégios
+
+### Times Suportados
+- Carteira 0, I, II, III, IV, ER
+- Admin (interface administrativa)
 
 ## Deploy
 
@@ -173,6 +224,14 @@ Para instruções completas, consulte [DEPLOYMENT.md](./DEPLOYMENT.md).
 ## Licença
 
 Este projeto é propriedade do grupo Essência e destina-se ao uso interno.
+
+## Documentação Adicional
+
+- **[Guia Multi-Team](./docs/MULTI_TEAM_GUIDE.md)**: Funcionalidade de múltiplos times e seleção
+- **[Formato CSV](./docs/CSV_FORMAT_GUIDE.md)**: Guia completo do formato CSV estendido
+- **[Deploy](./DEPLOYMENT.md)**: Instruções detalhadas de deployment
+- **[Segurança](./docs/SECURITY.md)**: Práticas de segurança
+- **[Performance](./docs/PERFORMANCE_TESTING.md)**: Testes e otimização de performance
 
 ## Suporte
 

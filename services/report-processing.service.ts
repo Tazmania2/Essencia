@@ -17,6 +17,12 @@ export interface ReportData {
   atividadeMeta: number;
   atividadeAtual: number;
   atividadePercentual: number;
+  conversoesMeta?: number;
+  conversoesAtual?: number;
+  conversoesPercentual?: number;
+  upaMeta?: number;
+  upaAtual?: number;
+  upaPercentual?: number;
   reportDate: string;
 }
 
@@ -61,13 +67,22 @@ export class ReportProcessingService {
     'atividadePercentual',
   ];
 
-  private static readonly OPTIONAL_FIELDS: string[] = [];
+  private static readonly OPTIONAL_FIELDS = [
+    'conversoesMeta',
+    'conversoesAtual',
+    'conversoesPercentual',
+    'upaMeta',
+    'upaAtual',
+    'upaPercentual',
+  ];
 
   private static readonly VALID_TEAMS = [
+    'CARTEIRA_0',
     'CARTEIRA_I',
     'CARTEIRA_II',
     'CARTEIRA_III',
     'CARTEIRA_IV',
+    'ER',
   ];
 
   private constructor() {}
@@ -179,6 +194,8 @@ export class ReportProcessingService {
             reaisPorAtivo: record.reaisPorAtivoPercentual,
             faturamento: record.faturamentoPercentual,
             multimarcasPorAtivo: record.multimarcasPorAtivoPercentual,
+            conversoes: record.conversoesPercentual,
+            upa: record.upaPercentual,
             currentCycleDay: record.diaDociclo,
             totalCycleDays: record.totalDiasCiclo,
             reportDate: record.reportDate.split('T')[0],
@@ -254,6 +271,16 @@ export class ReportProcessingService {
         attribute: 'multimarcasPorAtivo',
         value: record.multimarcasPorAtivoPercentual,
         challengeType: 'multimarcas_por_ativo_challenge',
+      },
+      {
+        attribute: 'conversoes',
+        value: record.conversoesPercentual,
+        challengeType: 'conversoes_challenge',
+      },
+      {
+        attribute: 'upa',
+        value: record.upaPercentual,
+        challengeType: 'upa_challenge',
       },
     ];
 
@@ -350,7 +377,14 @@ export class ReportProcessingService {
                 multimarcasPorAtivoPercentual: String(values[11] || ''),
                 atividadeMeta: String(values[12] || ''),
                 atividadeAtual: String(values[13] || ''),
-                atividadePercentual: String(values[14] || '')
+                atividadePercentual: String(values[14] || ''),
+                // New optional metrics
+                conversoesMeta: String(values[15] || ''),
+                conversoesAtual: String(values[16] || ''),
+                conversoesPercentual: String(values[17] || ''),
+                upaMeta: String(values[18] || ''),
+                upaAtual: String(values[19] || ''),
+                upaPercentual: String(values[20] || '')
               };
             });
 
@@ -408,6 +442,12 @@ export class ReportProcessingService {
             'atividadeMeta', // 12 - Atividade Meta
             'atividadeAtual', // 13 - Atividade Atual
             'atividadePercentual', // 14 - Atividade %
+            'conversoesMeta', // 15 - Conversões Meta
+            'conversoesAtual', // 16 - Conversões Atual
+            'conversoesPercentual', // 17 - Conversões %
+            'upaMeta', // 18 - UPA Meta
+            'upaAtual', // 19 - UPA Atual
+            'upaPercentual', // 20 - UPA %
           ];
 
           const headers = fieldMapping;
@@ -472,7 +512,8 @@ export class ReportProcessingService {
       });
 
       // Validate numeric fields (all fields except playerId are numeric)
-      ReportProcessingService.REQUIRED_FIELDS.slice(1).forEach((field) => {
+      const numericFields = [...ReportProcessingService.REQUIRED_FIELDS.slice(1), ...ReportProcessingService.OPTIONAL_FIELDS];
+      numericFields.forEach((field) => {
         if (row[field] !== undefined && row[field] !== '') {
           const numValue = parseFloat(row[field]);
           if (isNaN(numValue)) {
@@ -513,6 +554,13 @@ export class ReportProcessingService {
           atividadeMeta: parseFloat(row.atividadeMeta),
           atividadeAtual: parseFloat(row.atividadeAtual),
           atividadePercentual: parseFloat(row.atividadePercentual),
+          // Optional new metrics
+          conversoesMeta: row.conversoesMeta && row.conversoesMeta !== '' ? parseFloat(row.conversoesMeta) : undefined,
+          conversoesAtual: row.conversoesAtual && row.conversoesAtual !== '' ? parseFloat(row.conversoesAtual) : undefined,
+          conversoesPercentual: row.conversoesPercentual && row.conversoesPercentual !== '' ? parseFloat(row.conversoesPercentual) : undefined,
+          upaMeta: row.upaMeta && row.upaMeta !== '' ? parseFloat(row.upaMeta) : undefined,
+          upaAtual: row.upaAtual && row.upaAtual !== '' ? parseFloat(row.upaAtual) : undefined,
+          upaPercentual: row.upaPercentual && row.upaPercentual !== '' ? parseFloat(row.upaPercentual) : undefined,
           reportDate: new Date().toISOString(),
         };
 
@@ -574,6 +622,22 @@ export class ReportProcessingService {
       summary += `\nInformações do ciclo:\n`;
       summary += `• Dia atual: ${firstRecord.diaDociclo}\n`;
       summary += `• Total de dias: ${firstRecord.totalDiasCiclo}\n`;
+
+      // Show metrics availability
+      const hasConversoes = data.some(record => record.conversoesPercentual !== undefined);
+      const hasUpa = data.some(record => record.upaPercentual !== undefined);
+      
+      if (hasConversoes || hasUpa) {
+        summary += `\nMétricas adicionais detectadas:\n`;
+        if (hasConversoes) {
+          const conversoesCount = data.filter(record => record.conversoesPercentual !== undefined).length;
+          summary += `• Conversões: ${conversoesCount} registros\n`;
+        }
+        if (hasUpa) {
+          const upaCount = data.filter(record => record.upaPercentual !== undefined).length;
+          summary += `• UPA: ${upaCount} registros\n`;
+        }
+      }
     }
 
     return summary;
