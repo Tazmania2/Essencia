@@ -1,6 +1,6 @@
 'use client';
 
-import { PlayerRoute } from '../../components/auth/ProtectedRoute';
+import { ProtectedRoute } from '../../components/auth/ProtectedRoute';
 import { ConnectedPlayerDashboard } from '../../components/dashboard/ConnectedPlayerDashboard';
 import { PlayerDashboard } from '../../components/dashboard/PlayerDashboard';
 import { DashboardService } from '../../services/dashboard.service';
@@ -8,14 +8,14 @@ import { useAuth } from '../../contexts/AuthContext';
 
 export default function DashboardPage() {
   return (
-    <PlayerRoute>
+    <ProtectedRoute requireAuth={true}>
       <DashboardContent />
-    </PlayerRoute>
+    </ProtectedRoute>
   );
 }
 
 function DashboardContent() {
-  const { user, selectedTeam } = useAuth();
+  const { user, selectedTeam, showTeamSelection } = useAuth();
 
   if (!user) {
     return (
@@ -37,8 +37,40 @@ function DashboardContent() {
     );
   }
 
+  // Check if user has access to any player teams (not just admin)
+  const hasPlayerTeamAccess = user.teamInfo.allTeamTypes && user.teamInfo.allTeamTypes.length > 0;
+  if (!hasPlayerTeamAccess && !user.teamInfo.hasAdminAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Você não tem acesso a nenhuma equipe de jogador.</p>
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="mt-4 bg-boticario-pink text-white px-6 py-2 rounded-lg hover:bg-boticario-purple transition-colors"
+          >
+            Voltar ao Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Check if user has selected a valid team for dashboard access
   if (!selectedTeam || selectedTeam === 'ADMIN') {
+    // If team selection modal is showing, show waiting message
+    if (showTeamSelection) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-boticario-pink mx-auto mb-4"></div>
+            <p className="text-gray-600 mb-2">Aguardando seleção de equipe...</p>
+            <p className="text-sm text-gray-500">Por favor, selecione uma equipe no modal que apareceu.</p>
+          </div>
+        </div>
+      );
+    }
+    
+    // User doesn't have valid team access
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
         <div className="text-center">

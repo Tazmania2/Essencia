@@ -69,17 +69,26 @@ export class UserIdentificationService {
 
   /**
    * Determine if user is a player or admin based on their data
-   * For now, we'll consider all users as players unless they have specific admin indicators
+   * Users can be both admin and player if they have both admin access and regular teams
    */
   public determineUserRole(playerData: FunifierPlayerStatus): UserRole {
     // Check if user has admin privileges
-    // This could be based on specific teams, extra fields, or other indicators
     const isAdmin = this.checkAdminPrivileges(playerData);
     
+    // Check if user has access to regular player teams (not just admin team)
+    const teamInfo = this.extractTeamInformation(playerData);
+    const hasPlayerTeams = teamInfo.allTeamTypes.length > 0;
+    
+    // User is a player if they have regular teams, regardless of admin status
+    const isPlayer = hasPlayerTeams;
+    
+    // Determine primary role - admin takes precedence if user has both
+    const primaryRole = isAdmin ? 'admin' : 'player';
+    
     return {
-      isPlayer: !isAdmin,
+      isPlayer,
       isAdmin,
-      role: isAdmin ? 'admin' : 'player'
+      role: primaryRole
     };
   }
 

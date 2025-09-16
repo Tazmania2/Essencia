@@ -150,9 +150,9 @@ describe('UserIdentificationService', () => {
 
       const result = service.determineUserRole(playerData);
       
-      expect(result.isPlayer).toBe(false);
+      expect(result.isPlayer).toBe(true); // User has regular teams, so can be a player
       expect(result.isAdmin).toBe(true);
-      expect(result.role).toBe('admin');
+      expect(result.role).toBe('admin'); // Admin role takes precedence
     });
 
     it('should identify admin user with role in extra data', () => {
@@ -181,9 +181,9 @@ describe('UserIdentificationService', () => {
 
       const result = service.determineUserRole(playerData);
       
-      expect(result.isPlayer).toBe(false);
+      expect(result.isPlayer).toBe(true); // User has regular teams, so can be a player
       expect(result.isAdmin).toBe(true);
-      expect(result.role).toBe('admin');
+      expect(result.role).toBe('admin'); // Admin role takes precedence
     });
 
     it('should identify admin user with isAdmin flag', () => {
@@ -212,7 +212,38 @@ describe('UserIdentificationService', () => {
 
       const result = service.determineUserRole(playerData);
       
-      expect(result.isPlayer).toBe(false);
+      expect(result.isPlayer).toBe(true); // User has regular teams, so can be a player
+      expect(result.isAdmin).toBe(true);
+      expect(result.role).toBe('admin'); // Admin role takes precedence
+    });
+
+    it('should identify admin-only user (no regular teams)', () => {
+      const playerData: FunifierPlayerStatus = {
+        _id: 'admin123',
+        name: 'Test Admin',
+        teams: [FUNIFIER_CONFIG.TEAM_IDS.ADMIN], // Only admin team
+        total_challenges: 5,
+        challenges: {},
+        total_points: 100,
+        point_categories: {},
+        total_catalog_items: 3,
+        catalog_items: {},
+        level_progress: {
+          percent_completed: 50,
+          next_points: 50,
+          total_levels: 10,
+          percent: 50
+        },
+        challenge_progress: [],
+        positions: [],
+        time: Date.now(),
+        extra: {},
+        pointCategories: {}
+      };
+
+      const result = service.determineUserRole(playerData);
+      
+      expect(result.isPlayer).toBe(false); // No regular teams, so not a player
       expect(result.isAdmin).toBe(true);
       expect(result.role).toBe('admin');
     });
@@ -601,7 +632,7 @@ describe('UserIdentificationService', () => {
 
       expect(result.userId).toBe('admin123');
       expect(result.userName).toBe('Test Admin');
-      expect(result.role.isPlayer).toBe(false);
+      expect(result.role.isPlayer).toBe(true); // User has regular teams, so can be a player
       expect(result.role.isAdmin).toBe(true);
       expect(result.teamInfo.teamType).toBe(TeamType.CARTEIRA_I);
       expect(mockFunifierPlayerService.getPlayerStatus).toHaveBeenCalledWith('adminuser');
