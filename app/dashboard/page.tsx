@@ -15,7 +15,7 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
-  const { user } = useAuth();
+  const { user, selectedTeam } = useAuth();
 
   if (!user) {
     return (
@@ -37,10 +37,27 @@ function DashboardContent() {
     );
   }
 
-  return <DashboardWithAuthData user={user} />;
+  // Check if user has selected a valid team for dashboard access
+  if (!selectedTeam || selectedTeam === 'ADMIN') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Acesso negado. Selecione uma equipe válida para acessar o dashboard.</p>
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="mt-4 bg-boticario-pink text-white px-6 py-2 rounded-lg hover:bg-boticario-purple transition-colors"
+          >
+            Voltar ao Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <DashboardWithAuthData user={user} selectedTeam={selectedTeam} />;
 }
 
-function DashboardWithAuthData({ user }: { user: any }) {
+function DashboardWithAuthData({ user, selectedTeam }: { user: any; selectedTeam: any }) {
   const { isAuthenticated } = useAuth();
   
   // Get token from localStorage (restored by AuthContext)
@@ -103,6 +120,7 @@ function DashboardWithAuthData({ user }: { user: any }) {
       <ConnectedPlayerDashboard 
         playerId={user.userId}
         token={token}
+        selectedTeamType={selectedTeam !== 'ADMIN' ? selectedTeam : undefined}
       />
     </div>
   );

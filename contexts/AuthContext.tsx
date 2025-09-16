@@ -337,6 +337,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
               if (storedSelectedTeam) {
                 setSelectedTeam(storedSelectedTeam as TeamType | 'ADMIN');
                 secureLogger.log('🎯 Restored selected team:', storedSelectedTeam);
+              } else if (userInfo.playerData) {
+                // If no stored team but user is authenticated, check if they need team selection
+                const hasMultipleTeams = userIdentificationService.hasMultipleTeamAssignments(userInfo.playerData);
+                if (hasMultipleTeams) {
+                  secureLogger.log('👥 User has multiple teams but no stored selection, may need to show team selection');
+                }
               }
             } else {
               secureLogger.log('🔑 Stored token has expired, clearing localStorage');

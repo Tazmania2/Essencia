@@ -3,17 +3,20 @@
 import React from 'react';
 import { PlayerDashboard } from './PlayerDashboard';
 import { useDashboard } from '../../hooks/useDashboard';
+import { TeamType } from '../../types';
 
 interface ConnectedPlayerDashboardProps {
   playerId: string;
   token: string;
+  selectedTeamType?: TeamType;
 }
 
 export const ConnectedPlayerDashboard: React.FC<ConnectedPlayerDashboardProps> = ({
   playerId,
-  token
+  token,
+  selectedTeamType
 }) => {
-  const { dashboardData, loading, error, refetch } = useDashboard(playerId, token);
+  const { dashboardData, loading, error, refetch } = useDashboard(playerId, token, selectedTeamType);
 
   if (loading) {
     return (

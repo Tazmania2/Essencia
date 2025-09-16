@@ -23,7 +23,7 @@ export class DashboardService {
     private userIdentificationService: UserIdentificationService
   ) {}
 
-  async getDashboardData(playerId: string, token: string): Promise<DashboardData> {
+  async getDashboardData(playerId: string, token: string, selectedTeamType?: TeamType): Promise<DashboardData> {
     try {
       secureLogger.log('🚀 Dashboard service called for player:', playerId);
       
@@ -50,9 +50,24 @@ export class DashboardService {
         challengeProgressCount: playerStatus.challenge_progress?.length || 0
       });
       
-      // Identify team type
-      const teamInfo = this.userIdentificationService.extractTeamInformation(playerStatus);
-      const teamType = teamInfo.teamType;
+      // Use selected team type if provided, otherwise determine from player data
+      let teamType: TeamType;
+      if (selectedTeamType) {
+        // Validate that the user has access to the selected team
+        const teamInfo = this.userIdentificationService.extractTeamInformation(playerStatus);
+        const hasAccess = teamInfo.allTeamTypes.includes(selectedTeamType);
+        if (!hasAccess) {
+          throw new Error(`User does not have access to team type: ${selectedTeamType}`);
+        }
+        teamType = selectedTeamType;
+      } else {
+        // Fallback to primary team
+        const teamInfo = this.userIdentificationService.extractTeamInformation(playerStatus);
+        teamType = teamInfo.teamType;
+        if (!teamType) {
+          throw new Error(`Unable to determine team type for player ${playerId}`);
+        }
+      }
       
       // Get enhanced data from database (for missing info and goal details)
       const { reportRecord, csvData } = await this.getEnhancedReportData(playerId);

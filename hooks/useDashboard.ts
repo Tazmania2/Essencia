@@ -5,7 +5,7 @@ import { FunifierDatabaseService } from '../services/funifier-database.service';
 import { TeamProcessorFactory } from '../services/team-processor-factory.service';
 import { UserIdentificationService } from '../services/user-identification.service';
 import { funifierAuthService } from '../services/funifier-auth.service';
-import { DashboardData, ApiError, ErrorType } from '../types';
+import { DashboardData, ApiError, ErrorType, TeamType } from '../types';
 
 interface UseDashboardResult {
   dashboardData: DashboardData | null;
@@ -14,7 +14,7 @@ interface UseDashboardResult {
   refetch: () => Promise<void>;
 }
 
-export const useDashboard = (playerId: string, token: string): UseDashboardResult => {
+export const useDashboard = (playerId: string, token: string, selectedTeamType?: TeamType): UseDashboardResult => {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,8 +44,8 @@ export const useDashboard = (playerId: string, token: string): UseDashboardResul
       
       const authToken = token;
       
-      // Got auth token, calling dashboard service
-      const data = await dashboardService.getDashboardData(playerId, authToken);
+      // Got auth token, calling dashboard service with selected team type
+      const data = await dashboardService.getDashboardData(playerId, authToken, selectedTeamType);
       // Dashboard data received successfully
       setDashboardData(data);
     } catch (err) {
@@ -75,10 +75,10 @@ export const useDashboard = (playerId: string, token: string): UseDashboardResul
 
   useEffect(() => {
     if (playerId) {
-      console.log('🔄 useDashboard: useEffect triggered for player:', playerId);
+      console.log('🔄 useDashboard: useEffect triggered for player:', playerId, 'team:', selectedTeamType);
       fetchDashboardData();
     }
-  }, [playerId]);
+  }, [playerId, selectedTeamType]);
 
   return {
     dashboardData,

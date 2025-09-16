@@ -44,9 +44,11 @@ export function ProtectedRoute({
       }
     }
 
-    // Check team requirement
+    // Check team requirement - validate that user has access to the required team
     if (requireTeam && user) {
-      if (user.teamInfo.teamType !== requireTeam) {
+      // Check if user has access to the required team (not just primary team)
+      const hasTeamAccess = user.teamInfo.allTeamTypes.includes(requireTeam);
+      if (!hasTeamAccess) {
         router.push('/unauthorized');
         return;
       }
