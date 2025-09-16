@@ -352,6 +352,9 @@ describe('FunifierAuthService', () => {
         expect(mockedAxios.get).toHaveBeenCalledWith(
           `https://service2.funifier.com/v3/system/user/password/code?user=${userId}`,
           {
+            headers: {
+              'Authorization': `Basic ${Buffer.from(FUNIFIER_CONFIG.API_KEY).toString('base64')}`,
+            },
             timeout: 10000,
           }
         );
@@ -374,6 +377,9 @@ describe('FunifierAuthService', () => {
         expect(mockedAxios.get).toHaveBeenCalledWith(
           `https://service2.funifier.com/v3/system/user/password/code?user=${encodeURIComponent(userId)}`,
           {
+            headers: {
+              'Authorization': `Basic ${Buffer.from(FUNIFIER_CONFIG.API_KEY).toString('base64')}`,
+            },
             timeout: 10000,
           }
         );
@@ -399,6 +405,7 @@ describe('FunifierAuthService', () => {
           {
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Basic ${Buffer.from(FUNIFIER_CONFIG.API_KEY).toString('base64')}`,
             },
             timeout: 10000,
           }

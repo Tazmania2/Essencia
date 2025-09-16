@@ -194,6 +194,9 @@ export class FunifierAuthService {
       await axios.get(
         `https://service2.funifier.com/v3/system/user/password/code?user=${encodeURIComponent(userId)}`,
         {
+          headers: {
+            'Authorization': `Basic ${Buffer.from(FUNIFIER_CONFIG.API_KEY).toString('base64')}`,
+          },
           timeout: 10000, // 10 second timeout
         }
       );
@@ -225,6 +228,7 @@ export class FunifierAuthService {
         {
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Basic ${Buffer.from(FUNIFIER_CONFIG.API_KEY).toString('base64')}`,
           },
           timeout: 10000,
         }
