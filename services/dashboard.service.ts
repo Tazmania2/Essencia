@@ -63,10 +63,10 @@ export class DashboardService {
       } else {
         // Fallback to primary team
         const teamInfo = this.userIdentificationService.extractTeamInformation(playerStatus);
-        teamType = teamInfo.teamType;
-        if (!teamType) {
+        if (!teamInfo.teamType) {
           throw new Error(`Unable to determine team type for player ${playerId}`);
         }
+        teamType = teamInfo.teamType;
       }
       
       // Get enhanced data from database (for missing info and goal details)
