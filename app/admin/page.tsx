@@ -18,9 +18,15 @@ export default function AdminPage() {
   );
 }
 
+interface DashboardStats {
+  totalPlayers: number;
+  totalReports: number;
+  recentActivity: any[];
+}
+
 function AdminContent() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<DashboardStats>({
     totalPlayers: 0,
     totalReports: 0,
     recentActivity: []
