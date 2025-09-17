@@ -31,7 +31,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -48,7 +48,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       />
 
       {/* Main content area */}
-      <div className="lg:pl-64" data-testid="main-content-area">
+      <div className="flex-1 flex flex-col min-w-0" data-testid="main-content-area">
         {/* Admin Header */}
         <AdminHeader onMenuClick={toggleSidebar} />
 
@@ -62,7 +62,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         )}
 
         {/* Main content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
           {children}
         </main>
       </div>

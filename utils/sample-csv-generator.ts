@@ -21,6 +21,12 @@ export interface SamplePlayerData {
   atividadeMeta: number;
   atividadeAtual: number;
   atividadePercentual: number;
+  conversoesMeta: number;
+  conversoesAtual: number;
+  conversoesPercentual: number;
+  upaMeta: number;
+  upaAtual: number;
+  upaPercentual: number;
 }
 
 export class SampleCSVGenerator {
@@ -43,13 +49,19 @@ export class SampleCSVGenerator {
       'Multimarcas por Ativo %',
       'Atividade Meta',
       'Atividade Atual',
-      'Atividade %'
+      'Atividade %',
+      'Conversões Meta',
+      'Conversões Atual',
+      'Conversões %',
+      'UPA Meta',
+      'UPA Atual',
+      'UPA %'
     ];
 
     const rows = [headers.join(',')];
 
     playerIds.forEach(playerId => {
-      const sampleData = this.generateSamplePlayerData(playerId);
+      const sampleData = SampleCSVGenerator.generateSamplePlayerData(playerId);
       const row = [
         sampleData.playerId,
         sampleData.diaDociclo,
@@ -65,7 +77,13 @@ export class SampleCSVGenerator {
         sampleData.multimarcasPorAtivoPercentual,
         sampleData.atividadeMeta,
         sampleData.atividadeAtual,
-        sampleData.atividadePercentual
+        sampleData.atividadePercentual,
+        sampleData.conversoesMeta,
+        sampleData.conversoesAtual,
+        sampleData.conversoesPercentual,
+        sampleData.upaMeta,
+        sampleData.upaAtual,
+        sampleData.upaPercentual
       ].join(',');
       
       rows.push(row);
@@ -94,6 +112,15 @@ export class SampleCSVGenerator {
     const multimarcasPorAtivoAtual = Math.floor(multimarcasPorAtivoMeta * (0.6 + Math.random() * 0.8)); // 60%-140% of meta
     const atividadeAtual = Math.floor(atividadeMeta * (0.5 + Math.random() * 1.0)); // 50%-150% of meta
 
+    // Generate new metrics (Conversões and UPA)
+    const conversoesMeta = Math.floor(Math.random() * 50) + 100; // 100-150 conversões
+    const conversoesAtual = Math.floor(conversoesMeta * (0.6 + Math.random() * 0.8)); // 60%-140% of meta
+    const conversoesPercentual = Math.round((conversoesAtual / conversoesMeta) * 100);
+
+    const upaMeta = Math.floor(Math.random() * 20) + 80; // 80-100 UPA
+    const upaAtual = Math.floor(upaMeta * (0.7 + Math.random() * 0.6)); // 70%-130% of meta
+    const upaPercentual = Math.round((upaAtual / upaMeta) * 100);
+
     // Calculate percentages
     const faturamentoPercentual = Math.round((faturamentoAtual / faturamentoMeta) * 100);
     const reaisPorAtivoPercentual = Math.round((reaisPorAtivoAtual / reaisPorAtivoMeta) * 100);
@@ -115,7 +142,13 @@ export class SampleCSVGenerator {
       multimarcasPorAtivoPercentual,
       atividadeMeta,
       atividadeAtual,
-      atividadePercentual
+      atividadePercentual,
+      conversoesMeta,
+      conversoesAtual,
+      conversoesPercentual,
+      upaMeta,
+      upaAtual,
+      upaPercentual
     };
   }
 
@@ -143,7 +176,7 @@ export class SampleCSVGenerator {
    * Generate sample data for Tairã Rabelo (the admin user example)
    */
   static generateTairaRabeloSample(): string {
-    return this.generateSampleCSV(['123456']); // Using the ID from your example
+    return SampleCSVGenerator.generateSampleCSV(['123456']); // Using the ID from your example
   }
 
   /**
@@ -157,7 +190,7 @@ export class SampleCSVGenerator {
       'player003',
       'player004'
     ];
-    return this.generateSampleCSV(playerIds);
+    return SampleCSVGenerator.generateSampleCSV(playerIds);
   }
 }
 
