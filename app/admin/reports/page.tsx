@@ -55,8 +55,8 @@ function AdminReportsContent() {
                 <button
                   onClick={async () => {
                     try {
-                      const module = await import('../../../utils/sample-csv-generator');
-                      const { SampleCSVGenerator } = module;
+                      const csvModule = await import('../../../utils/sample-csv-generator');
+                      const { SampleCSVGenerator } = csvModule;
                       SampleCSVGenerator.downloadSampleCSV(['123456'], 'exemplo-relatorio-simples.csv');
                     } catch (error) {
                       console.error('Erro ao gerar CSV de exemplo:', error);
@@ -70,8 +70,8 @@ function AdminReportsContent() {
                 <button
                   onClick={async () => {
                     try {
-                      const module = await import('../../../utils/sample-csv-generator');
-                      const { SampleCSVGenerator } = module;
+                      const csvModule = await import('../../../utils/sample-csv-generator');
+                      const { SampleCSVGenerator } = csvModule;
                       const csvContent = SampleCSVGenerator.generateMultiPlayerSample();
                       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                       const link = document.createElement('a');
