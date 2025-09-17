@@ -55,8 +55,9 @@ function AdminReportsContent() {
                 <button
                   onClick={async () => {
                     try {
-                      const { downloadSampleCSV } = await import('../../../utils/sample-csv-generator');
-                      downloadSampleCSV(['123456'], 'exemplo-relatorio-simples.csv');
+                      const module = await import('../../../utils/sample-csv-generator');
+                      const { SampleCSVGenerator } = module;
+                      SampleCSVGenerator.downloadSampleCSV(['123456'], 'exemplo-relatorio-simples.csv');
                     } catch (error) {
                       console.error('Erro ao gerar CSV de exemplo:', error);
                       alert('Erro ao gerar arquivo de exemplo. Tente novamente.');
@@ -69,8 +70,9 @@ function AdminReportsContent() {
                 <button
                   onClick={async () => {
                     try {
-                      const { generateMultiPlayerSample } = await import('../../../utils/sample-csv-generator');
-                      const csvContent = generateMultiPlayerSample();
+                      const module = await import('../../../utils/sample-csv-generator');
+                      const { SampleCSVGenerator } = module;
+                      const csvContent = SampleCSVGenerator.generateMultiPlayerSample();
                       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                       const link = document.createElement('a');
                       const url = URL.createObjectURL(blob);

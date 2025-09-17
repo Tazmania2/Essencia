@@ -194,7 +194,8 @@ export class SampleCSVGenerator {
   }
 }
 
-// Export utility functions for easy use
+// Export the class and utility functions for easy use
+export { SampleCSVGenerator };
 export const generateSampleCSV = SampleCSVGenerator.generateSampleCSV;
 export const downloadSampleCSV = SampleCSVGenerator.downloadSampleCSV;
 export const generateTairaRabeloSample = SampleCSVGenerator.generateTairaRabeloSample;
