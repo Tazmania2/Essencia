@@ -138,7 +138,6 @@
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
 - [x] 12. Update documentation and configuration
-
   - Update README.md with new dashboard types information
   - Update existing documentation for new CSV format requirements
   - Update environment configuration examples in .env.example
