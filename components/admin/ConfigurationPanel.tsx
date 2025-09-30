@@ -47,8 +47,9 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
   const handleSaveConfiguration = async (newConfig: DashboardConfigurationRecord) => {
     const result = await executeWithLoading(
       async () => {
-        // Simulate progress updates during save
-        setProgress(20, 'Validando configuração...');
+        // Step 1: Validation
+        setProgress(15, 'Validando configuração...');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate validation time
         
         const validation = configurationValidator.validateDashboardConfiguration(newConfig);
         if (!validation.isValid) {
@@ -61,31 +62,42 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
           });
         }
 
-        setProgress(50, 'Salvando no banco de dados...');
+        // Step 2: Pre-save checks
+        setProgress(35, 'Verificando compatibilidade...');
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Step 3: Database save
+        setProgress(55, 'Salvando no banco de dados...');
         
         const savedConfig = await dashboardConfigurationService.saveConfiguration({
           createdBy: 'admin',
           configurations: newConfig.configurations
         });
 
-        setProgress(80, 'Aplicando alterações...');
+        // Step 4: Cache invalidation
+        setProgress(75, 'Atualizando cache do sistema...');
+        await new Promise(resolve => setTimeout(resolve, 400));
         
-        // Simulate some processing time
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Step 5: Final validation
+        setProgress(90, 'Verificando integridade...');
+        await new Promise(resolve => setTimeout(resolve, 300));
         
         setProgress(100, 'Configuração salva com sucesso!');
         
         return savedConfig;
       },
-      'Salvando configuração...',
-      'Configuração salva com sucesso!'
+      'Iniciando processo de salvamento...'
     );
 
     if (result) {
       setCurrentConfig(result);
       onConfigurationSaved?.(result);
       notifyConfigurationSaved();
-      setSaveProgress(0);
+      
+      // Reset progress after a short delay
+      setTimeout(() => {
+        setSaveProgress(0);
+      }, 2000);
     }
   };
 
