@@ -125,8 +125,8 @@ This feature introduces two interconnected capabilities to the Funifier gamifica
 3. WHEN migrating to cycle-based system THEN the system SHALL preserve all existing player data and metrics
 4. WHEN cycle information is missing THEN the system SHALL provide clear indicators in the interface
 5. WHEN transitioning between cycles THEN the system SHALL maintain data integrity and player progress continuity
-### Req
-uirement 11: Enhanced Goal Details Display
+
+### Requirement 11: Enhanced Goal Details Display
 
 **User Story:** As a player, I want the "Detalhes das Metas" accordion to show actual metric values from reports, so that I can see the real numbers behind my percentage progress.
 
@@ -156,17 +156,17 @@ uirement 11: Enhanced Goal Details Display
 6. WHEN Carteira II metrics are changed THEN the system SHALL update the local processing algorithms accordingly
 7. WHEN validating Carteira II changes THEN the system SHALL ensure boost and unlock mechanics remain compatible with local processing
 
-### Requirement 13: Percentage Display Precision Fix
+### Requirement 13: Percentage Calculation and Display Fix
 
 **User Story:** As a user viewing any dashboard or interface, I want percentage values to display with proper precision, so that I see clean numbers like "13.2%" instead of "13.219999999999999%".
 
 #### Acceptance Criteria
 
-1. WHEN displaying percentage values THEN the system SHALL round to maximum 1 decimal place
-2. WHEN calculating percentages THEN the system SHALL apply consistent rounding logic across all components
-3. WHEN showing percentages in player dashboards THEN the system SHALL display clean, rounded values
-4. WHEN showing percentages in admin dashboards THEN the system SHALL display clean, rounded values
-5. WHEN showing percentages in historical data THEN the system SHALL display clean, rounded values
-6. WHEN showing percentages in goal details THEN the system SHALL display clean, rounded values
-7. WHEN performing percentage calculations THEN the system SHALL use proper mathematical rounding (not truncation)
+1. WHEN performing percentage calculations THEN the system SHALL use proper floating-point arithmetic handling to avoid precision errors
+2. WHEN calculating percentages THEN the system SHALL apply the same mathematical approach used in the working Carteira I implementation
+3. WHEN displaying percentage values THEN the system SHALL format to maximum 1 decimal place for display purposes
+4. WHEN showing percentages in player dashboards THEN the system SHALL use consistent calculation methods across all components
+5. WHEN showing percentages in admin dashboards THEN the system SHALL use consistent calculation methods across all components
+6. WHEN showing percentages in historical data THEN the system SHALL use consistent calculation methods across all components
+7. WHEN showing percentages in goal details THEN the system SHALL use consistent calculation methods across all components
 8. WHEN displaying whole number percentages THEN the system SHALL show them without decimal places (e.g., "100%" not "100.0%")

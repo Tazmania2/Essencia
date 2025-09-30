@@ -60,7 +60,6 @@ export const ConnectedPlayerDashboard: React.FC<ConnectedPlayerDashboardProps> =
   return (
     <PlayerDashboard 
       {...dashboardData}
-      playerId={playerId}
       secondaryGoal1={{
         ...dashboardData.secondaryGoal1,
         isBoostActive: dashboardData.secondaryGoal1.isBoostActive ?? false

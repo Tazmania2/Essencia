@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { historyService } from '../../services';
+import React, { useState } from 'react';
+import { historyService } from '../../services/history.service';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { useNotificationHelpers } from '../ui/NotificationSystem';
 
 interface QuickAction {
   icon: string;
   label: string;
-  onClick: () => void;
+  onClick: () => void | Promise<void>;
   gradient: string;
   disabled?: boolean;
   comingSoon?: boolean;
@@ -15,53 +17,62 @@ interface QuickAction {
 
 interface QuickActionsProps {
   playerId?: string;
-  onHistoryClick?: () => void;
+  playerName?: string;
   actions?: QuickAction[];
+  onHistoryClick?: () => void;
 }
 
 export const QuickActions: React.FC<QuickActionsProps> = ({ 
-  playerId,
-  onHistoryClick,
-  actions 
+  playerId, 
+  playerName, 
+  actions, 
+  onHistoryClick 
 }) => {
-  const [hasHistoricalData, setHasHistoricalData] = useState<boolean>(false);
-  const [checkingHistory, setCheckingHistory] = useState<boolean>(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [isRankingLoading, setIsRankingLoading] = useState(false);
+  const { notifyNoHistoryData, notifyError } = useNotificationHelpers();
 
-  useEffect(() => {
-    if (playerId) {
-      checkHistoricalData();
+  const handleHistoryClick = async () => {
+    if (!playerId) {
+      notifyError('ID do jogador não encontrado');
+      return;
     }
-  }, [playerId]);
 
-  const checkHistoricalData = async () => {
-    if (!playerId) return;
-    
     try {
-      setCheckingHistory(true);
-      const hasData = await historyService.hasHistoricalData(playerId);
-      setHasHistoricalData(hasData);
+      setIsHistoryLoading(true);
+      
+      // Check if player has historical data before navigating
+      const hasHistory = await historyService.hasHistoricalData(playerId);
+      
+      if (!hasHistory) {
+        notifyNoHistoryData();
+        return;
+      }
+      
+      // Call the provided callback or navigate to history page
+      if (onHistoryClick) {
+        onHistoryClick();
+      } else if (typeof window !== 'undefined') {
+        window.location.href = `/history?playerId=${playerId}&playerName=${encodeURIComponent(playerName || '')}`;
+      }
     } catch (error) {
-      console.error('Failed to check historical data:', error);
-      setHasHistoricalData(false);
+      console.error('Error checking historical data:', error);
+      notifyError('Erro ao verificar dados históricos. Tente novamente.');
     } finally {
-      setCheckingHistory(false);
+      setIsHistoryLoading(false);
     }
   };
 
-  const handleHistoryClick = () => {
-    if (!playerId) {
-      console.warn('No player ID provided for history navigation');
-      return;
-    }
-
-    if (!hasHistoricalData) {
-      // Show a brief message that no historical data is available
-      alert('Nenhum histórico de ciclos disponível para este jogador.');
-      return;
-    }
-
-    if (onHistoryClick) {
-      onHistoryClick();
+  const handleRankingClick = async () => {
+    try {
+      setIsRankingLoading(true);
+      // TODO: Implement ranking functionality
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
+      notifyError('Funcionalidade de ranking em desenvolvimento');
+    } catch (error) {
+      notifyError('Erro ao carregar ranking');
+    } finally {
+      setIsRankingLoading(false);
     }
   };
 
@@ -71,16 +82,17 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       label: 'Histórico',
       onClick: handleHistoryClick,
       gradient: 'bg-gradient-to-r from-green-400 to-green-500',
-      disabled: checkingHistory || (!hasHistoricalData && !checkingHistory),
-      loading: checkingHistory
+      disabled: !playerId,
+      loading: isHistoryLoading
     },
     {
       icon: '🏆',
       label: 'Ranking',
-      onClick: () => {}, // No action for now
+      onClick: handleRankingClick,
       gradient: 'bg-gradient-to-r from-purple-400 to-purple-500',
-      disabled: true,
-      comingSoon: true
+      disabled: false,
+      comingSoon: true,
+      loading: isRankingLoading
     }
   ];
 
@@ -93,11 +105,11 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
         {actionsToRender.map((action, index) => (
           <div key={index} className="relative group">
             <button
-              onClick={action.disabled ? undefined : action.onClick}
-              disabled={action.disabled}
+              onClick={action.disabled || action.loading ? undefined : action.onClick}
+              disabled={action.disabled || action.loading}
               className={`
                 p-4 ${action.gradient} text-white rounded-xl transition-all transform
-                ${action.disabled 
+                ${action.disabled || action.loading
                   ? 'opacity-60 cursor-not-allowed' 
                   : 'hover:shadow-lg hover:scale-105'
                 }
@@ -105,8 +117,9 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
               `}
             >
               {action.loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                <div className="flex flex-col items-center">
+                  <LoadingSpinner size="sm" color="white" className="mb-2" />
+                  <div className="text-sm font-medium">Carregando...</div>
                 </div>
               ) : (
                 <>
@@ -117,26 +130,18 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
             </button>
             
             {/* Coming Soon Tooltip */}
-            {action.comingSoon && (
+            {action.comingSoon && !action.loading && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                 Em Breve
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
               </div>
             )}
-            
-            {/* No History Data Tooltip */}
-            {action.label === 'Histórico' && !hasHistoricalData && !checkingHistory && !action.loading && (
+
+            {/* Disabled Tooltip */}
+            {action.disabled && !action.loading && !action.comingSoon && (
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                Nenhum histórico disponível
+                Dados do jogador necessários
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-              </div>
-            )}
-            
-            {/* History Available Tooltip */}
-            {action.label === 'Histórico' && hasHistoricalData && !action.loading && (
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-green-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                Clique para ver o histórico
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-green-800"></div>
               </div>
             )}
           </div>

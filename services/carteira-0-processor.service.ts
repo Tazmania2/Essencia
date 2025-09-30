@@ -3,7 +3,6 @@ import {
   PlayerMetrics,
   FunifierPlayerStatus,
   EssenciaReportRecord,
-  DashboardConfig,
   FUNIFIER_CONFIG
 } from '../types';
 import { BaseTeamProcessor, CHALLENGE_MAPPING } from './team-processor.service';
@@ -28,8 +27,7 @@ export class Carteira0Processor extends BaseTeamProcessor {
 
   processPlayerData(
     rawData: FunifierPlayerStatus,
-    reportData?: EssenciaReportRecord,
-    teamConfig?: DashboardConfig
+    reportData?: EssenciaReportRecord
   ): PlayerMetrics {
     this.validateTeamType(reportData);
 

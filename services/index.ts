@@ -3,10 +3,6 @@ export { FunifierAuthService, funifierAuthService } from './funifier-auth.servic
 export { FunifierPlayerService, funifierPlayerService } from './funifier-player.service';
 export { FunifierDatabaseService, funifierDatabaseService, type BulkInsertResult, type AggregationPipeline } from './funifier-database.service';
 export { FunifierConfigService, funifierConfigService } from './funifier-config.service';
-export { DashboardConfigurationService } from './dashboard-configuration.service';
-export { ConfigurationValidator, configurationValidator } from './configuration-validator.service';
-export { HistoryService, historyService } from './history.service';
-export { CycleMigrationService, cycleMigrationService } from './cycle-migration.service';
 
 // Team Processors
 export { BaseTeamProcessor, TeamProcessorUtils, CHALLENGE_MAPPING } from './team-processor.service';

@@ -7,8 +7,6 @@ import { CycleCard } from './CycleCard';
 import { GoalCard } from './GoalCard';
 import { GoalDetailsAccordion } from './GoalDetailsAccordion';
 import { QuickActions } from './QuickActions';
-import { PrecisionMath } from '../../utils/precision-math';
-import { getMetricFormatter } from '../../utils/metric-formatters';
 
 interface QuickAction {
   icon: string;
@@ -26,9 +24,6 @@ interface PlayerDashboardProps {
   currentCycleDay: number;
   totalCycleDays: number;
   isDataFromCollection: boolean;
-  playerId?: string; // Add playerId for history functionality
-  hasSpecialProcessing?: boolean;
-  specialProcessingNote?: string;
   primaryGoal: {
     name: string;
     percentage: number;
@@ -79,14 +74,11 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
   currentCycleDay,
   totalCycleDays,
   isDataFromCollection,
-  playerId,
   primaryGoal,
   secondaryGoal1,
   secondaryGoal2,
   goalDetails = [],
-  customActions,
-  hasSpecialProcessing = false,
-  specialProcessingNote = "Pontos calculados localmente"
+  customActions
 }) => {
   // Use boost status directly from props (no toggle functionality)
   const boost1Active = secondaryGoal1.isBoostActive;
@@ -117,16 +109,15 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
     if (goal.target !== undefined && goal.current !== undefined) {
       items.push(`META: ${formatValue(goal.target, goal.unit)}`);
       items.push(`Valor Atual: ${formatValue(goal.current, goal.unit)}`);
-      items.push(`Porcentagem alcançada: ${PrecisionMath.fixExistingPercentage(goal.percentage).displayValue}`);
+      items.push(`Porcentagem alcançada: ${goal.percentage.toFixed(0)}%`);
       if (goal.daysRemaining !== undefined) {
         items.push(`Prazo: ${goal.daysRemaining} dias restantes`);
       }
     } else {
       // Fallback to basic information
-      items.push(`Progresso: ${PrecisionMath.fixExistingPercentage(goal.percentage).displayValue}`);
+      items.push(`Progresso: ${goal.percentage.toFixed(0)}%`);
       items.push(`Meta: 100%`);
-      const remaining = Math.max(0, 100 - goal.percentage);
-      items.push(`Restante: ${PrecisionMath.fixExistingPercentage(remaining).displayValue}`);
+      items.push(`Restante: ${Math.max(0, 100 - goal.percentage).toFixed(0)}%`);
       items.push(`Prazo: ${totalCycleDays - currentCycleDay} dias`);
     }
     
@@ -138,52 +129,6 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
     return items;
   };
 
-  // Create enhanced goal details with real metric values
-  const enhancedGoalDetails = [
-    {
-      name: primaryGoal.name,
-      displayName: primaryGoal.name,
-      emoji: primaryGoal.emoji || '🎯',
-      target: primaryGoal.target,
-      current: primaryGoal.current,
-      percentage: primaryGoal.percentage,
-      unit: primaryGoal.unit,
-      bgColor: 'bg-boticario-light',
-      textColor: 'text-boticario-dark',
-      daysRemaining: primaryGoal.daysRemaining,
-      hasReportData: primaryGoal.target !== undefined && primaryGoal.current !== undefined
-    },
-    {
-      name: secondaryGoal1.name,
-      displayName: secondaryGoal1.name,
-      emoji: secondaryGoal1.emoji || '💰',
-      target: secondaryGoal1.target,
-      current: secondaryGoal1.current,
-      percentage: secondaryGoal1.percentage,
-      unit: secondaryGoal1.unit,
-      bgColor: 'bg-yellow-50',
-      textColor: 'text-yellow-800',
-      boostActive: boost1Active,
-      daysRemaining: secondaryGoal1.daysRemaining,
-      hasReportData: secondaryGoal1.target !== undefined && secondaryGoal1.current !== undefined
-    },
-    {
-      name: secondaryGoal2.name,
-      displayName: secondaryGoal2.name,
-      emoji: secondaryGoal2.emoji || '📈',
-      target: secondaryGoal2.target,
-      current: secondaryGoal2.current,
-      percentage: secondaryGoal2.percentage,
-      unit: secondaryGoal2.unit,
-      bgColor: 'bg-pink-50',
-      textColor: 'text-pink-800',
-      boostActive: boost2Active,
-      daysRemaining: secondaryGoal2.daysRemaining,
-      hasReportData: secondaryGoal2.target !== undefined && secondaryGoal2.current !== undefined
-    }
-  ];
-
-  // Legacy goal details for backward compatibility
   const defaultGoalDetails = [
     {
       title: primaryGoal.name,
@@ -212,12 +157,7 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
       <main className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Pontos e Status */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <PointsCard 
-            points={totalPoints} 
-            isUnlocked={!pointsLocked} 
-            hasSpecialProcessing={hasSpecialProcessing}
-            specialProcessingNote={specialProcessingNote}
-          />
+          <PointsCard points={totalPoints} isUnlocked={!pointsLocked} />
           <CycleCard 
             currentDay={currentCycleDay} 
             totalDays={totalCycleDays}
@@ -270,21 +210,10 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
         </div>
 
         {/* Detalhes das Metas */}
-        <GoalDetailsAccordion 
-          enhancedGoals={enhancedGoalDetails}
-          goals={goalDetails.length > 0 ? goalDetails : defaultGoalDetails} 
-        />
+        <GoalDetailsAccordion goals={goalDetails.length > 0 ? goalDetails : defaultGoalDetails} />
 
         {/* Ações Rápidas */}
-        <QuickActions 
-          playerId={playerId}
-          onHistoryClick={() => {
-            if (typeof window !== 'undefined') {
-              window.location.href = '/history';
-            }
-          }}
-          actions={customActions} 
-        />
+        <QuickActions actions={customActions} />
       </main>
     </div>
   );

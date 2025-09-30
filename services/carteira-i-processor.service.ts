@@ -6,7 +6,6 @@ import {
   FUNIFIER_CONFIG
 } from '../types';
 import { BaseTeamProcessor, CHALLENGE_MAPPING } from './team-processor.service';
-import { PrecisionMath } from '../utils/precision-math';
 
 /**
  * Carteira I Team Processor
@@ -25,83 +24,53 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
 
   processPlayerData(
     rawData: FunifierPlayerStatus,
-    reportData?: EssenciaReportRecord,
-    teamConfig?: DashboardConfig
+    reportData?: EssenciaReportRecord
   ): PlayerMetrics {
     this.validateTeamType(reportData);
 
     const playerName = rawData.name;
     const totalPoints = rawData.total_points || 0;
-    const pointsLocked = this.calculatePointsLocked(
-      rawData.catalog_items || {}, 
-      teamConfig?.unlockConditions.catalogItemId
-    );
+    const pointsLocked = this.calculatePointsLocked(rawData.catalog_items || {});
     const currentCycleDay = this.getCurrentCycleDay(reportData);
     const daysUntilCycleEnd = this.getDaysUntilCycleEnd(reportData);
 
-    // Extract goal percentages using configuration challenge IDs
-    const atividadePercentage = this.extractAtividadePercentage(
-      rawData, 
-      reportData, 
-      teamConfig?.primaryGoal.name === 'Atividade' ? teamConfig.primaryGoal.challengeId : 
-      teamConfig?.secondaryGoal1.name === 'Atividade' ? teamConfig.secondaryGoal1.challengeId :
-      teamConfig?.secondaryGoal2.name === 'Atividade' ? teamConfig.secondaryGoal2.challengeId : undefined
-    );
-    const reaisPorAtivoPercentage = this.extractReaisPorAtivoPercentage(
-      rawData, 
-      reportData,
-      teamConfig?.primaryGoal.name === 'Reais por Ativo' ? teamConfig.primaryGoal.challengeId : 
-      teamConfig?.secondaryGoal1.name === 'Reais por Ativo' ? teamConfig.secondaryGoal1.challengeId :
-      teamConfig?.secondaryGoal2.name === 'Reais por Ativo' ? teamConfig.secondaryGoal2.challengeId : undefined
-    );
-    const faturamentoPercentage = this.extractFaturamentoPercentage(
-      rawData, 
-      reportData,
-      teamConfig?.primaryGoal.name === 'Faturamento' ? teamConfig.primaryGoal.challengeId : 
-      teamConfig?.secondaryGoal1.name === 'Faturamento' ? teamConfig.secondaryGoal1.challengeId :
-      teamConfig?.secondaryGoal2.name === 'Faturamento' ? teamConfig.secondaryGoal2.challengeId : undefined
-    );
+    // Extract goal percentages
+    const atividadePercentage = this.extractAtividadePercentage(rawData, reportData);
+    const reaisPorAtivoPercentage = this.extractReaisPorAtivoPercentage(rawData, reportData);
+    const faturamentoPercentage = this.extractFaturamentoPercentage(rawData, reportData);
 
     // Extract boost status from catalog_items
-    const boost1Active = this.isBoostActive(
-      rawData.catalog_items || {}, 
-      'secondary1',
-      teamConfig?.secondaryGoal1.boost.catalogItemId
-    );
-    const boost2Active = this.isBoostActive(
-      rawData.catalog_items || {}, 
-      'secondary2',
-      teamConfig?.secondaryGoal2.boost.catalogItemId
-    );
+    const boost1Active = this.isBoostActive(rawData.catalog_items || {}, 'secondary1');
+    const boost2Active = this.isBoostActive(rawData.catalog_items || {}, 'secondary2');
 
     // Create goal metrics
     const primaryGoal = this.createGoalMetric(
-      teamConfig?.primaryGoal.displayName || 'Atividade',
+      'Atividade',
       atividadePercentage,
       false, // Primary goal doesn't have boost visual indicator
       {
         isMainGoal: true,
-        challengeIds: teamConfig?.primaryGoal.challengeId ? [teamConfig.primaryGoal.challengeId] : CHALLENGE_MAPPING[TeamType.CARTEIRA_I].atividade
+        challengeIds: CHALLENGE_MAPPING[TeamType.CARTEIRA_I].atividade
       }
     );
 
     const secondaryGoal1 = this.createGoalMetric(
-      teamConfig?.secondaryGoal1.displayName || 'Reais por Ativo',
+      'Reais por Ativo',
       reaisPorAtivoPercentage,
       boost1Active,
       {
-        boostItemId: teamConfig?.secondaryGoal1.boost.catalogItemId || FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_1,
-        challengeIds: teamConfig?.secondaryGoal1.challengeId ? [teamConfig.secondaryGoal1.challengeId] : CHALLENGE_MAPPING[TeamType.CARTEIRA_I].reaisPorAtivo
+        boostItemId: FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_1,
+        challengeIds: CHALLENGE_MAPPING[TeamType.CARTEIRA_I].reaisPorAtivo
       }
     );
 
     const secondaryGoal2 = this.createGoalMetric(
-      teamConfig?.secondaryGoal2.displayName || 'Faturamento',
+      'Faturamento',
       faturamentoPercentage,
       boost2Active,
       {
-        boostItemId: teamConfig?.secondaryGoal2.boost.catalogItemId || FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_2,
-        challengeIds: teamConfig?.secondaryGoal2.challengeId ? [teamConfig.secondaryGoal2.challengeId] : CHALLENGE_MAPPING[TeamType.CARTEIRA_I].faturamento
+        boostItemId: FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_2,
+        challengeIds: CHALLENGE_MAPPING[TeamType.CARTEIRA_I].faturamento
       }
     );
 
@@ -122,11 +91,10 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
    */
   private extractAtividadePercentage(
     rawData: FunifierPlayerStatus,
-    reportData?: EssenciaReportRecord,
-    challengeId?: string
+    reportData?: EssenciaReportRecord
   ): number {
     // Priority 1: Funifier challenge progress (primary source)
-    const challengeIds = challengeId ? [challengeId] : CHALLENGE_MAPPING[TeamType.CARTEIRA_I].atividade;
+    const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].atividade;
     const challengeFound = this.hasChallengeData(rawData.challenge_progress || [], challengeIds);
     
     if (challengeFound) {
@@ -153,11 +121,10 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
    */
   private extractReaisPorAtivoPercentage(
     rawData: FunifierPlayerStatus,
-    reportData?: EssenciaReportRecord,
-    challengeId?: string
+    reportData?: EssenciaReportRecord
   ): number {
     // Priority 1: Funifier challenge progress (primary source)
-    const challengeIds = challengeId ? [challengeId] : CHALLENGE_MAPPING[TeamType.CARTEIRA_I].reaisPorAtivo;
+    const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].reaisPorAtivo;
     const challengeFound = this.hasChallengeData(rawData.challenge_progress || [], challengeIds);
     
     if (challengeFound) {
@@ -184,11 +151,10 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
    */
   private extractFaturamentoPercentage(
     rawData: FunifierPlayerStatus,
-    reportData?: EssenciaReportRecord,
-    challengeId?: string
+    reportData?: EssenciaReportRecord
   ): number {
     // Priority 1: Funifier challenge progress (primary source)
-    const challengeIds = challengeId ? [challengeId] : CHALLENGE_MAPPING[TeamType.CARTEIRA_I].faturamento;
+    const challengeIds = CHALLENGE_MAPPING[TeamType.CARTEIRA_I].faturamento;
     const challengeFound = this.hasChallengeData(rawData.challenge_progress || [], challengeIds);
     
     if (challengeFound) {
@@ -231,16 +197,13 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
   }
 
   /**
-   * Validate and sanitize percentage values using PrecisionMath
+   * Validate and sanitize percentage values
    */
   private validatePercentage(percentage: number): number {
     if (isNaN(percentage) || !isFinite(percentage)) {
       return 0;
     }
-    
-    // Use PrecisionMath to fix floating-point precision issues
-    const precisionMetric = PrecisionMath.fixExistingPercentage(Math.max(0, percentage));
-    return precisionMetric.value;
+    return Math.max(0, percentage);
   }
 
   /**

@@ -120,28 +120,6 @@ export interface CSVGoalData {
   };
 }
 
-// Enhanced CSV data with cycle support
-export interface CycleCSVData extends CSVGoalData {
-  cycleNumber: number;
-  uploadSequence: number;
-  uploadTimestamp: string;
-}
-
-// Extended EssenciaReportRecord with cycle support
-export interface CycleAwareReportRecord extends EssenciaReportRecord {
-  cycleNumber: number;
-  uploadSequence: number; // For tracking multiple uploads within a cycle
-  cycleStartDate: string;
-  cycleEndDate: string;
-}
-
-// Precision-fixed percentage handling
-export interface PrecisionMetric {
-  value: number;
-  displayValue: string; // Pre-formatted for display
-  rawCalculation: number; // Original calculation for debugging
-}
-
 export enum TeamType {
   CARTEIRA_0 = 'CARTEIRA_0',
   CARTEIRA_I = 'CARTEIRA_I',
@@ -224,8 +202,7 @@ export interface ProgressBarConfig {
 export interface TeamProcessor {
   processPlayerData(
     rawData: FunifierPlayerStatus, 
-    reportData?: EssenciaReportRecord,
-    teamConfig?: DashboardConfig
+    reportData?: EssenciaReportRecord
   ): PlayerMetrics;
 }
 
@@ -284,8 +261,6 @@ export interface DashboardData {
   currentCycleDay: number;
   totalCycleDays: number;
   isDataFromCollection: boolean;
-  hasSpecialProcessing?: boolean;
-  specialProcessingNote?: string;
   primaryGoal: DashboardGoal;
   secondaryGoal1: DashboardGoal & { hasBoost: true };
   secondaryGoal2: DashboardGoal & { hasBoost: true };
@@ -298,135 +273,10 @@ export interface GoalDetail {
   textColor: string;
 }
 
-// Dashboard Configuration Types
-export interface DashboardMetricConfig {
-  name: string;
-  displayName: string;
-  challengeId: string;
-  actionId: string;
-  emoji: string;
-  unit: string;
-  calculationType: 'funifier_direct' | 'local_processing';
-}
-
-export interface BoostConfig {
-  catalogItemId: string;
-  name: string;
-  description: string;
-}
-
-export interface DashboardConfig {
-  teamType: TeamType;
-  displayName: string;
-  primaryGoal: DashboardMetricConfig;
-  secondaryGoal1: DashboardMetricConfig & { boost: BoostConfig };
-  secondaryGoal2: DashboardMetricConfig & { boost: BoostConfig };
-  unlockConditions: {
-    catalogItemId: string;
-    description: string;
-  };
-  specialProcessing?: {
-    type: 'carteira_ii_local';
-    description: string;
-    warnings: string[];
-  };
-}
-
-export interface DashboardConfigurationRecord {
-  _id: string;
-  version: number;
-  createdAt: string;
-  createdBy: string;
-  configurations: Record<TeamType, DashboardConfig>;
-  isActive: boolean;
-}
-
-// History Service Types
-export interface CycleHistoryData {
-  cycleNumber: number;
-  startDate: string;
-  endDate: string;
-  totalDays: number;
-  completionStatus: 'completed' | 'in_progress';
-  finalMetrics: {
-    primaryGoal: MetricSnapshot;
-    secondaryGoal1: MetricSnapshot;
-    secondaryGoal2: MetricSnapshot;
-  };
-  progressTimeline: ProgressDataPoint[];
-}
-
-export interface MetricSnapshot {
-  name: string;
-  percentage: number;
-  target: number;
-  current: number;
-  unit: string;
-  boostActive: boolean;
-}
-
-export interface ProgressDataPoint {
-  date: string;
-  dayInCycle: number;
-  metrics: Record<string, number>;
-  uploadSequence: number;
-}
-
-// Configuration Validation Types
-export interface ValidationResult {
-  isValid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
-}
-
-export interface ValidationError {
-  field: string;
-  message: string;
-  severity: 'error' | 'warning';
-}
-
-export interface ValidationWarning {
-  field: string;
-  message: string;
-  type: 'compatibility' | 'performance' | 'business_rule';
-}
-
-// Cycle Management Types
-export interface CycleInfo {
-  cycleNumber: number;
-  startDate: string;
-  endDate: string;
-  totalDays: number;
-  isActive: boolean;
-  isCompleted: boolean;
-}
-
-export interface CycleMigrationStatus {
-  totalRecords: number;
-  migratedRecords: number;
-  failedRecords: number;
-  errors: string[];
-  isComplete: boolean;
-}
-
-// Enhanced Goal Detail Types for real metric values
-export interface EnhancedGoalDetail {
-  title: string;
-  target: number;
-  current: number;
-  unit: string;
-  percentage: number;
-  formattedTarget: string;
-  formattedCurrent: string;
-  bgColor: string;
-  textColor: string;
-}
-
 export const FUNIFIER_CONFIG = {
   API_KEY: process.env.FUNIFIER_API_KEY || '',
   BASE_URL: process.env.FUNIFIER_BASE_URL || 'https://service2.funifier.com/v3',
   CUSTOM_COLLECTION: 'report__c',
-  DASHBOARD_CONFIG_COLLECTION: 'dashboards__c',
   CATALOG_ITEMS: {
     UNLOCK_POINTS: 'E6F0O5f',
     LOCK_POINTS: 'E6F0MJ3',

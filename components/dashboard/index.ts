@@ -17,6 +17,3 @@ export { CarteiraIVDashboard } from './CarteiraIVDashboard';
 export { ERDashboard } from './ERDashboard';
 export { DebugDashboard } from './DebugDashboard';
 export { RefreshButton } from './RefreshButton';
-export { CycleHistoryDashboard } from './CycleHistoryDashboard';
-export { CycleDetailsView } from './CycleDetailsView';
-export { ProgressTimelineChart } from './ProgressTimelineChart';

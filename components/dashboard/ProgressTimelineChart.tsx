@@ -1,376 +1,335 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { ProgressDataPoint, CycleHistoryData } from '../../types';
-import { PrecisionMath } from '../../utils/precision-math';
 
 interface ProgressTimelineChartProps {
   data: ProgressDataPoint[];
   cycleData: CycleHistoryData;
-  metricConfigurations?: Record<string, { name: string; color: string; emoji: string }>;
+  height?: number;
 }
 
 export const ProgressTimelineChart: React.FC<ProgressTimelineChartProps> = ({
   data,
   cycleData,
-  metricConfigurations
+  height = 400
 }) => {
-  const [selectedMetric, setSelectedMetric] = useState<string>('all');
-  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
+  const chartData = useMemo(() => {
+    if (!data || data.length === 0) {
+      return {
+        points: [],
+        maxValue: 100,
+        minValue: 0
+      };
+    }
 
-  // Get available metrics from the data
-  const availableMetrics = data.length > 0 ? Object.keys(data[0].metrics) : [];
-  
-  // Metric configurations - use provided configurations or defaults
-  const defaultMetricConfig = {
-    atividade: { name: 'Atividade', color: '#8B5CF6', emoji: '🎯' },
-    reaisPorAtivo: { name: 'Reais por Ativo', color: '#10B981', emoji: '💰' },
-    faturamento: { name: 'Faturamento', color: '#F59E0B', emoji: '📈' },
-    multimarcasPorAtivo: { name: 'Multimarcas por Ativo', color: '#EF4444', emoji: '🏷️' },
-    conversoes: { name: 'Conversões', color: '#6366F1', emoji: '🔄' },
-    upa: { name: 'UPA', color: '#EC4899', emoji: '📊' }
-  };
-  
-  const metricConfig = metricConfigurations || defaultMetricConfig;
+    // Sort data by upload sequence to ensure chronological order
+    const sortedData = [...data].sort((a, b) => a.uploadSequence - b.uploadSequence);
 
-  // Calculate chart dimensions and scales
+    // Extract metric values for each data point
+    const points = sortedData.map((point, index) => {
+      const metrics = point.metrics || {};
+      
+      return {
+        x: index,
+        date: point.date,
+        dayInCycle: point.dayInCycle,
+        uploadSequence: point.uploadSequence,
+        primaryGoal: metrics[cycleData.finalMetrics.primaryGoal.name] || 0,
+        secondaryGoal1: metrics[cycleData.finalMetrics.secondaryGoal1.name] || 0,
+        secondaryGoal2: metrics[cycleData.finalMetrics.secondaryGoal2.name] || 0
+      };
+    });
+
+    // Calculate min and max values for scaling
+    const allValues = points.flatMap(p => [p.primaryGoal, p.secondaryGoal1, p.secondaryGoal2]);
+    const maxValue = Math.max(100, Math.max(...allValues) * 1.1);
+    const minValue = Math.min(0, Math.min(...allValues));
+
+    return {
+      points,
+      maxValue,
+      minValue
+    };
+  }, [data, cycleData]);
+
+  const { points, maxValue, minValue } = chartData;
+
+  if (points.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64 text-gray-500">
+        <div className="text-center">
+          <div className="text-4xl mb-2">📊</div>
+          <p>Nenhum dado de progresso disponível</p>
+          <p className="text-sm mt-2">Os dados aparecerão aqui quando houver uploads de progresso</p>
+        </div>
+      </div>
+    );
+  }
+
   const chartWidth = 800;
-  const chartHeight = 400;
-  const padding = { top: 20, right: 20, bottom: 60, left: 60 };
-  const plotWidth = chartWidth - padding.left - padding.right;
-  const plotHeight = chartHeight - padding.top - padding.bottom;
-
-  // Find min/max values for scaling
-  const allValues = data.flatMap(point => Object.values(point.metrics));
-  const minValue = Math.min(0, ...allValues);
-  const maxValue = Math.max(100, ...allValues);
+  const chartHeight = height - 100; // Leave space for labels
+  const padding = 60;
+  const plotWidth = chartWidth - (padding * 2);
+  const plotHeight = chartHeight - (padding * 2);
 
   // Scale functions
-  const xScale = (index: number) => (index / Math.max(1, data.length - 1)) * plotWidth;
-  const yScale = (value: number) => plotHeight - ((value - minValue) / (maxValue - minValue)) * plotHeight;
+  const scaleX = (index: number) => padding + (index / (points.length - 1)) * plotWidth;
+  const scaleY = (value: number) => padding + plotHeight - ((value - minValue) / (maxValue - minValue)) * plotHeight;
 
-  // Generate SVG path for a metric
-  const generatePath = (metricName: string) => {
-    if (data.length === 0) return '';
+  // Generate path for each metric
+  const generatePath = (metricKey: 'primaryGoal' | 'secondaryGoal1' | 'secondaryGoal2') => {
+    if (points.length === 0) return '';
     
-    const points = data.map((point, index) => {
-      const x = xScale(index);
-      const y = yScale(point.metrics[metricName] || 0);
+    const pathData = points.map((point, index) => {
+      const x = scaleX(index);
+      const y = scaleY(point[metricKey]);
       return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
     }).join(' ');
     
-    return points;
+    return pathData;
   };
 
   // Generate grid lines
   const gridLines = [];
-  for (let i = 0; i <= 10; i++) {
-    const y = (i / 10) * plotHeight;
-    const value = maxValue - (i / 10) * (maxValue - minValue);
+  const numHorizontalLines = 5;
+  const numVerticalLines = Math.min(points.length, 10);
+
+  // Horizontal grid lines
+  for (let i = 0; i <= numHorizontalLines; i++) {
+    const y = padding + (i / numHorizontalLines) * plotHeight;
+    const value = maxValue - (i / numHorizontalLines) * (maxValue - minValue);
     gridLines.push(
-      <g key={i}>
+      <g key={`h-${i}`}>
         <line
-          x1={0}
+          x1={padding}
           y1={y}
-          x2={plotWidth}
+          x2={chartWidth - padding}
           y2={y}
-          stroke="#E5E7EB"
+          stroke="#e5e7eb"
           strokeWidth={1}
-          strokeDasharray={i % 2 === 0 ? "none" : "2,2"}
         />
         <text
-          x={-10}
+          x={padding - 10}
           y={y + 4}
           textAnchor="end"
-          fontSize="12"
-          fill="#6B7280"
+          className="text-xs fill-gray-500"
         >
-          {Math.round(value)}%
+          {value.toFixed(0)}%
         </text>
       </g>
     );
   }
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit'
-    });
-  };
-
-  return (
-    <div className="space-y-4">
-      {/* Metric Selector */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setSelectedMetric('all')}
-          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-            selectedMetric === 'all'
-              ? 'bg-boticario-purple text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          📊 Todas as Métricas
-        </button>
-        {availableMetrics.map(metric => {
-          const config = metricConfig[metric as keyof typeof metricConfig];
-          if (!config) return null;
-          
-          return (
-            <button
-              key={metric}
-              onClick={() => setSelectedMetric(metric)}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                selectedMetric === metric
-                  ? 'bg-boticario-purple text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {config.emoji} {config.name}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Chart Container */}
-      <div className="relative bg-gray-50 rounded-lg p-4 overflow-x-auto">
-        <svg
-          width={chartWidth}
-          height={chartHeight}
-          className="mx-auto"
-          style={{ minWidth: '600px' }}
-        >
-          {/* Chart background */}
-          <rect
-            x={padding.left}
-            y={padding.top}
-            width={plotWidth}
-            height={plotHeight}
-            fill="white"
-            stroke="#E5E7EB"
+  // Vertical grid lines
+  for (let i = 0; i < numVerticalLines; i++) {
+    const pointIndex = Math.floor((i / (numVerticalLines - 1)) * (points.length - 1));
+    const x = scaleX(pointIndex);
+    const point = points[pointIndex];
+    
+    if (point) {
+      gridLines.push(
+        <g key={`v-${i}`}>
+          <line
+            x1={x}
+            y1={padding}
+            x2={x}
+            y2={chartHeight - padding}
+            stroke="#e5e7eb"
             strokeWidth={1}
           />
-          
-          {/* Grid lines */}
-          <g transform={`translate(${padding.left}, ${padding.top})`}>
-            {gridLines}
-          </g>
-          
-          {/* Chart content */}
-          <g transform={`translate(${padding.left}, ${padding.top})`}>
-            {/* Render lines based on selected metric */}
-            {selectedMetric === 'all' ? (
-              // Render all metrics
-              availableMetrics.map(metric => {
-                const config = metricConfig[metric as keyof typeof metricConfig];
-                if (!config) return null;
-                
-                return (
-                  <g key={metric}>
-                    <path
-                      d={generatePath(metric)}
-                      fill="none"
-                      stroke={config.color}
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    {/* Data points */}
-                    {data.map((point, index) => (
-                      <circle
-                        key={`${metric}-${index}`}
-                        cx={xScale(index)}
-                        cy={yScale(point.metrics[metric] || 0)}
-                        r={4}
-                        fill={config.color}
-                        stroke="white"
-                        strokeWidth={2}
-                        className="cursor-pointer hover:r-6 transition-all"
-                        onMouseEnter={() => setHoveredPoint(index)}
-                        onMouseLeave={() => setHoveredPoint(null)}
-                      />
-                    ))}
-                  </g>
-                );
-              })
-            ) : (
-              // Render single metric
-              (() => {
-                const config = metricConfig[selectedMetric as keyof typeof metricConfig];
-                if (!config) return null;
-                
-                return (
-                  <g>
-                    <path
-                      d={generatePath(selectedMetric)}
-                      fill="none"
-                      stroke={config.color}
-                      strokeWidth={3}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    {/* Data points */}
-                    {data.map((point, index) => (
-                      <circle
-                        key={index}
-                        cx={xScale(index)}
-                        cy={yScale(point.metrics[selectedMetric] || 0)}
-                        r={5}
-                        fill={config.color}
-                        stroke="white"
-                        strokeWidth={2}
-                        className="cursor-pointer hover:r-7 transition-all"
-                        onMouseEnter={() => setHoveredPoint(index)}
-                        onMouseLeave={() => setHoveredPoint(null)}
-                      />
-                    ))}
-                  </g>
-                );
-              })()
-            )}
-            
-            {/* X-axis labels */}
-            {data.map((point, index) => (
-              <g key={`x-label-${index}`}>
-                <line
-                  x1={xScale(index)}
-                  y1={plotHeight}
-                  x2={xScale(index)}
-                  y2={plotHeight + 5}
-                  stroke="#6B7280"
-                  strokeWidth={1}
-                />
-                <text
-                  x={xScale(index)}
-                  y={plotHeight + 20}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill="#6B7280"
-                  transform={`rotate(-45, ${xScale(index)}, ${plotHeight + 20})`}
-                >
-                  {formatDate(point.date)}
-                </text>
-                <text
-                  x={xScale(index)}
-                  y={plotHeight + 35}
-                  textAnchor="middle"
-                  fontSize="9"
-                  fill="#9CA3AF"
-                >
-                  Dia {point.dayInCycle}
-                </text>
-              </g>
-            ))}
-          </g>
-          
-          {/* Y-axis label */}
           <text
-            x={20}
-            y={chartHeight / 2}
+            x={x}
+            y={chartHeight - padding + 20}
             textAnchor="middle"
-            fontSize="12"
-            fill="#6B7280"
-            transform={`rotate(-90, 20, ${chartHeight / 2})`}
+            className="text-xs fill-gray-500"
           >
-            Percentual (%)
+            Dia {point.dayInCycle}
           </text>
-          
-          {/* X-axis label */}
-          <text
-            x={chartWidth / 2}
-            y={chartHeight - 10}
-            textAnchor="middle"
-            fontSize="12"
-            fill="#6B7280"
-          >
-            Evolução do Ciclo
-          </text>
-        </svg>
-        
-        {/* Tooltip */}
-        {hoveredPoint !== null && (
-          <div className="absolute bg-gray-800 text-white p-3 rounded-lg shadow-lg pointer-events-none z-10"
-               style={{
-                 left: `${padding.left + xScale(hoveredPoint) + 10}px`,
-                 top: `${padding.top + 10}px`
-               }}>
-            <div className="text-sm font-medium mb-1">
-              {formatDate(data[hoveredPoint].date)} - Dia {data[hoveredPoint].dayInCycle}
-            </div>
-            {selectedMetric === 'all' ? (
-              <div className="space-y-1">
-                {availableMetrics.map(metric => {
-                  const config = metricConfig[metric as keyof typeof metricConfig];
-                  if (!config) return null;
-                  
-                  const value = data[hoveredPoint].metrics[metric] || 0;
-                  return (
-                    <div key={metric} className="flex items-center space-x-2 text-xs">
-                      <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: config.color }}
-                      />
-                      <span>{config.name}:</span>
-                      <span className="font-medium">
-                        {PrecisionMath.fixExistingPercentage(value).displayValue}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-sm">
-                {metricConfig[selectedMetric as keyof typeof metricConfig]?.name}: {' '}
-                <span className="font-medium">
-                  {PrecisionMath.fixExistingPercentage(data[hoveredPoint].metrics[selectedMetric] || 0).displayValue}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
+        </g>
+      );
+    }
+  }
+
+  return (
+    <div className="w-full">
+      {/* Legend */}
+      <div className="flex justify-center space-x-6 mb-4">
+        <div className="flex items-center space-x-2">
+          <div className="w-4 h-4 bg-blue-500 rounded"></div>
+          <span className="text-sm text-gray-700">Meta Principal</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-4 h-4 bg-green-500 rounded"></div>
+          <span className="text-sm text-gray-700">Meta Secundária 1</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-4 h-4 bg-purple-500 rounded"></div>
+          <span className="text-sm text-gray-700">Meta Secundária 2</span>
+        </div>
       </div>
 
-      {/* Legend */}
-      {selectedMetric === 'all' && (
-        <div className="flex flex-wrap gap-4 justify-center">
-          {availableMetrics.map(metric => {
-            const config = metricConfig[metric as keyof typeof metricConfig];
-            if (!config) return null;
-            
-            return (
-              <div key={metric} className="flex items-center space-x-2">
-                <div 
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: config.color }}
-                />
-                <span className="text-sm text-gray-700">
-                  {config.emoji} {config.name}
-                </span>
-              </div>
-            );
-          })}
+      {/* Chart */}
+      <div className="overflow-x-auto">
+        <svg width={chartWidth} height={height} className="border border-gray-200 rounded-lg bg-white">
+          {/* Grid lines */}
+          {gridLines}
+          
+          {/* Chart lines */}
+          <path
+            d={generatePath('primaryGoal')}
+            fill="none"
+            stroke="#3b82f6"
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d={generatePath('secondaryGoal1')}
+            fill="none"
+            stroke="#10b981"
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d={generatePath('secondaryGoal2')}
+            fill="none"
+            stroke="#8b5cf6"
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          
+          {/* Data points */}
+          {points.map((point, index) => (
+            <g key={index}>
+              {/* Primary goal point */}
+              <circle
+                cx={scaleX(index)}
+                cy={scaleY(point.primaryGoal)}
+                r={4}
+                fill="#3b82f6"
+                className="hover:r-6 transition-all cursor-pointer"
+              >
+                <title>
+                  Dia {point.dayInCycle}: {point.primaryGoal.toFixed(1)}%
+                  {'\n'}Data: {new Date(point.date).toLocaleDateString('pt-BR')}
+                </title>
+              </circle>
+              
+              {/* Secondary goal 1 point */}
+              <circle
+                cx={scaleX(index)}
+                cy={scaleY(point.secondaryGoal1)}
+                r={4}
+                fill="#10b981"
+                className="hover:r-6 transition-all cursor-pointer"
+              >
+                <title>
+                  Dia {point.dayInCycle}: {point.secondaryGoal1.toFixed(1)}%
+                  {'\n'}Data: {new Date(point.date).toLocaleDateString('pt-BR')}
+                </title>
+              </circle>
+              
+              {/* Secondary goal 2 point */}
+              <circle
+                cx={scaleX(index)}
+                cy={scaleY(point.secondaryGoal2)}
+                r={4}
+                fill="#8b5cf6"
+                className="hover:r-6 transition-all cursor-pointer"
+              >
+                <title>
+                  Dia {point.dayInCycle}: {point.secondaryGoal2.toFixed(1)}%
+                  {'\n'}Data: {new Date(point.date).toLocaleDateString('pt-BR')}
+                </title>
+              </circle>
+              
+              {/* Boost indicators */}
+              {cycleData.finalMetrics.secondaryGoal1.boostActive && point.secondaryGoal1 >= 100 && (
+                <text
+                  x={scaleX(index)}
+                  y={scaleY(point.secondaryGoal1) - 15}
+                  textAnchor="middle"
+                  className="text-xs fill-green-600"
+                >
+                  🚀
+                </text>
+              )}
+              {cycleData.finalMetrics.secondaryGoal2.boostActive && point.secondaryGoal2 >= 100 && (
+                <text
+                  x={scaleX(index)}
+                  y={scaleY(point.secondaryGoal2) - 15}
+                  textAnchor="middle"
+                  className="text-xs fill-purple-600"
+                >
+                  🚀
+                </text>
+              )}
+            </g>
+          ))}
+          
+          {/* 100% reference line */}
+          <line
+            x1={padding}
+            y1={scaleY(100)}
+            x2={chartWidth - padding}
+            y2={scaleY(100)}
+            stroke="#ef4444"
+            strokeWidth={2}
+            strokeDasharray="5,5"
+            opacity={0.7}
+          />
+          <text
+            x={chartWidth - padding - 5}
+            y={scaleY(100) - 5}
+            textAnchor="end"
+            className="text-xs fill-red-500 font-medium"
+          >
+            Meta (100%)
+          </text>
+          
+          {/* Axis labels */}
+          <text
+            x={chartWidth / 2}
+            y={height - 10}
+            textAnchor="middle"
+            className="text-sm fill-gray-700 font-medium"
+          >
+            Dias do Ciclo
+          </text>
+          <text
+            x={20}
+            y={height / 2}
+            textAnchor="middle"
+            transform={`rotate(-90, 20, ${height / 2})`}
+            className="text-sm fill-gray-700 font-medium"
+          >
+            Percentual de Progresso (%)
+          </text>
+        </svg>
+      </div>
+
+      {/* Summary stats */}
+      <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+        <div className="bg-blue-50 p-3 rounded-lg">
+          <div className="text-lg font-semibold text-blue-600">
+            {cycleData.finalMetrics.primaryGoal.percentage.toFixed(1)}%
+          </div>
+          <div className="text-sm text-blue-700">Meta Principal Final</div>
         </div>
-      )}
-      
-      {/* Chart Summary */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-medium text-gray-800 mb-2">📋 Resumo do Gráfico</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600">Pontos de Dados:</span>
-            <span className="ml-1 font-medium">{data.length}</span>
+        <div className="bg-green-50 p-3 rounded-lg">
+          <div className="text-lg font-semibold text-green-600">
+            {cycleData.finalMetrics.secondaryGoal1.percentage.toFixed(1)}%
           </div>
-          <div>
-            <span className="text-gray-600">Período:</span>
-            <span className="ml-1 font-medium">
-              {data.length > 0 && `${formatDate(data[0].date)} - ${formatDate(data[data.length - 1].date)}`}
-            </span>
+          <div className="text-sm text-green-700">Meta Secundária 1 Final</div>
+        </div>
+        <div className="bg-purple-50 p-3 rounded-lg">
+          <div className="text-lg font-semibold text-purple-600">
+            {cycleData.finalMetrics.secondaryGoal2.percentage.toFixed(1)}%
           </div>
-          <div>
-            <span className="text-gray-600">Duração do Ciclo:</span>
-            <span className="ml-1 font-medium">{cycleData.totalDays} dias</span>
-          </div>
+          <div className="text-sm text-purple-700">Meta Secundária 2 Final</div>
         </div>
       </div>
     </div>

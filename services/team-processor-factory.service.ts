@@ -3,8 +3,7 @@ import {
   TeamProcessor,
   PlayerMetrics,
   FunifierPlayerStatus,
-  EssenciaReportRecord,
-  DashboardConfig
+  EssenciaReportRecord
 } from '../types';
 import { carteiraIProcessor } from './carteira-i-processor.service';
 import { carteiraIIProcessor } from './carteira-ii-processor.service';
@@ -59,11 +58,10 @@ export class TeamProcessorFactory {
   public processPlayerData(
     teamType: TeamType,
     rawData: FunifierPlayerStatus,
-    reportData?: EssenciaReportRecord,
-    teamConfig?: DashboardConfig
+    reportData?: EssenciaReportRecord
   ): PlayerMetrics {
     const processor = this.getProcessor(teamType);
-    return processor.processPlayerData(rawData, reportData, teamConfig);
+    return processor.processPlayerData(rawData, reportData);
   }
 
   /**
@@ -111,8 +109,7 @@ export class TeamProcessorFactory {
    */
   public processPlayerDataAuto(
     rawData: FunifierPlayerStatus,
-    reportData?: EssenciaReportRecord,
-    teamConfig?: DashboardConfig
+    reportData?: EssenciaReportRecord
   ): {
     teamType: TeamType | null;
     playerMetrics: PlayerMetrics | null;
@@ -135,7 +132,7 @@ export class TeamProcessorFactory {
         };
       }
 
-      const playerMetrics = this.processPlayerData(teamType, rawData, reportData, teamConfig);
+      const playerMetrics = this.processPlayerData(teamType, rawData, reportData);
 
       return {
         teamType,
