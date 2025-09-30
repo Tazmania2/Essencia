@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { CSVGoalData } from '../types';
+import { CSVGoalData, CycleCSVData } from '../types';
 
 export class CSVProcessingService {
   private static instance: CSVProcessingService;
@@ -14,9 +14,9 @@ export class CSVProcessingService {
   }
 
   /**
-   * Download and parse CSV from S3 URL
+   * Download and parse CSV from S3 URL with cycle information
    */
-  public async downloadAndParseCSV(url: string): Promise<CSVGoalData | null> {
+  public async downloadAndParseCSV(url: string, cycleNumber?: number): Promise<CycleCSVData | null> {
     try {
       // Validate URL format
       if (!url || typeof url !== 'string' || !url.startsWith('http')) {
@@ -40,7 +40,7 @@ export class CSVProcessingService {
         return null;
       }
 
-      return this.parseGoalCSV(response.data);
+      return this.parseGoalCSV(response.data, cycleNumber);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.code === 'ECONNABORTED') {
@@ -60,9 +60,9 @@ export class CSVProcessingService {
   }
 
   /**
-   * Parse CSV content into goal data structure
+   * Parse CSV content into goal data structure with cycle information
    */
-  public parseGoalCSV(csvContent: string): CSVGoalData | null {
+  public parseGoalCSV(csvContent: string, cycleNumber?: number): CycleCSVData | null {
     try {
       // Validate input
       if (!csvContent || typeof csvContent !== 'string') {
@@ -100,6 +100,12 @@ export class CSVProcessingService {
         }
       }
 
+      // Validate cycle number if provided
+      if (cycleNumber !== undefined && (cycleNumber < 1 || !Number.isInteger(cycleNumber))) {
+        console.warn(`Invalid cycle number: ${cycleNumber}. Must be a positive integer.`);
+        return null;
+      }
+
       // Helper function to safely parse numbers
       const safeParseFloat = (value: string, fieldName: string): number => {
         const parsed = parseFloat(value);
@@ -120,7 +126,7 @@ export class CSVProcessingService {
       };
 
       // Parse the data according to expected structure with validation
-      const goalData: CSVGoalData = {
+      const goalData: CycleCSVData = {
         playerId: csvData['Player ID'],
         cycleDay: safeParseInt(csvData['Dia do Ciclo'], 'Dia do Ciclo'),
         totalCycleDays: safeParseInt(csvData['Total Dias Ciclo'], 'Total Dias Ciclo') || 21,
@@ -143,7 +149,11 @@ export class CSVProcessingService {
           target: safeParseFloat(csvData['Atividade Meta'], 'Atividade Meta'),
           current: safeParseFloat(csvData['Atividade Atual'], 'Atividade Atual'),
           percentage: safeParseFloat(csvData['Atividade %'], 'Atividade %')
-        }
+        },
+        // Cycle-specific fields
+        cycleNumber: cycleNumber || 1, // Default to cycle 1 for backward compatibility
+        uploadSequence: 1, // Will be updated by database service based on existing uploads
+        uploadTimestamp: new Date().toISOString()
       };
 
       // Add optional new metrics if present in CSV
@@ -182,6 +192,75 @@ export class CSVProcessingService {
       console.error('Unexpected error parsing CSV:', error);
       return null;
     }
+  }
+
+  /**
+   * Validate cycle-related CSV fields and metadata
+   */
+  public validateCycleFields(csvData: CycleCSVData): string[] {
+    const errors: string[] = [];
+
+    // Validate cycle number
+    if (csvData.cycleNumber < 1 || !Number.isInteger(csvData.cycleNumber)) {
+      errors.push(`Invalid cycle number: ${csvData.cycleNumber}. Must be a positive integer.`);
+    }
+
+    // Validate upload sequence
+    if (csvData.uploadSequence < 1 || !Number.isInteger(csvData.uploadSequence)) {
+      errors.push(`Invalid upload sequence: ${csvData.uploadSequence}. Must be a positive integer.`);
+    }
+
+    // Validate upload timestamp
+    if (!csvData.uploadTimestamp || isNaN(Date.parse(csvData.uploadTimestamp))) {
+      errors.push(`Invalid upload timestamp: ${csvData.uploadTimestamp}. Must be a valid ISO date string.`);
+    }
+
+    // Validate cycle day is within reasonable bounds
+    if (csvData.cycleDay < 1 || csvData.cycleDay > csvData.totalCycleDays) {
+      errors.push(`Cycle day ${csvData.cycleDay} is outside valid range (1-${csvData.totalCycleDays})`);
+    }
+
+    // Validate total cycle days is reasonable
+    if (csvData.totalCycleDays < 1 || csvData.totalCycleDays > 365) {
+      errors.push(`Total cycle days ${csvData.totalCycleDays} is outside reasonable range (1-365)`);
+    }
+
+    return errors;
+  }
+
+  /**
+   * Extract cycle metadata from CSV data
+   */
+  public extractCycleMetadata(csvData: CycleCSVData): {
+    cycleNumber: number;
+    cycleDay: number;
+    totalCycleDays: number;
+    uploadSequence: number;
+    uploadTimestamp: string;
+  } {
+    return {
+      cycleNumber: csvData.cycleNumber,
+      cycleDay: csvData.cycleDay,
+      totalCycleDays: csvData.totalCycleDays,
+      uploadSequence: csvData.uploadSequence,
+      uploadTimestamp: csvData.uploadTimestamp
+    };
+  }
+
+  /**
+   * Create cycle-aware CSV data from base CSV data
+   */
+  public enhanceWithCycleData(
+    baseData: CSVGoalData, 
+    cycleNumber: number, 
+    uploadSequence: number = 1
+  ): CycleCSVData {
+    return {
+      ...baseData,
+      cycleNumber,
+      uploadSequence,
+      uploadTimestamp: new Date().toISOString()
+    };
   }
 
   /**
@@ -356,6 +435,51 @@ export class CSVProcessingService {
     }
 
     return errors;
+  }
+
+  /**
+   * Process CSV with backward compatibility for non-cycle data
+   */
+  public async processCSVWithCycleSupport(
+    csvContent: string, 
+    cycleNumber?: number,
+    uploadSequence?: number
+  ): Promise<CycleCSVData | null> {
+    try {
+      // First try to parse as regular CSV
+      const baseData = this.parseGoalCSV(csvContent, cycleNumber);
+      if (!baseData) {
+        return null;
+      }
+
+      // If uploadSequence is provided, update it
+      if (uploadSequence !== undefined) {
+        baseData.uploadSequence = uploadSequence;
+      }
+
+      // Validate cycle fields
+      const cycleErrors = this.validateCycleFields(baseData);
+      if (cycleErrors.length > 0) {
+        console.warn('Cycle validation errors:', cycleErrors);
+        // Log warnings but don't fail processing for backward compatibility
+        cycleErrors.forEach(error => console.warn(`Cycle validation: ${error}`));
+      }
+
+      return baseData;
+    } catch (error) {
+      console.error('Error processing CSV with cycle support:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if CSV data has cycle information
+   */
+  public hasCycleInformation(csvData: any): csvData is CycleCSVData {
+    return csvData && 
+           typeof csvData.cycleNumber === 'number' && 
+           typeof csvData.uploadSequence === 'number' && 
+           typeof csvData.uploadTimestamp === 'string';
   }
 }
 

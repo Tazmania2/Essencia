@@ -6,9 +6,17 @@ interface PointsCardProps {
   points: number;
   isUnlocked: boolean;
   teamType?: string;
+  hasSpecialProcessing?: boolean;
+  specialProcessingNote?: string;
 }
 
-export const PointsCard: React.FC<PointsCardProps> = ({ points, isUnlocked, teamType }) => {
+export const PointsCard: React.FC<PointsCardProps> = ({ 
+  points, 
+  isUnlocked, 
+  teamType, 
+  hasSpecialProcessing = false,
+  specialProcessingNote = "Pontos calculados localmente"
+}) => {
   // Dynamic styling based on unlock status as per requirements:
   // Blue background + green text for unlocked
   // White background + red text for locked
@@ -49,9 +57,9 @@ export const PointsCard: React.FC<PointsCardProps> = ({ points, isUnlocked, team
         <p className="text-gray-600">
           {isUnlocked ? 'pontos disponíveis' : 'pontos bloqueados'}
         </p>
-        {teamType === 'CARTEIRA_II' && (
+        {hasSpecialProcessing && (
           <p className="text-xs text-gray-500 mt-1">
-            * Pontos calculados localmente
+            * {specialProcessingNote}
           </p>
         )}
       </div>

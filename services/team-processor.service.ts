@@ -7,8 +7,10 @@ import {
   FunifierPlayerStatus,
   EssenciaReportRecord,
   ChallengeMapping,
+  DashboardConfig,
   FUNIFIER_CONFIG
 } from '../types';
+import { PrecisionMath } from '../utils/precision-math';
 
 /**
  * Challenge ID mapping configuration for each team
@@ -149,7 +151,8 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
 
   abstract processPlayerData(
     rawData: FunifierPlayerStatus, 
-    reportData?: EssenciaReportRecord
+    reportData?: EssenciaReportRecord,
+    teamConfig?: DashboardConfig
   ): PlayerMetrics;
 
   /**
@@ -157,8 +160,9 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
    * Special logic: 0-50% red (0-33% fill), 50-100% yellow (33-66% fill), 100-150% green (66-100% fill)
    */
   protected calculateProgressBar(percentage: number): ProgressBarConfig {
-    // Round percentage to avoid floating-point precision issues
-    const roundedPercentage = Math.round(percentage * 100) / 100;
+    // Use PrecisionMath to fix floating-point precision issues
+    const precisionMetric = PrecisionMath.fixExistingPercentage(percentage);
+    const roundedPercentage = precisionMetric.value;
     
     if (roundedPercentage <= 50) {
       return {
@@ -184,20 +188,25 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
   /**
    * Calculate points lock status from catalog items
    */
-  protected calculatePointsLocked(catalogItems: Record<string, number>): boolean {
-    const unlockItemCount = catalogItems[FUNIFIER_CONFIG.CATALOG_ITEMS.UNLOCK_POINTS] || 0;
+  protected calculatePointsLocked(catalogItems: Record<string, number>, unlockItemId?: string): boolean {
+    const itemId = unlockItemId || FUNIFIER_CONFIG.CATALOG_ITEMS.UNLOCK_POINTS;
+    const unlockItemCount = catalogItems[itemId] || 0;
     return unlockItemCount === 0; // Locked if unlock item count is 0
   }
 
   /**
    * Check if boost is active from catalog items
    */
-  protected isBoostActive(catalogItems: Record<string, number>, boostType: 'secondary1' | 'secondary2'): boolean {
-    const boostItemId = boostType === 'secondary1' 
+  protected isBoostActive(
+    catalogItems: Record<string, number>, 
+    boostType: 'secondary1' | 'secondary2',
+    boostItemId?: string
+  ): boolean {
+    const itemId = boostItemId || (boostType === 'secondary1' 
       ? FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_1
-      : FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_2;
+      : FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_2);
     
-    return (catalogItems[boostItemId] || 0) > 0;
+    return (catalogItems[itemId] || 0) > 0;
   }
 
   /**
@@ -236,8 +245,9 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
       if (challengeIds.includes(progress.challenge || progress.challengeId || progress.id)) {
         // Extract percentage from challenge progress - use actual Funifier field names
         const rawPercentage = progress.percent_completed || progress.percentage || progress.progress || fallbackValue;
-        // Round to avoid floating-point precision issues
-        return Math.round(rawPercentage * 100) / 100;
+        // Use PrecisionMath to fix floating-point precision issues
+        const precisionMetric = PrecisionMath.fixExistingPercentage(rawPercentage);
+        return precisionMetric.value;
       }
     }
     return fallbackValue;
@@ -288,11 +298,12 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
  */
 export class TeamProcessorUtils {
   /**
-   * Calculate percentage with bounds checking
+   * Calculate percentage with bounds checking using PrecisionMath
    */
   static calculatePercentage(current: number, target: number): number {
     if (target <= 0) return 0;
-    return Math.max(0, (current / target) * 100);
+    const precisionMetric = PrecisionMath.calculatePercentage(current, target);
+    return Math.max(0, precisionMetric.value);
   }
 
   /**
@@ -376,14 +387,15 @@ export class TeamProcessorUtils {
   }
 
   /**
-   * Validate percentage value
+   * Validate percentage value using PrecisionMath
    */
   static validatePercentage(percentage: number): number {
     if (isNaN(percentage) || !isFinite(percentage)) {
       return 0;
     }
-    // Round to 2 decimal places to avoid floating-point precision issues
-    return Math.max(0, Math.round(percentage * 100) / 100);
+    // Use PrecisionMath to fix floating-point precision issues
+    const precisionMetric = PrecisionMath.fixExistingPercentage(Math.max(0, percentage));
+    return precisionMetric.value;
   }
 
   /**

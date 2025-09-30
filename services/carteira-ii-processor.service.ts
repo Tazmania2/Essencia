@@ -3,6 +3,7 @@ import {
   PlayerMetrics,
   FunifierPlayerStatus,
   EssenciaReportRecord,
+  DashboardConfig,
   FUNIFIER_CONFIG
 } from '../types';
 import { BaseTeamProcessor, CHALLENGE_MAPPING, TeamProcessorUtils } from './team-processor.service';
@@ -26,7 +27,8 @@ export class CarteiraIIProcessor extends BaseTeamProcessor {
 
   processPlayerData(
     rawData: FunifierPlayerStatus,
-    reportData?: EssenciaReportRecord
+    reportData?: EssenciaReportRecord,
+    teamConfig?: DashboardConfig
   ): PlayerMetrics {
     this.validateTeamType(reportData);
 
@@ -41,8 +43,16 @@ export class CarteiraIIProcessor extends BaseTeamProcessor {
     const multimarcasPorAtivoPercentage = this.extractMultimarcasPorAtivoPercentage(rawData, reportData);
 
     // Extract boost status from catalog_items
-    const boost1Active = this.isBoostActive(rawData.catalog_items || {}, 'secondary1');
-    const boost2Active = this.isBoostActive(rawData.catalog_items || {}, 'secondary2');
+    const boost1Active = this.isBoostActive(
+      rawData.catalog_items || {}, 
+      'secondary1',
+      teamConfig?.secondaryGoal1.boost.catalogItemId
+    );
+    const boost2Active = this.isBoostActive(
+      rawData.catalog_items || {}, 
+      'secondary2',
+      teamConfig?.secondaryGoal2.boost.catalogItemId
+    );
 
     // Calculate local points processing
     const pointsCalculation = this.calculateCarteiraIIPoints(

@@ -2,6 +2,7 @@ import { FunifierPlayerService } from './funifier-player.service';
 import { FunifierDatabaseService } from './funifier-database.service';
 import { TeamProcessorFactory } from './team-processor-factory.service';
 import { UserIdentificationService } from './user-identification.service';
+import { dashboardConfigurationService } from './dashboard-configuration.service';
 import { dashboardCache, playerDataCache, CacheKeys } from './cache.service';
 import { secureLogger } from '../utils/logger';
 import { 
@@ -12,10 +13,17 @@ import {
   TeamType, 
   DashboardData,
   PlayerMetrics,
+  DashboardConfig,
+  DashboardConfigurationRecord,
   FUNIFIER_CONFIG 
 } from '../types';
+import { PrecisionMath } from '../utils/precision-math';
 
 export class DashboardService {
+  private configurationCache: DashboardConfigurationRecord | null = null;
+  private configCacheTimestamp: number = 0;
+  private readonly CONFIG_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
   constructor(
     private playerService: FunifierPlayerService,
     private databaseService: FunifierDatabaseService,
@@ -27,8 +35,11 @@ export class DashboardService {
     try {
       secureLogger.log('🚀 Dashboard service called for player:', playerId);
       
-      // Check cache first
-      const cacheKey = CacheKeys.dashboardData(playerId, 'unknown');
+      // Get current configuration first
+      const configuration = await this.getCurrentConfiguration();
+      
+      // Check cache first (include configuration version in cache key)
+      const cacheKey = CacheKeys.dashboardData(playerId, selectedTeamType || 'unknown') + `_config_${configuration.version}`;
       const cachedData = dashboardCache.get<DashboardData>(cacheKey);
       
       if (cachedData) {
@@ -83,14 +94,17 @@ export class DashboardService {
         throw new Error(`Unable to determine team type for player ${playerId}`);
       }
       
+      // Get team-specific configuration
+      const teamConfig = configuration.configurations[teamType];
+      
       const processor = this.teamProcessorFactory.getProcessor(teamType);
-      const playerMetrics = processor.processPlayerData(playerStatus, enhancedReportData);
+      const playerMetrics = processor.processPlayerData(playerStatus, enhancedReportData, teamConfig);
       
-      // Convert to dashboard format with enhanced data
-      const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData, reportRecord, csvData);
+      // Convert to dashboard format with enhanced data and configuration
+      const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData, reportRecord, csvData, teamConfig);
       
-      // Cache the result with team-specific key
-      const teamSpecificCacheKey = CacheKeys.dashboardData(playerId, teamType);
+      // Cache the result with team-specific key including configuration version
+      const teamSpecificCacheKey = CacheKeys.dashboardData(playerId, teamType) + `_config_${configuration.version}`;
       dashboardCache.set(teamSpecificCacheKey, dashboardData, 2 * 60 * 1000); // 2 minutes TTL
       
       return dashboardData;
@@ -98,6 +112,63 @@ export class DashboardService {
       secureLogger.error('Error getting dashboard data:', error);
       throw error;
     }
+  }
+
+  /**
+   * Get current dashboard configuration with caching
+   */
+  private async getCurrentConfiguration(): Promise<DashboardConfigurationRecord> {
+    try {
+      // Check cache first
+      if (this.isConfigCacheValid()) {
+        secureLogger.log('📋 Returning cached dashboard configuration');
+        return this.configurationCache!;
+      }
+
+      // Fetch from configuration service
+      const configuration = await dashboardConfigurationService.getCurrentConfiguration();
+      
+      // Update cache
+      this.configurationCache = configuration;
+      this.configCacheTimestamp = Date.now();
+      
+      secureLogger.log('🔧 Dashboard configuration loaded', { version: configuration.version });
+      return configuration;
+    } catch (error) {
+      secureLogger.error('Failed to get dashboard configuration, using defaults:', error);
+      // Fallback to default configuration
+      const defaultConfig = dashboardConfigurationService.getDefaultConfiguration();
+      this.configurationCache = defaultConfig;
+      this.configCacheTimestamp = Date.now();
+      return defaultConfig;
+    }
+  }
+
+  /**
+   * Check if configuration cache is still valid
+   */
+  private isConfigCacheValid(): boolean {
+    return this.configurationCache !== null && 
+           (Date.now() - this.configCacheTimestamp) < this.CONFIG_CACHE_TTL;
+  }
+
+  /**
+   * Clear configuration cache (called when configuration changes)
+   */
+  public clearConfigurationCache(): void {
+    this.configurationCache = null;
+    this.configCacheTimestamp = 0;
+    // Also clear dashboard data cache since it depends on configuration
+    dashboardCache.clear();
+    secureLogger.log('🧹 Dashboard configuration cache cleared');
+  }
+
+  /**
+   * Get team configuration for a specific team type
+   */
+  public async getTeamConfiguration(teamType: TeamType): Promise<DashboardConfig> {
+    const configuration = await this.getCurrentConfiguration();
+    return configuration.configurations[teamType];
   }
 
   private async getLatestReportData(playerId: string): Promise<EssenciaReportRecord | undefined> {
@@ -179,9 +250,15 @@ export class DashboardService {
     teamType: TeamType, 
     reportData?: EssenciaReportRecord,
     enhancedRecord?: any,
-    csvData?: any
+    csvData?: any,
+    teamConfig?: DashboardConfig
   ): DashboardData {
-    const goalEmojis = this.getGoalEmojis(teamType);
+    // Use configuration for emojis if available, otherwise fallback to hardcoded
+    const goalEmojis = teamConfig ? {
+      primary: teamConfig.primaryGoal.emoji,
+      secondary1: teamConfig.secondaryGoal1.emoji,
+      secondary2: teamConfig.secondaryGoal2.emoji
+    } : this.getGoalEmojis(teamType);
     
     // Calculate cycle information with fallbacks (enhanced data takes priority)
     const totalCycleDays = enhancedRecord?.totalDiasCiclo || csvData?.totalCycleDays || reportData?.totalCycleDays || 21;
@@ -223,30 +300,32 @@ export class DashboardService {
       currentCycleDay: currentCycleDay,
       totalCycleDays: totalCycleDays,
       isDataFromCollection: !!reportData || !!enhancedRecord, // True if we have any database data
+      hasSpecialProcessing: teamConfig?.specialProcessing?.type === 'carteira_ii_local',
+      specialProcessingNote: teamConfig?.specialProcessing?.description || "Pontos calculados localmente",
       primaryGoal: {
-        name: metrics.primaryGoal.name,
+        name: teamConfig?.primaryGoal.displayName || metrics.primaryGoal.name,
         percentage: metrics.primaryGoal.percentage,
         description: this.generateGoalDescription(metrics.primaryGoal),
         emoji: goalEmojis.primary,
-        ...getEnhancedGoalData(metrics.primaryGoal.name)
+        ...getEnhancedGoalData(teamConfig?.primaryGoal.displayName || metrics.primaryGoal.name)
       },
       secondaryGoal1: {
-        name: metrics.secondaryGoal1.name,
+        name: teamConfig?.secondaryGoal1.displayName || metrics.secondaryGoal1.name,
         percentage: metrics.secondaryGoal1.percentage,
         description: this.generateGoalDescription(metrics.secondaryGoal1),
         emoji: goalEmojis.secondary1,
         hasBoost: true,
         isBoostActive: metrics.secondaryGoal1.boostActive || false,
-        ...getEnhancedGoalData(metrics.secondaryGoal1.name)
+        ...getEnhancedGoalData(teamConfig?.secondaryGoal1.displayName || metrics.secondaryGoal1.name)
       },
       secondaryGoal2: {
-        name: metrics.secondaryGoal2.name,
+        name: teamConfig?.secondaryGoal2.displayName || metrics.secondaryGoal2.name,
         percentage: metrics.secondaryGoal2.percentage,
         description: this.generateGoalDescription(metrics.secondaryGoal2),
         emoji: goalEmojis.secondary2,
         hasBoost: true,
         isBoostActive: metrics.secondaryGoal2.boostActive || false,
-        ...getEnhancedGoalData(metrics.secondaryGoal2.name)
+        ...getEnhancedGoalData(teamConfig?.secondaryGoal2.displayName || metrics.secondaryGoal2.name)
       }
     };
   }
@@ -326,19 +405,189 @@ export class DashboardService {
     return units[goalType] || '';
   }
 
+  /**
+   * Get challenge IDs from configuration or use defaults
+   */
+  private static getChallengeIdsFromConfig(
+    teamType: TeamType, 
+    teamConfig?: DashboardConfig
+  ): { atividade?: string; reaisPorAtivo: string; faturamento?: string; multimarcas?: string; conversoes?: string; upa?: string } {
+    if (teamConfig) {
+      // Use configuration challenge IDs
+      return {
+        atividade: teamConfig.primaryGoal.name === 'Atividade' ? teamConfig.primaryGoal.challengeId : 
+                  teamConfig.secondaryGoal1.name === 'Atividade' ? teamConfig.secondaryGoal1.challengeId :
+                  teamConfig.secondaryGoal2.name === 'Atividade' ? teamConfig.secondaryGoal2.challengeId : undefined,
+        reaisPorAtivo: teamConfig.primaryGoal.name === 'Reais por Ativo' ? teamConfig.primaryGoal.challengeId : 
+                      teamConfig.secondaryGoal1.name === 'Reais por Ativo' ? teamConfig.secondaryGoal1.challengeId :
+                      teamConfig.secondaryGoal2.name === 'Reais por Ativo' ? teamConfig.secondaryGoal2.challengeId : 'E6Gm8RI',
+        faturamento: teamConfig.primaryGoal.name === 'Faturamento' ? teamConfig.primaryGoal.challengeId : 
+                    teamConfig.secondaryGoal1.name === 'Faturamento' ? teamConfig.secondaryGoal1.challengeId :
+                    teamConfig.secondaryGoal2.name === 'Faturamento' ? teamConfig.secondaryGoal2.challengeId : undefined,
+        multimarcas: teamConfig.primaryGoal.name === 'Multimarcas por Ativo' ? teamConfig.primaryGoal.challengeId : 
+                    teamConfig.secondaryGoal1.name === 'Multimarcas por Ativo' ? teamConfig.secondaryGoal1.challengeId :
+                    teamConfig.secondaryGoal2.name === 'Multimarcas por Ativo' ? teamConfig.secondaryGoal2.challengeId : undefined,
+        conversoes: teamConfig.primaryGoal.name === 'Conversões' ? teamConfig.primaryGoal.challengeId : 
+                   teamConfig.secondaryGoal1.name === 'Conversões' ? teamConfig.secondaryGoal1.challengeId :
+                   teamConfig.secondaryGoal2.name === 'Conversões' ? teamConfig.secondaryGoal2.challengeId : undefined,
+        upa: teamConfig.primaryGoal.name === 'UPA' ? teamConfig.primaryGoal.challengeId : 
+            teamConfig.secondaryGoal1.name === 'UPA' ? teamConfig.secondaryGoal1.challengeId :
+            teamConfig.secondaryGoal2.name === 'UPA' ? teamConfig.secondaryGoal2.challengeId : undefined
+      };
+    }
+
+    // Fallback to hardcoded defaults
+    switch (teamType) {
+      case TeamType.CARTEIRA_0:
+        return {
+          conversoes: 'E6GglPq',     // Carteira 0 - Conversões (reusing challenge ID)
+          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
+          faturamento: 'E6GglPq'     // Carteira I - Bater Faturamento (Meta)
+        };
+      case TeamType.CARTEIRA_I:
+        return {
+          atividade: 'E6FQIjs',      // Carteira I - Bater Meta Atividade %
+          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
+          faturamento: 'E6GglPq'     // Carteira I - Bater Faturamento (Meta)
+        };
+      case TeamType.CARTEIRA_II:
+        return {
+          reaisPorAtivo: 'E6MTIIK',  // Carteira II - Subir Reais por Ativo (PRIMARY GOAL)
+          atividade: 'E6Gv58l',      // Carteira II - Subir Atividade (SECONDARY GOAL 1)
+          multimarcas: 'E6MWJKs'     // Carteira II - Subir Multimarcas por Ativo (SECONDARY GOAL 2)
+        };
+      case TeamType.CARTEIRA_III:
+      case TeamType.CARTEIRA_IV:
+        return {
+          faturamento: 'E6Gahd4',    // Carteira III & IV - Subir Faturamento (Pre-Meta)
+          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
+          multimarcas: 'E6MMH5v'     // Carteira III & IV - Subir Multimarcas por Ativo
+        };
+      case TeamType.ER:
+        return {
+          faturamento: 'E6Gahd4',    // Carteira III & IV - Subir Faturamento (Pre-Meta) (reused)
+          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo (reused)
+          upa: 'E62x2PW'             // ER - UPA metric
+        };
+      default:
+        return { reaisPorAtivo: 'E6Gm8RI' };
+    }
+  }
+
+  /**
+   * Get goal data from configuration or use defaults
+   */
+  private static getGoalDataFromConfig(
+    teamType: TeamType,
+    teamConfig: DashboardConfig | undefined,
+    progressData: {
+      atividade: number;
+      reaisPorAtivo: number;
+      faturamento: number;
+      multimarcasPorAtivo: number;
+      conversoes: number;
+      upa: number;
+    },
+    boostStatus: { boost1Active: boolean; boost2Active: boolean }
+  ): {
+    primaryGoal: { name: string; percentage: number; emoji: string };
+    secondaryGoal1: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
+    secondaryGoal2: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
+  } {
+    if (teamConfig) {
+      // Use configuration
+      const getProgressForMetric = (metricName: string): number => {
+        switch (metricName) {
+          case 'Atividade': return progressData.atividade;
+          case 'Reais por Ativo': return progressData.reaisPorAtivo;
+          case 'Faturamento': return progressData.faturamento;
+          case 'Multimarcas por Ativo': return progressData.multimarcasPorAtivo;
+          case 'Conversões': return progressData.conversoes;
+          case 'UPA': return progressData.upa;
+          default: return 0;
+        }
+      };
+
+      return {
+        primaryGoal: {
+          name: teamConfig.primaryGoal.displayName,
+          percentage: getProgressForMetric(teamConfig.primaryGoal.name),
+          emoji: teamConfig.primaryGoal.emoji
+        },
+        secondaryGoal1: {
+          name: teamConfig.secondaryGoal1.displayName,
+          percentage: getProgressForMetric(teamConfig.secondaryGoal1.name),
+          emoji: teamConfig.secondaryGoal1.emoji,
+          isBoostActive: boostStatus.boost1Active
+        },
+        secondaryGoal2: {
+          name: teamConfig.secondaryGoal2.displayName,
+          percentage: getProgressForMetric(teamConfig.secondaryGoal2.name),
+          emoji: teamConfig.secondaryGoal2.emoji,
+          isBoostActive: boostStatus.boost2Active
+        }
+      };
+    }
+
+    // Fallback to hardcoded defaults
+    switch (teamType) {
+      case TeamType.CARTEIRA_0:
+        return {
+          primaryGoal: { name: 'Conversões', percentage: progressData.conversoes, emoji: '🔄' },
+          secondaryGoal1: { name: 'Reais por Ativo', percentage: progressData.reaisPorAtivo, emoji: '💰', isBoostActive: boostStatus.boost1Active },
+          secondaryGoal2: { name: 'Faturamento', percentage: progressData.faturamento, emoji: '📈', isBoostActive: boostStatus.boost2Active }
+        };
+      case TeamType.CARTEIRA_I:
+        return {
+          primaryGoal: { name: 'Atividade', percentage: progressData.atividade, emoji: '🎯' },
+          secondaryGoal1: { name: 'Reais por Ativo', percentage: progressData.reaisPorAtivo, emoji: '💰', isBoostActive: boostStatus.boost1Active },
+          secondaryGoal2: { name: 'Faturamento', percentage: progressData.faturamento, emoji: '📈', isBoostActive: boostStatus.boost2Active }
+        };
+      case TeamType.CARTEIRA_II:
+        return {
+          primaryGoal: { name: 'Reais por Ativo', percentage: progressData.reaisPorAtivo, emoji: '💰' },
+          secondaryGoal1: { name: 'Atividade', percentage: progressData.atividade, emoji: '🎯', isBoostActive: boostStatus.boost1Active },
+          secondaryGoal2: { name: 'Multimarcas por Ativo', percentage: progressData.multimarcasPorAtivo, emoji: '🏪', isBoostActive: boostStatus.boost2Active }
+        };
+      case TeamType.CARTEIRA_III:
+      case TeamType.CARTEIRA_IV:
+        return {
+          primaryGoal: { name: 'Faturamento', percentage: progressData.faturamento, emoji: '📈' },
+          secondaryGoal1: { name: 'Reais por Ativo', percentage: progressData.reaisPorAtivo, emoji: '💰', isBoostActive: boostStatus.boost1Active },
+          secondaryGoal2: { name: 'Multimarcas por Ativo', percentage: progressData.multimarcasPorAtivo, emoji: '🏪', isBoostActive: boostStatus.boost2Active }
+        };
+      case TeamType.ER:
+        return {
+          primaryGoal: { name: 'Faturamento', percentage: progressData.faturamento, emoji: '📈' },
+          secondaryGoal1: { name: 'Reais por Ativo', percentage: progressData.reaisPorAtivo, emoji: '💰', isBoostActive: boostStatus.boost1Active },
+          secondaryGoal2: { name: 'UPA', percentage: progressData.upa, emoji: '📊', isBoostActive: boostStatus.boost2Active }
+        };
+      default:
+        return {
+          primaryGoal: { name: 'Atividade', percentage: progressData.atividade, emoji: '🎯' },
+          secondaryGoal1: { name: 'Reais por Ativo', percentage: progressData.reaisPorAtivo, emoji: '💰', isBoostActive: boostStatus.boost1Active },
+          secondaryGoal2: { name: 'Faturamento', percentage: progressData.faturamento, emoji: '📈', isBoostActive: boostStatus.boost2Active }
+        };
+    }
+  }
+
   // Method to check if points are unlocked based on catalog items
-  static isPointsUnlocked(catalogItems: Record<string, number>): boolean {
-    const unlockItem = catalogItems[FUNIFIER_CONFIG.CATALOG_ITEMS.UNLOCK_POINTS] || 0;
+  static isPointsUnlocked(catalogItems: Record<string, number>, teamConfig?: DashboardConfig): boolean {
+    const unlockItemId = teamConfig?.unlockConditions.catalogItemId || FUNIFIER_CONFIG.CATALOG_ITEMS.UNLOCK_POINTS;
+    const unlockItem = catalogItems[unlockItemId] || 0;
     return unlockItem > 0;
   }
 
   // Method to check boost status
-  static getBoostStatus(catalogItems: Record<string, number>): {
+  static getBoostStatus(catalogItems: Record<string, number>, teamConfig?: DashboardConfig): {
     boost1Active: boolean;
     boost2Active: boolean;
   } {
-    const boost1 = catalogItems[FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_1] || 0;
-    const boost2 = catalogItems[FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_2] || 0;
+    const boost1ItemId = teamConfig?.secondaryGoal1.boost.catalogItemId || FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_1;
+    const boost2ItemId = teamConfig?.secondaryGoal2.boost.catalogItemId || FUNIFIER_CONFIG.CATALOG_ITEMS.BOOST_SECONDARY_2;
+    
+    const boost1 = catalogItems[boost1ItemId] || 0;
+    const boost2 = catalogItems[boost2ItemId] || 0;
     
     return {
       boost1Active: boost1 > 0,
@@ -352,15 +601,19 @@ export class DashboardService {
    */
   async processPlayerDataToDashboard(playerStatus: FunifierPlayerStatus, teamType: TeamType): Promise<DashboardData> {
     try {
+      // Get current configuration
+      const configuration = await this.getCurrentConfiguration();
+      const teamConfig = configuration.configurations[teamType];
+      
       // Get report data from custom collection (optional)
       const reportData = await this.getLatestReportData(playerStatus._id);
       
       // Process data using appropriate team processor
       const processor = this.teamProcessorFactory.getProcessor(teamType);
-      const playerMetrics = processor.processPlayerData(playerStatus, reportData);
+      const playerMetrics = processor.processPlayerData(playerStatus, reportData, teamConfig);
       
-      // Convert to dashboard format
-      const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData);
+      // Convert to dashboard format with configuration
+      const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData, undefined, undefined, teamConfig);
       
       return dashboardData;
     } catch (error) {
@@ -376,17 +629,18 @@ export class DashboardService {
    * IMPORTANT: When players reach 100% and have boosts active, Funifier stops tracking
    * progress in challenge_progress. In this case, we should fetch from collection data.
    */
-  static extractDirectDashboardData(playerStatus: FunifierPlayerStatus): DashboardData {
+  static extractDirectDashboardData(playerStatus: FunifierPlayerStatus, teamConfig?: DashboardConfig): DashboardData {
     // Extract basic player info
     const playerName = playerStatus.name;
     const totalPoints = playerStatus.total_points;
     
-    // Check if points are unlocked (E6F0O5f > 0)
-    const pointsLocked = !(playerStatus.catalog_items?.['E6F0O5f'] > 0);
+    // Check if points are unlocked using configuration or default
+    const pointsLocked = !DashboardService.isPointsUnlocked(playerStatus.catalog_items || {}, teamConfig);
     
-    // Check boost status - this indicates if player has reached 100% on secondary goals
-    const boost1Active = (playerStatus.catalog_items?.['E6F0WGc'] || 0) > 0;
-    const boost2Active = (playerStatus.catalog_items?.['E6K79Mt'] || 0) > 0;
+    // Check boost status using configuration or default
+    const boostStatus = DashboardService.getBoostStatus(playerStatus.catalog_items || {}, teamConfig);
+    const boost1Active = boostStatus.boost1Active;
+    const boost2Active = boostStatus.boost2Active;
 
     // Determine team type from teams array first
     const teamId = playerStatus.teams?.[0];
@@ -413,52 +667,17 @@ export class DashboardService {
         break;
     }
 
-    // Team-specific challenge IDs for goal tracking
-    let challengeIds: { atividade?: string; reaisPorAtivo: string; faturamento?: string; multimarcas?: string; conversoes?: string; upa?: string };
-    
-    switch (teamType) {
-      case TeamType.CARTEIRA_0:
-        challengeIds = {
-          conversoes: 'E6GglPq',     // Carteira 0 - Conversões (reusing challenge ID)
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
-          faturamento: 'E6GglPq'     // Carteira I - Bater Faturamento (Meta)
-        };
-        break;
-      case TeamType.CARTEIRA_I:
-        challengeIds = {
-          atividade: 'E6FQIjs',      // Carteira I - Bater Meta Atividade %
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
-          faturamento: 'E6GglPq'     // Carteira I - Bater Faturamento (Meta)
-        };
-        break;
-      case TeamType.CARTEIRA_II:
-        challengeIds = {
-          reaisPorAtivo: 'E6MTIIK',  // Carteira II - Subir Reais por Ativo (PRIMARY GOAL)
-          atividade: 'E6Gv58l',      // Carteira II - Subir Atividade (SECONDARY GOAL 1)
-          multimarcas: 'E6MWJKs'     // Carteira II - Subir Multimarcas por Ativo (SECONDARY GOAL 2)
-        };
-        break;
-      case TeamType.CARTEIRA_III:
-      case TeamType.CARTEIRA_IV:
-        challengeIds = {
-          faturamento: 'E6Gahd4',    // Carteira III & IV - Subir Faturamento (Pre-Meta)
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
-          multimarcas: 'E6MMH5v'     // Carteira III & IV - Subir Multimarcas por Ativo
-        };
-        break;
-      case TeamType.ER:
-        challengeIds = {
-          faturamento: 'E6Gahd4',    // Carteira III & IV - Subir Faturamento (Pre-Meta) (reused)
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo (reused)
-          upa: 'E62x2PW'             // ER - UPA metric
-        };
-        break;
-    }
+    // Get challenge IDs from configuration or use defaults
+    const challengeIds = DashboardService.getChallengeIdsFromConfig(teamType, teamConfig);
 
     // Extract goal progress from challenge_progress using team-specific challenge IDs
     const getGoalProgress = (challengeId: string): number => {
       const challenge = playerStatus.challenge_progress?.find(c => c.challenge === challengeId);
-      return challenge ? Math.round(challenge.percent_completed) : 0;
+      if (!challenge) return 0;
+      
+      // Use PrecisionMath to fix floating-point precision issues
+      const precisionMetric = PrecisionMath.fixExistingPercentage(challenge.percent_completed);
+      return precisionMetric.value;
     };
 
     let atividadeProgress = challengeIds.atividade ? getGoalProgress(challengeIds.atividade) : 0;
@@ -518,39 +737,24 @@ export class DashboardService {
         break;
     }
 
-    // Set goals based on team type
-    let primaryGoal: { name: string; percentage: number; emoji: string };
-    let secondaryGoal1: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
-    let secondaryGoal2: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
-    
-    switch (teamType) {
-      case TeamType.CARTEIRA_0:
-        primaryGoal = { name: 'Conversões', percentage: conversoesProgress, emoji: '🔄' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈', isBoostActive: boost2Active };
-        break;
-      case TeamType.CARTEIRA_I:
-        primaryGoal = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈', isBoostActive: boost2Active };
-        break;
-      case TeamType.CARTEIRA_II:
-        primaryGoal = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰' };
-        secondaryGoal1 = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: multimarcasProgress, emoji: '🏪', isBoostActive: boost2Active };
-        break;
-      case TeamType.CARTEIRA_III:
-      case TeamType.CARTEIRA_IV:
-        primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: multimarcasProgress, emoji: '🏪', isBoostActive: boost2Active };
-        break;
-      case TeamType.ER:
-        primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'UPA', percentage: upaProgress, emoji: '📊', isBoostActive: boost2Active };
-        break;
-    }
+    // Set goals based on team configuration or defaults
+    const goalData = DashboardService.getGoalDataFromConfig(
+      teamType, 
+      teamConfig,
+      {
+        atividade: atividadeProgress,
+        reaisPorAtivo: reaisProgress,
+        faturamento: faturamentoProgress,
+        multimarcasPorAtivo: multimarcasProgress,
+        conversoes: conversoesProgress,
+        upa: upaProgress
+      },
+      { boost1Active, boost2Active }
+    );
+
+    const primaryGoal = goalData.primaryGoal;
+    const secondaryGoal1 = goalData.secondaryGoal1;
+    const secondaryGoal2 = goalData.secondaryGoal2;
 
     const generateDescription = (percentage: number, isBoostActive: boolean): string => {
       if (isBoostActive && percentage >= 100) {

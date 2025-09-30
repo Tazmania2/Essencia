@@ -3,6 +3,7 @@
 import React from 'react';
 import { ProgressBar } from './ProgressBar';
 import { BoostIndicator } from './BoostIndicator';
+import { PrecisionMath } from '../../utils/precision-math';
 
 interface GoalCardProps {
   title: string;
@@ -78,7 +79,9 @@ export const GoalCard: React.FC<GoalCardProps> = ({
               isActive={isBoostActive}
             />
           )}
-          <span className={percentageClasses}>{percentage.toFixed(0)}%</span>
+          <span className={percentageClasses}>
+            {PrecisionMath.fixExistingPercentage(percentage).displayValue}
+          </span>
         </div>
       </div>
       <ProgressBar 
