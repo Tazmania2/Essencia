@@ -3,9 +3,7 @@
  * Provides consistent error handling patterns across history and configuration services
  */
 
-import { ApiError, ErrorType } from '../types';
-import { errorHandlerService } from '../services/error-handler.service';
-import { secureLogger } from './logger';
+import { ApiError } from '../types';
 
 export interface ServiceErrorContext {
   service: string;
@@ -23,4 +21,6 @@ export interface ServiceErrorResult {
   logData: Record<string, any>;
 }
 
-export 
+export class ServiceErrorHandler {
+  // Implementation will be added later
+} 

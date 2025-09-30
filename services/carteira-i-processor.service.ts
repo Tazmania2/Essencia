@@ -189,7 +189,7 @@ export class CarteiraIProcessor extends BaseTeamProcessor {
     });
     
     const found = challengeProgress.some(progress => 
-      challengeIds.includes(progress.challenge || progress.challengeId || progress.id)
+      challengeIds.indexOf(progress.challenge || progress.challengeId || progress.id) !== -1
     );
     
     console.log('🎯 Challenge data found:', found);

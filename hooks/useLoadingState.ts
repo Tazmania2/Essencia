@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ApiError, ErrorType } from '../types';
+import { ApiError } from '../types';
 import { errorHandlerService } from '../services/error-handler.service';
 import { useNotifications } from '../components/ui/NotificationSystem';
 
@@ -55,7 +55,7 @@ export const useLoadingState = (options: UseLoadingStateOptions = {}): UseLoadin
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const lastOperation = useRef<(() => Promise<any>) | null>(null);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimeoutRef = useRef<number | null>(null);
 
   const notifications = showNotifications ? useNotifications() : null;
 
@@ -69,7 +69,7 @@ export const useLoadingState = (options: UseLoadingStateOptions = {}): UseLoadin
   }, []);
 
   const setLoading = useCallback((loading: boolean, message?: string) => {
-    setLoadingState(prev => ({
+    setLoadingState((prev: LoadingState) => ({
       ...prev,
       isLoading: loading,
       message: loading ? message : undefined,
@@ -109,7 +109,7 @@ export const useLoadingState = (options: UseLoadingStateOptions = {}): UseLoadin
       }
     }
 
-    setLoadingState(prev => ({
+    setLoadingState((prev: LoadingState) => ({
       ...prev,
       isLoading: false,
       error: errorMessage,
@@ -127,7 +127,7 @@ export const useLoadingState = (options: UseLoadingStateOptions = {}): UseLoadin
   }, [showNotifications, notifications, autoRetry, retryCount, retryAttempts, retryDelay]);
 
   const setProgress = useCallback((progress: number, message?: string) => {
-    setLoadingState(prev => ({
+    setLoadingState((prev: LoadingState) => ({
       ...prev,
       progress: Math.max(0, Math.min(100, progress)),
       message: message || prev.message
@@ -135,7 +135,7 @@ export const useLoadingState = (options: UseLoadingStateOptions = {}): UseLoadin
   }, []);
 
   const clearError = useCallback(() => {
-    setLoadingState(prev => ({
+    setLoadingState((prev: LoadingState) => ({
       ...prev,
       error: null
     }));
@@ -206,7 +206,7 @@ export const useLoadingState = (options: UseLoadingStateOptions = {}): UseLoadin
       setRetryCount(prev => prev + 1);
       
       // Clear error and set loading
-      setLoadingState(prev => ({
+      setLoadingState((prev: LoadingState) => ({
         ...prev,
         error: null,
         isLoading: true,
@@ -217,7 +217,7 @@ export const useLoadingState = (options: UseLoadingStateOptions = {}): UseLoadin
       const result = await lastOperation.current();
       
       // Success
-      setLoadingState(prev => ({
+      setLoadingState((prev: LoadingState) => ({
         ...prev,
         isLoading: false,
         message: undefined
@@ -311,7 +311,7 @@ export const useMultiLoadingState = (keys: string[]) => {
   });
 
   const setLoading = useCallback((key: string, loading: boolean, message?: string) => {
-    setStates(prev => ({
+    setStates((prev: MultiLoadingState) => ({
       ...prev,
       [key]: {
         ...prev[key],
@@ -323,7 +323,7 @@ export const useMultiLoadingState = (keys: string[]) => {
   }, []);
 
   const setError = useCallback((key: string, error: string | null) => {
-    setStates(prev => ({
+    setStates((prev: MultiLoadingState) => ({
       ...prev,
       [key]: {
         ...prev[key],
@@ -336,7 +336,7 @@ export const useMultiLoadingState = (keys: string[]) => {
   }, []);
 
   const setProgress = useCallback((key: string, progress: number, message?: string) => {
-    setStates(prev => ({
+    setStates((prev: MultiLoadingState) => ({
       ...prev,
       [key]: {
         ...prev[key],
@@ -347,7 +347,7 @@ export const useMultiLoadingState = (keys: string[]) => {
   }, []);
 
   const clearError = useCallback((key: string) => {
-    setStates(prev => ({
+    setStates((prev: MultiLoadingState) => ({
       ...prev,
       [key]: {
         ...prev[key],
@@ -358,7 +358,7 @@ export const useMultiLoadingState = (keys: string[]) => {
 
   const reset = useCallback((key?: string) => {
     if (key) {
-      setStates(prev => ({
+      setStates((prev: MultiLoadingState) => ({
         ...prev,
         [key]: {
           isLoading: false,
@@ -369,7 +369,7 @@ export const useMultiLoadingState = (keys: string[]) => {
       }));
     } else {
       // Reset all states
-      setStates(prev => {
+      setStates((prev: MultiLoadingState) => {
         const resetStates: MultiLoadingState = {};
         Object.keys(prev).forEach(k => {
           resetStates[k] = {
@@ -384,8 +384,8 @@ export const useMultiLoadingState = (keys: string[]) => {
     }
   }, []);
 
-  const isAnyLoading = Object.values(states).some(state => state.isLoading);
-  const hasAnyError = Object.values(states).some(state => state.error);
+  const isAnyLoading = Object.values(states).some((state: LoadingState) => state.isLoading);
+  const hasAnyError = Object.values(states).some((state: LoadingState) => state.error);
 
   return {
     states,

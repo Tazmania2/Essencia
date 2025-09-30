@@ -1,8 +1,6 @@
 import { 
   CycleHistoryData, 
   ProgressDataPoint, 
-  ApiError, 
-  ErrorType,
   EssenciaReportRecord 
 } from '../types';
 import { FunifierDatabaseService } from './funifier-database.service';

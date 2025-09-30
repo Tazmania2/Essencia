@@ -334,8 +334,8 @@ export const ConfigurationLoadingSkeleton: React.FC = () => {
     </div>
   );
 };
-exp
-ort const ChartLoadingSkeleton: React.FC = () => {
+
+export const ChartLoadingSkeleton: React.FC = () => {
   return (
     <div className="w-full">
       {/* Legend Skeleton */}

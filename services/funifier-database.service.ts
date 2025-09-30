@@ -10,7 +10,7 @@ import {
 import { funifierAuthService } from './funifier-auth.service';
 import { csvProcessingService } from './csv-processing.service';
 import { enhancedReportCache, csvDataCache, CacheKeys } from './cache.service';
-import { secureLogger } from '../utils/logger';
+// import { secureLogger } from '../utils/logger'; // Commented out to avoid unused import warning
 
 export interface BulkInsertResult {
   insertedCount: number;

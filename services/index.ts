@@ -4,6 +4,10 @@ export { FunifierPlayerService, funifierPlayerService } from './funifier-player.
 export { FunifierDatabaseService, funifierDatabaseService, type BulkInsertResult, type AggregationPipeline } from './funifier-database.service';
 export { FunifierConfigService, funifierConfigService } from './funifier-config.service';
 
+// History and Configuration Services
+export { HistoryService, historyService, type CycleSummaryStats, type CycleComparison } from './history.service';
+export { ConfigurationValidatorService, configurationValidator } from './configuration-validator.service';
+
 // Team Processors
 export { BaseTeamProcessor, TeamProcessorUtils, CHALLENGE_MAPPING } from './team-processor.service';
 export { CarteiraIProcessor, carteiraIProcessor } from './carteira-i-processor.service';

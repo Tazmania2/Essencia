@@ -4,6 +4,8 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Upload, FileText, X, CheckCircle, AlertCircle, Download, Eye, Send } from 'lucide-react';
 import { ReportProcessingService, ParseResult, ReportData } from '../../services/report-processing.service';
 import { reportSubmissionService, SubmissionResult } from '../../services/report-submission.service';
+import { DataUploadProgress } from '../ui/DashboardSkeleton';
+import { useNotificationHelpers } from '../ui/NotificationSystem';
 
 export interface UploadedFile {
   file: File;
@@ -43,7 +45,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
+  const [uploadProgress, setUploadProgress] = useState({ progress: 0, message: '', fileName: '' });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { notifySuccess, notifyError, notifyInfo } = useNotificationHelpers();
 
   const validateFile = useCallback((file: File): string | null => {
     return ReportProcessingService.validateFileFormat(file);
@@ -82,7 +86,18 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     try {
       const parseResults: ParseResult[] = [];
 
-      for (const file of validFiles) {
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i];
+        
+        // Show upload progress modal for multiple files or large files
+        if (validFiles.length > 1 || file.size > 1024 * 1024) { // > 1MB
+          setUploadProgress({
+            progress: 10,
+            message: 'Iniciando processamento...',
+            fileName: file.name
+          });
+        }
+
         // Update status to parsing
         setUploadedFiles(prev => 
           prev.map(f => 
@@ -92,12 +107,28 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           )
         );
 
+        if (validFiles.length > 1 || file.size > 1024 * 1024) {
+          setUploadProgress(prev => ({
+            ...prev,
+            progress: 25,
+            message: 'Analisando estrutura do arquivo...'
+          }));
+        }
+
         // Parse the file
         const parseResult = await ReportProcessingService.parseFile(file);
         parseResults.push(parseResult);
 
         // Generate summary
         const summary = ReportProcessingService.generateSummary(parseResult);
+
+        if (validFiles.length > 1 || file.size > 1024 * 1024) {
+          setUploadProgress(prev => ({
+            ...prev,
+            progress: 50,
+            message: 'Validando dados...'
+          }));
+        }
 
         // Update with parse results
         setUploadedFiles(prev => 
@@ -114,9 +145,26 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           )
         );
 
+        // Show notifications for parse results
+        if (parseResult.isValid) {
+          notifySuccess(`${file.name} processado com sucesso`, 
+            `${parseResult.data.length} registros válidos encontrados`);
+        } else {
+          notifyError(`Problemas encontrados em ${file.name}`, 
+            `${parseResult.errors.length} erros de validação`);
+        }
+
         // Call onFileProcessed callback if provided
         if (onFileProcessed) {
           onFileProcessed(file, parseResult);
+        }
+
+        if (validFiles.length > 1 || file.size > 1024 * 1024) {
+          setUploadProgress(prev => ({
+            ...prev,
+            progress: 70 + (i / validFiles.length) * 20,
+            message: `Processando arquivo ${i + 1} de ${validFiles.length}...`
+          }));
         }
       }
 
@@ -131,10 +179,31 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         );
       }, 200);
 
+      if (validFiles.length > 1 || validFiles.some(f => f.size > 1024 * 1024)) {
+        setUploadProgress(prev => ({
+          ...prev,
+          progress: 90,
+          message: 'Finalizando processamento...'
+        }));
+      }
+
       // Call the upload handler with parsed results
       await onFileUpload(validFiles, parseResults);
 
       clearInterval(progressInterval);
+
+      if (validFiles.length > 1 || validFiles.some(f => f.size > 1024 * 1024)) {
+        setUploadProgress(prev => ({
+          ...prev,
+          progress: 100,
+          message: 'Upload concluído com sucesso!'
+        }));
+        
+        // Hide progress modal after a short delay
+        setTimeout(() => {
+          setUploadProgress({ progress: 0, message: '', fileName: '' });
+        }, 1500);
+      }
 
       // Mark as success
       setUploadedFiles(prev => 
@@ -144,6 +213,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             : f
         )
       );
+
+      // Show overall success notification
+      if (validFiles.length > 1) {
+        notifySuccess('Todos os arquivos processados', 
+          `${validFiles.length} arquivos foram processados com sucesso`);
+      }
     } catch (error) {
       // Mark as error
       setUploadedFiles(prev => 
@@ -157,6 +232,13 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             : f
         )
       );
+
+      // Show error notification
+      notifyError('Erro no processamento', 
+        error instanceof Error ? error.message : 'Erro desconhecido durante o processamento');
+
+      // Hide progress modal on error
+      setUploadProgress({ progress: 0, message: '', fileName: '' });
     } finally {
       setIsUploading(false);
     }
@@ -233,7 +315,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       }, {} as Record<string, typeof errors>);
 
       message += 'Erros por campo:\n';
-      Object.entries(fieldErrors).forEach(([field, fieldErrorList]) => {
+      Object.keys(fieldErrors).forEach(field => {
+        const fieldErrorList = fieldErrors[field];
         const fieldDisplayName = getFieldDisplayName(field);
         message += `• ${fieldDisplayName}: ${fieldErrorList.length} erro(s)\n`;
         fieldErrorList.slice(0, 2).forEach(error => {
@@ -338,12 +421,14 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     const successfulFiles = uploadedFiles.filter(f => f.status === 'success' && f.parseResult?.isValid);
     
     if (successfulFiles.length === 0) {
-      alert('Nenhum arquivo válido para enviar. Certifique-se de que os arquivos foram processados com sucesso.');
+      notifyError('Nenhum arquivo válido', 
+        'Certifique-se de que os arquivos foram processados com sucesso.');
       return;
     }
 
     if (successfulFiles.length > 1) {
-      alert('Por favor, envie apenas um arquivo por vez.');
+      notifyError('Múltiplos arquivos', 
+        'Por favor, envie apenas um arquivo por vez.');
       return;
     }
 
@@ -352,11 +437,49 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     setIsSubmitting(true);
     setSubmissionResult(null);
 
+    // Show submission progress
+    setUploadProgress({
+      progress: 10,
+      message: 'Iniciando envio do relatório...',
+      fileName: fileToSubmit.file.name
+    });
+
     try {
+      // Simulate progress updates during submission
+      setTimeout(() => {
+        setUploadProgress(prev => ({
+          ...prev,
+          progress: 30,
+          message: 'Validando dados no servidor...'
+        }));
+      }, 500);
+
+      setTimeout(() => {
+        setUploadProgress(prev => ({
+          ...prev,
+          progress: 60,
+          message: 'Processando registros...'
+        }));
+      }, 1500);
+
+      setTimeout(() => {
+        setUploadProgress(prev => ({
+          ...prev,
+          progress: 80,
+          message: 'Criando logs de ação...'
+        }));
+      }, 2500);
+
       const result = await reportSubmissionService.submitReport(
         fileToSubmit.parseResult!,
         fileToSubmit.file
       );
+
+      setUploadProgress(prev => ({
+        ...prev,
+        progress: 100,
+        message: 'Envio concluído com sucesso!'
+      }));
 
       setSubmissionResult(result);
       
@@ -365,11 +488,24 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       }
 
       if (result.success) {
+        notifySuccess('Relatório enviado com sucesso!', 
+          `${result.recordsProcessed} registros processados, ${result.actionLogsCreated} logs criados`);
+        
         // Clear files after successful submission
         setUploadedFiles([]);
+      } else {
+        notifyError('Problemas no envio', 
+          `${result.errors.length} erros encontrados durante o processamento`);
       }
+
+      // Hide progress modal after a short delay
+      setTimeout(() => {
+        setUploadProgress({ progress: 0, message: '', fileName: '' });
+      }, 1500);
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido durante o envio';
+      
       setSubmissionResult({
         success: false,
         recordsProcessed: 0,
@@ -378,15 +514,30 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         errors: [errorMessage],
         summary: `Erro durante o envio: ${errorMessage}`
       });
+
+      notifyError('Erro no envio', errorMessage);
+      setUploadProgress({ progress: 0, message: '', fileName: '' });
     } finally {
       setIsSubmitting(false);
     }
-  }, [uploadedFiles, onSubmissionComplete]);
+  }, [uploadedFiles, onSubmissionComplete, notifySuccess, notifyError]);
 
   const canSubmit = uploadedFiles.some(f => f.status === 'success' && f.parseResult?.isValid) && !isSubmitting;
 
   return (
     <div className={`space-y-4 ${className}`}>
+      {/* Upload Progress Modal */}
+      <DataUploadProgress
+        isVisible={uploadProgress.progress > 0 && uploadProgress.progress < 100}
+        progress={uploadProgress.progress}
+        message={uploadProgress.message}
+        fileName={uploadProgress.fileName}
+        onCancel={uploadProgress.progress < 90 ? () => {
+          setUploadProgress({ progress: 0, message: '', fileName: '' });
+          setIsUploading(false);
+        } : undefined}
+      />
+
       {/* Upload Area */}
       <div
         className={`

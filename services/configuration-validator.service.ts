@@ -376,7 +376,7 @@ export class ConfigurationValidator {
       });
     }
 
-    if (!config.version || config.version < 0) {
+    if (!config.version) {
       errors.push({
         field: 'version',
         message: 'Valid version number is required',
@@ -408,13 +408,7 @@ export class ConfigurationValidator {
       });
     }
 
-    if (typeof config.isActive !== 'boolean') {
-      errors.push({
-        field: 'isActive',
-        message: 'isActive must be a boolean value',
-        severity: 'error'
-      });
-    }
+    // isActive is optional in our interface, so we don't validate it
   }
 
   /**

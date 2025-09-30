@@ -7,8 +7,6 @@ import { secureLogger } from '../utils/logger';
 import { 
   FunifierPlayerStatus, 
   EssenciaReportRecord, 
-  EnhancedReportRecord,
-  CSVGoalData,
   TeamType, 
   DashboardData,
   PlayerMetrics,
@@ -23,7 +21,7 @@ export class DashboardService {
     private userIdentificationService: UserIdentificationService
   ) {}
 
-  async getDashboardData(playerId: string, token: string, selectedTeamType?: TeamType): Promise<DashboardData> {
+  async getDashboardData(playerId: string, _token: string, selectedTeamType?: TeamType): Promise<DashboardData> {
     try {
       secureLogger.log('🚀 Dashboard service called for player:', playerId);
       
@@ -55,7 +53,7 @@ export class DashboardService {
       if (selectedTeamType) {
         // Validate that the user has access to the selected team
         const teamInfo = this.userIdentificationService.extractTeamInformation(playerStatus);
-        const hasAccess = teamInfo.allTeamTypes.includes(selectedTeamType);
+        const hasAccess = teamInfo.allTeamTypes.indexOf(selectedTeamType) !== -1;
         if (!hasAccess) {
           throw new Error(`User does not have access to team type: ${selectedTeamType}`);
         }

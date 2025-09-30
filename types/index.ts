@@ -273,6 +273,120 @@ export interface GoalDetail {
   textColor: string;
 }
 
+// Validation Types
+export interface ValidationResult {
+  isValid: boolean;
+  errors: ValidationError[];
+  warnings: ValidationWarning[];
+}
+
+export interface ValidationError {
+  field: string;
+  message: string;
+  severity: 'error' | 'warning';
+}
+
+export interface ValidationWarning {
+  field: string;
+  message: string;
+  type: 'business_rule' | 'compatibility' | 'validation_error';
+}
+
+// Configuration Types
+export interface DashboardConfig {
+  teamType: TeamType;
+  displayName: string;
+  primaryGoal: GoalConfig;
+  secondaryGoal1: GoalConfig;
+  secondaryGoal2: GoalConfig;
+  unlockConditions: UnlockConfig;
+  specialProcessing?: SpecialProcessingConfig;
+}
+
+export interface GoalConfig {
+  name: string;
+  displayName: string;
+  metric: string;
+  challengeId: string;
+  actionId: string;
+  calculationType: 'funifier_api' | 'local_processing';
+  boost?: BoostConfig;
+}
+
+export interface BoostConfig {
+  catalogItemId: string;
+  name: string;
+  description: string;
+}
+
+export interface UnlockConfig {
+  catalogItemId: string;
+  description: string;
+}
+
+export interface SpecialProcessingConfig {
+  type: 'carteira_ii_local' | 'standard';
+  warnings?: string[];
+}
+
+export interface DashboardConfigurationRecord {
+  _id?: string;
+  version: string;
+  createdAt: string;
+  updatedAt?: string;
+  createdBy: string;
+  configurations: {
+    [key in TeamType]: DashboardConfig;
+  };
+}
+
+// History and Cycle Types
+export interface CycleHistoryData {
+  cycleNumber: number;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  completionStatus: 'completed' | 'in_progress' | 'cancelled';
+  finalMetrics: {
+    primaryGoal: {
+      name: string;
+      percentage: number;
+      target: number;
+      current: number;
+      unit: string;
+      boostActive: boolean;
+    };
+    secondaryGoal1: {
+      name: string;
+      percentage: number;
+      target: number;
+      current: number;
+      unit: string;
+      boostActive: boolean;
+    };
+    secondaryGoal2: {
+      name: string;
+      percentage: number;
+      target: number;
+      current: number;
+      unit: string;
+      boostActive: boolean;
+    };
+  };
+  progressTimeline: ProgressDataPoint[];
+}
+
+export interface ProgressDataPoint {
+  date: string;
+  dayInCycle: number;
+  uploadSequence: number;
+  metrics: {
+    primaryGoal?: number;
+    secondaryGoal1?: number;
+    secondaryGoal2?: number;
+  };
+}
+
 export const FUNIFIER_CONFIG = {
   API_KEY: process.env.FUNIFIER_API_KEY || '',
   BASE_URL: process.env.FUNIFIER_BASE_URL || 'https://service2.funifier.com/v3',
