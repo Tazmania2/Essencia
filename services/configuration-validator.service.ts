@@ -31,28 +31,99 @@ export class ConfigurationValidator {
     const warnings: ValidationWarning[] = [];
 
     try {
-      // Validate basic structure
-      this.validateBasicStructure(config, errors);
+      // Input validation
+      if (!config) {
+        errors.push({
+          field: 'config',
+          message: 'Configuration object is required',
+          severity: 'error'
+        });
+        return { isValid: false, errors, warnings };
+      }
 
-      // Validate each team configuration
+      secureLogger.info('Validating dashboard configuration', { 
+        configId: config._id,
+        version: config.version,
+        hasConfigurations: !!config.configurations 
+      });
+
+      // Validate basic structure
+      try {
+        this.validateBasicStructure(config, errors);
+      } catch (structureError) {
+        secureLogger.error('Error validating basic structure', { 
+          configId: config._id,
+          error: structureError 
+        });
+        errors.push({
+          field: 'structure',
+          message: 'Failed to validate basic configuration structure',
+          severity: 'error'
+        });
+      }
+
+      // Validate each team configuration with error handling
       Object.values(TeamType).forEach(teamType => {
-        const teamConfig = config.configurations[teamType];
-        if (teamConfig) {
-          this.validateTeamConfiguration(teamConfig, errors, warnings);
-        } else {
+        try {
+          const teamConfig = config.configurations?.[teamType];
+          if (teamConfig) {
+            const teamValidation = this.validateTeamConfiguration(teamConfig, [], []);
+            errors.push(...teamValidation.errors);
+            warnings.push(...teamValidation.warnings);
+          } else {
+            errors.push({
+              field: `configurations.${teamType}`,
+              message: `Missing configuration for team type ${teamType}`,
+              severity: 'error'
+            });
+          }
+        } catch (teamError) {
+          secureLogger.error('Error validating team configuration', { 
+            teamType,
+            configId: config._id,
+            error: teamError 
+          });
           errors.push({
             field: `configurations.${teamType}`,
-            message: `Missing configuration for team type ${teamType}`,
+            message: `Failed to validate ${teamType} configuration`,
             severity: 'error'
           });
         }
       });
 
-      // Validate configuration consistency
-      this.validateConfigurationConsistency(config, errors, warnings);
+      // Validate configuration consistency with error handling
+      try {
+        this.validateConfigurationConsistency(config, errors, warnings);
+      } catch (consistencyError) {
+        secureLogger.error('Error validating configuration consistency', { 
+          configId: config._id,
+          error: consistencyError 
+        });
+        warnings.push({
+          field: 'consistency',
+          message: 'Could not fully validate configuration consistency',
+          type: 'validation_error'
+        });
+      }
+
+      const isValid = errors.filter(e => e.severity === 'error').length === 0;
+      
+      secureLogger.info('Configuration validation completed', { 
+        configId: config._id,
+        isValid,
+        errorCount: errors.filter(e => e.severity === 'error').length,
+        warningCount: warnings.length 
+      });
 
     } catch (error) {
-      secureLogger.error('Validation error occurred', { error });
+      const handledError = errorHandlerService.handleValidationError(error, 'validateDashboardConfiguration');
+      errorHandlerService.logError(handledError, `validateDashboardConfiguration:${config?._id}`);
+      
+      secureLogger.error('Unexpected validation error occurred', { 
+        configId: config?._id,
+        error: handledError.message 
+      });
+      
       errors.push({
         field: 'general',
         message: 'Unexpected validation error occurred',
@@ -71,31 +142,144 @@ export class ConfigurationValidator {
    * Validate a single team configuration
    */
   public validateTeamConfiguration(config: DashboardConfig, errors: ValidationError[] = [], warnings: ValidationWarning[] = []): ValidationResult {
-    // Basic structure validation
-    if (!validateConfigurationStructure(config)) {
+    try {
+      // Input validation
+      if (!config) {
+        errors.push({
+          field: 'config',
+          message: 'Team configuration object is required',
+          severity: 'error'
+        });
+        return { isValid: false, errors, warnings };
+      }
+
+      secureLogger.debug('Validating team configuration', { 
+        teamType: config.teamType,
+        hasStructure: !!config.primaryGoal && !!config.secondaryGoal1 && !!config.secondaryGoal2 
+      });
+
+      // Basic structure validation with error handling
+      try {
+        if (!validateConfigurationStructure(config)) {
+          errors.push({
+            field: 'structure',
+            message: `Invalid configuration structure for ${config.teamType || 'unknown team'}`,
+            severity: 'error'
+          });
+        }
+      } catch (structureError) {
+        secureLogger.error('Error validating team configuration structure', { 
+          teamType: config.teamType,
+          error: structureError 
+        });
+        errors.push({
+          field: 'structure',
+          message: `Failed to validate structure for ${config.teamType || 'unknown team'}`,
+          severity: 'error'
+        });
+      }
+
+      // Validate team-specific requirements with error handling
+      try {
+        this.validateTeamSpecificRequirements(config, errors, warnings);
+      } catch (teamError) {
+        secureLogger.error('Error validating team-specific requirements', { 
+          teamType: config.teamType,
+          error: teamError 
+        });
+        errors.push({
+          field: 'teamSpecific',
+          message: `Failed to validate team-specific requirements for ${config.teamType}`,
+          severity: 'error'
+        });
+      }
+
+      // Validate Carteira II special processing with error handling
+      if (config.teamType === TeamType.CARTEIRA_II) {
+        try {
+          this.validateCarteiraIISpecialProcessing(config, errors, warnings);
+        } catch (carteiraError) {
+          secureLogger.error('Error validating Carteira II special processing', { 
+            teamType: config.teamType,
+            error: carteiraError 
+          });
+          errors.push({
+            field: 'specialProcessing',
+            message: 'Failed to validate Carteira II special processing requirements',
+            severity: 'error'
+          });
+        }
+      }
+
+      // Validate challenge IDs and action IDs with error handling
+      try {
+        this.validateChallengeAndActionIds(config, errors, warnings);
+      } catch (idError) {
+        secureLogger.error('Error validating challenge and action IDs', { 
+          teamType: config.teamType,
+          error: idError 
+        });
+        warnings.push({
+          field: 'ids',
+          message: 'Could not fully validate challenge and action IDs',
+          type: 'validation_error'
+        });
+      }
+
+      // Validate boost configurations with error handling
+      try {
+        this.validateBoostConfigurations(config, errors, warnings);
+      } catch (boostError) {
+        secureLogger.error('Error validating boost configurations', { 
+          teamType: config.teamType,
+          error: boostError 
+        });
+        errors.push({
+          field: 'boost',
+          message: 'Failed to validate boost configurations',
+          severity: 'error'
+        });
+      }
+
+      // Validate unlock conditions with error handling
+      try {
+        this.validateUnlockConditions(config, errors, warnings);
+      } catch (unlockError) {
+        secureLogger.error('Error validating unlock conditions', { 
+          teamType: config.teamType,
+          error: unlockError 
+        });
+        errors.push({
+          field: 'unlock',
+          message: 'Failed to validate unlock conditions',
+          severity: 'error'
+        });
+      }
+
+      const isValid = errors.filter(e => e.severity === 'error').length === 0;
+      
+      secureLogger.debug('Team configuration validation completed', { 
+        teamType: config.teamType,
+        isValid,
+        errorCount: errors.filter(e => e.severity === 'error').length,
+        warningCount: warnings.length 
+      });
+
+    } catch (error) {
+      const handledError = errorHandlerService.handleValidationError(error, 'validateTeamConfiguration');
+      errorHandlerService.logError(handledError, `validateTeamConfiguration:${config?.teamType}`);
+      
+      secureLogger.error('Unexpected error validating team configuration', { 
+        teamType: config?.teamType,
+        error: handledError.message 
+      });
+      
       errors.push({
-        field: 'structure',
-        message: `Invalid configuration structure for ${config.teamType}`,
+        field: 'general',
+        message: `Unexpected validation error for ${config?.teamType || 'unknown team'}`,
         severity: 'error'
       });
     }
-
-    // Validate team-specific requirements
-    this.validateTeamSpecificRequirements(config, errors, warnings);
-
-    // Validate Carteira II special processing
-    if (config.teamType === TeamType.CARTEIRA_II) {
-      this.validateCarteiraIISpecialProcessing(config, errors, warnings);
-    }
-
-    // Validate challenge IDs and action IDs
-    this.validateChallengeAndActionIds(config, errors, warnings);
-
-    // Validate boost configurations
-    this.validateBoostConfigurations(config, errors, warnings);
-
-    // Validate unlock conditions
-    this.validateUnlockConditions(config, errors, warnings);
 
     return {
       isValid: errors.filter(e => e.severity === 'error').length === 0,
