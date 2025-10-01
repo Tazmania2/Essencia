@@ -109,47 +109,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       secureLogger.log('🔐 Starting login process for:', credentials.username);
 
-      // Call the API route for authentication
-      const authResponse = await fetch('/api/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      secureLogger.log('🔐 Auth API response status:', authResponse.status);
-
-      if (!authResponse.ok) {
-        const errorData = await authResponse.json();
-        secureLogger.error('🔐 Auth API error:', errorData);
-        throw new Error(errorData.error || 'Authentication failed');
-      }
-
-      const authResult = await authResponse.json();
-      secureLogger.log('🔐 Auth result type:', typeof authResult);
+      // Call the Funifier authentication service directly
+      const authResult = await funifierAuthService.authenticate(credentials);
       secureLogger.log('🔐 Auth result:', authResult);
 
-      // Handle both string and object responses for backward compatibility
-      let accessToken: string;
-      let expiresIn: number = 3600; // Default 1 hour
-
-      if (typeof authResult === 'string') {
-        // API returned raw token string
-        accessToken = authResult;
-        secureLogger.log('🔐 Auth successful, token received (string)');
-      } else if (authResult && authResult.access_token) {
-        // API returned object with access_token
-        accessToken = authResult.access_token;
-        expiresIn = authResult.expires_in || 3600;
-        secureLogger.log('🔐 Auth successful, token received (object)');
-      } else {
-        throw new Error('Invalid authentication response format');
+      if (!authResult.success) {
+        throw new Error(authResult.error || 'Authentication failed');
       }
 
-      // Store the token in the auth service so other services can use it
-      secureLogger.log('💾 Storing token in auth service...');
-      funifierAuthService.setAccessToken(accessToken, expiresIn);
+      if (!authResult.token) {
+        throw new Error('No access token received');
+      }
+
+      const accessToken = authResult.token;
+      const expiresIn = 3600; // Default 1 hour
+      secureLogger.log('🔐 Auth successful, token received from Funifier');
+
+      // Token is already stored in the auth service by the authenticate method
+      secureLogger.log('💾 Token already stored in auth service');
 
       // Identify user role and team
       secureLogger.log('👤 Identifying user role and team...');
