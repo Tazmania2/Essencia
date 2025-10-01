@@ -6,7 +6,7 @@ export { FunifierConfigService, funifierConfigService } from './funifier-config.
 
 // History and Configuration Services
 export { HistoryService, historyService, type CycleSummaryStats, type CycleComparison } from './history.service';
-export { ConfigurationValidatorService, configurationValidator } from './configuration-validator.service';
+export { ConfigurationValidator, configurationValidator } from './configuration-validator.service';
 
 // Team Processors
 export { BaseTeamProcessor, TeamProcessorUtils, CHALLENGE_MAPPING } from './team-processor.service';

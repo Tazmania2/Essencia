@@ -288,7 +288,7 @@ export class HistoryService {
         metrics: result.metrics || {}
       }));
 
-      secureLogger.log(`✅ Found ${timeline.length} progress points for player:`, playerId, 'cycle:', cycleNumber);
+      secureLogger.log(`✅ Found ${timeline.length} progress points for player: ${playerId}, cycle: ${cycleNumber}`);
       return timeline;
 
     } catch (error) {
@@ -311,7 +311,7 @@ export class HistoryService {
       const completedCycles = cycles.filter(cycle => cycle.completionStatus === 'completed');
       return completedCycles.length > 0;
     } catch (error) {
-      secureLogger.warn('Error checking historical data for player:', playerId, error);
+      secureLogger.warn(`Error checking historical data for player: ${playerId}`, error);
       return false;
     }
   }
