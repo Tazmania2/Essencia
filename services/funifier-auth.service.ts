@@ -33,19 +33,20 @@ export class FunifierAuthService {
       }
 
       // Make request to Funifier authentication endpoint
-      const authData = {
+      // Using application/x-www-form-urlencoded as per Funifier API spec
+      const authData = new URLSearchParams({
         apiKey: apiKey,
         grant_type: 'password',
         username: username,
         password: password
-      };
+      });
 
-      const response = await fetch(`${FUNIFIER_CONFIG.BASE_URL}/auth`, {
+      const response = await fetch(`${FUNIFIER_CONFIG.BASE_URL}/auth/token`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify(authData),
+        body: authData.toString(),
       });
 
       if (!response.ok) {
