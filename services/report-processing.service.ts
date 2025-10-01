@@ -102,7 +102,89 @@ export class ReportProcessingService {
   }
 
   static async parseFile(file: File): Promise<ParseResult> {
-    throw new Error('File parsing service not implemented. Please configure CSV/Excel parsing integration.');
+    try {
+      const text = await file.text();
+      const lines = text.trim().split('\n');
+      
+      if (lines.length < 2) {
+        return {
+          isValid: false,
+          data: [],
+          errors: [{ row: 0, field: 'file', message: 'Arquivo deve conter pelo menos uma linha de cabeçalho e uma linha de dados' }]
+        };
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const data: ReportData[] = [];
+      const errors: ValidationError[] = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+        
+        if (values.length !== headers.length) {
+          errors.push({
+            row: i + 1,
+            field: 'structure',
+            message: `Linha ${i + 1}: Número de colunas não corresponde ao cabeçalho`
+          });
+          continue;
+        }
+
+        const record: any = {};
+        headers.forEach((header, index) => {
+          record[header] = values[index];
+        });
+
+        // Convert to ReportData format
+        const reportData: ReportData = {
+          playerId: record['Player ID'] || '',
+          diaDociclo: parseInt(record['Dia do Ciclo']) || 0,
+          totalDiasCiclo: parseInt(record['Total Dias Ciclo']) || 0,
+          faturamentoMeta: parseFloat(record['Faturamento Meta']) || 0,
+          faturamentoAtual: parseFloat(record['Faturamento Atual']) || 0,
+          faturamentoPercentual: parseFloat(record['Faturamento %']) || 0,
+          reaisPorAtivoMeta: parseFloat(record['Reais por Ativo Meta']) || 0,
+          reaisPorAtivoAtual: parseFloat(record['Reais por Ativo Atual']) || 0,
+          reaisPorAtivoPercentual: parseFloat(record['Reais por Ativo %']) || 0,
+          multimarcasPorAtivoMeta: parseFloat(record['Multimarcas por Ativo Meta']) || 0,
+          multimarcasPorAtivoAtual: parseFloat(record['Multimarcas por Ativo Atual']) || 0,
+          multimarcasPorAtivoPercentual: parseFloat(record['Multimarcas por Ativo %']) || 0,
+          atividadeMeta: parseFloat(record['Atividade Meta']) || 0,
+          atividadeAtual: parseFloat(record['Atividade Atual']) || 0,
+          atividadePercentual: parseFloat(record['Atividade %']) || 0,
+          conversoesMeta: parseFloat(record['Conversões Meta']) || 0,
+          conversoesAtual: parseFloat(record['Conversões Atual']) || 0,
+          conversoesPercentual: parseFloat(record['Conversões %']) || 0,
+          upaMeta: parseFloat(record['UPA Meta']) || 0,
+          upaAtual: parseFloat(record['UPA Atual']) || 0,
+          upaPercentual: parseFloat(record['UPA %']) || 0
+        };
+
+        // Basic validation
+        if (!reportData.playerId) {
+          errors.push({
+            row: i + 1,
+            field: 'Player ID',
+            message: 'Player ID é obrigatório'
+          });
+        }
+
+        data.push(reportData);
+      }
+
+      return {
+        isValid: errors.length === 0,
+        data,
+        errors,
+        summary: ReportProcessingService.generateSummary({ isValid: errors.length === 0, data, errors })
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        data: [],
+        errors: [{ row: 0, field: 'file', message: `Erro ao processar arquivo: ${error instanceof Error ? error.message : 'Erro desconhecido'}` }]
+      };
+    }
   }
 
   static generateSummary(parseResult: ParseResult): string {

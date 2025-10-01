@@ -307,12 +307,12 @@ export class HistoryService {
   async hasHistoricalData(playerId: string): Promise<boolean> {
     try {
       const cycles = await this.getPlayerCycles(playerId);
-      // Only count completed cycles as historical data
-      const completedCycles = cycles.filter(cycle => cycle.completionStatus === 'completed');
-      return completedCycles.length > 0;
+      // Allow access if there's any cycle data (including current cycle)
+      return cycles.length > 0;
     } catch (error) {
       secureLogger.warn(`Error checking historical data for player: ${playerId}`, error);
-      return false;
+      // If there's an error, allow access anyway - the history page will handle empty data gracefully
+      return true;
     }
   }
 
