@@ -152,7 +152,7 @@ export class HistoryService {
    */
   async getCycleDetails(playerId: string, cycleNumber: number): Promise<CycleHistoryData | null> {
     try {
-      secureLogger.log('🔍 Getting cycle details for player:', playerId, 'cycle:', cycleNumber);
+      secureLogger.log(`🔍 Getting cycle details for player: ${playerId}, cycle: ${cycleNumber}`);
 
       const pipeline = [
         {
@@ -216,7 +216,7 @@ export class HistoryService {
       const results = await this.databaseService.aggregateReportData(pipeline);
       
       if (results.length === 0) {
-        secureLogger.log('❌ No cycle details found for player:', playerId, 'cycle:', cycleNumber);
+        secureLogger.log(`❌ No cycle details found for player: ${playerId}, cycle: ${cycleNumber}`);
         return null;
       }
 
@@ -235,7 +235,7 @@ export class HistoryService {
         progressTimeline: result.progressTimeline || []
       };
 
-      secureLogger.log('✅ Found cycle details for player:', playerId, 'cycle:', cycleNumber);
+      secureLogger.log(`✅ Found cycle details for player: ${playerId}, cycle: ${cycleNumber}`);
       return cycleDetails;
 
     } catch (error) {
@@ -253,7 +253,7 @@ export class HistoryService {
    */
   async getCycleProgressTimeline(playerId: string, cycleNumber: number): Promise<ProgressDataPoint[]> {
     try {
-      secureLogger.log('🔍 Getting progress timeline for player:', playerId, 'cycle:', cycleNumber);
+      secureLogger.log(`🔍 Getting progress timeline for player: ${playerId}, cycle: ${cycleNumber}`);
 
       const pipeline = [
         {

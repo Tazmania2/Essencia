@@ -37,6 +37,49 @@ export interface ValidationError {
 }
 
 export class ReportProcessingService {
+  private static instance: ReportProcessingService;
+
+  public static getInstance(): ReportProcessingService {
+    if (!ReportProcessingService.instance) {
+      ReportProcessingService.instance = new ReportProcessingService();
+    }
+    return ReportProcessingService.instance;
+  }
+
+  async processReportFile(file: File, token: string): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      // Validate file format
+      const formatError = ReportProcessingService.validateFileFormat(file);
+      if (formatError) {
+        return { success: false, error: formatError };
+      }
+
+      // Parse file
+      const parseResult = await ReportProcessingService.parseFile(file);
+      
+      if (!parseResult.isValid) {
+        return { 
+          success: false, 
+          error: 'File validation failed',
+          data: { errors: parseResult.errors }
+        };
+      }
+
+      return {
+        success: true,
+        data: {
+          records: parseResult.data,
+          summary: parseResult.summary
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
   static validateFileFormat(file: File): string | null {
     const allowedTypes = [
       'text/csv',

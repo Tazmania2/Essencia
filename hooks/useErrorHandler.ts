@@ -41,7 +41,7 @@ export const useErrorHandler = (): UseErrorHandlerReturn => {
     setErrorState(apiError);
     
     // Log the error
-    errorHandlerService.logError(apiError);
+    errorHandlerService.logError(apiError, 'useErrorHandler');
   }, []);
 
   const clearError = useCallback(() => {
@@ -70,7 +70,7 @@ export const useErrorHandler = (): UseErrorHandlerReturn => {
     }
 
     setErrorState(apiError);
-    errorHandlerService.logError(apiError, context);
+    errorHandlerService.logError(apiError, context || 'useErrorHandler');
   }, []);
 
   const handleFunifierError = useCallback((error: unknown, context?: string) => {
@@ -79,7 +79,7 @@ export const useErrorHandler = (): UseErrorHandlerReturn => {
   }, []);
 
   const handleValidationError = useCallback((error: unknown, context?: string) => {
-    const apiError = errorHandlerService.handleValidationError(error, context);
+    const apiError = errorHandlerService.handleValidationError(error, context || 'validation');
     setErrorState(apiError);
   }, []);
 
@@ -89,7 +89,10 @@ export const useErrorHandler = (): UseErrorHandlerReturn => {
   }, []);
 
   const handleDataProcessingError = useCallback((error: unknown, context?: string) => {
-    const apiError = errorHandlerService.handleDataProcessingError(error, context);
+    const apiError = errorHandlerService.handleDataProcessingError(
+      error instanceof Error ? error : new Error(String(error)), 
+      context || 'dataProcessing'
+    );
     setErrorState(apiError);
   }, []);
 

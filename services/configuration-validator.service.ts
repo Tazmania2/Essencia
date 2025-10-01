@@ -543,7 +543,7 @@ export class ConfigurationValidator {
     // Validate boost catalog item IDs
     const catalogItemPattern = /^[A-Za-z0-9]+$/;
 
-    if (!catalogItemPattern.test(config.secondaryGoal1.boost.catalogItemId)) {
+    if (config.secondaryGoal1.boost && !catalogItemPattern.test(config.secondaryGoal1.boost.catalogItemId)) {
       errors.push({
         field: 'secondaryGoal1.boost.catalogItemId',
         message: 'Boost catalog item ID must be alphanumeric',
@@ -551,7 +551,7 @@ export class ConfigurationValidator {
       });
     }
 
-    if (!catalogItemPattern.test(config.secondaryGoal2.boost.catalogItemId)) {
+    if (config.secondaryGoal2.boost && !catalogItemPattern.test(config.secondaryGoal2.boost.catalogItemId)) {
       errors.push({
         field: 'secondaryGoal2.boost.catalogItemId',
         message: 'Boost catalog item ID must be alphanumeric',
@@ -560,7 +560,7 @@ export class ConfigurationValidator {
     }
 
     // Validate boost names and descriptions
-    if (!config.secondaryGoal1.boost.name || config.secondaryGoal1.boost.name.trim().length === 0) {
+    if (config.secondaryGoal1.boost && (!config.secondaryGoal1.boost.name || config.secondaryGoal1.boost.name.trim().length === 0)) {
       errors.push({
         field: 'secondaryGoal1.boost.name',
         message: 'Boost name is required',
@@ -568,7 +568,7 @@ export class ConfigurationValidator {
       });
     }
 
-    if (!config.secondaryGoal2.boost.name || config.secondaryGoal2.boost.name.trim().length === 0) {
+    if (config.secondaryGoal2.boost && (!config.secondaryGoal2.boost.name || config.secondaryGoal2.boost.name.trim().length === 0)) {
       errors.push({
         field: 'secondaryGoal2.boost.name',
         message: 'Boost name is required',
@@ -576,7 +576,7 @@ export class ConfigurationValidator {
       });
     }
 
-    if (!config.secondaryGoal1.boost.description || config.secondaryGoal1.boost.description.trim().length === 0) {
+    if (config.secondaryGoal1.boost && (!config.secondaryGoal1.boost.description || config.secondaryGoal1.boost.description.trim().length === 0)) {
       errors.push({
         field: 'secondaryGoal1.boost.description',
         message: 'Boost description is required',
@@ -584,7 +584,7 @@ export class ConfigurationValidator {
       });
     }
 
-    if (!config.secondaryGoal2.boost.description || config.secondaryGoal2.boost.description.trim().length === 0) {
+    if (config.secondaryGoal2.boost && (!config.secondaryGoal2.boost.description || config.secondaryGoal2.boost.description.trim().length === 0)) {
       errors.push({
         field: 'secondaryGoal2.boost.description',
         message: 'Boost description is required',
@@ -593,7 +593,8 @@ export class ConfigurationValidator {
     }
 
     // Check for duplicate boost catalog items
-    if (config.secondaryGoal1.boost.catalogItemId === config.secondaryGoal2.boost.catalogItemId) {
+    if (config.secondaryGoal1.boost && config.secondaryGoal2.boost && 
+        config.secondaryGoal1.boost.catalogItemId === config.secondaryGoal2.boost.catalogItemId) {
       warnings.push({
         field: 'boost.catalogItemId',
         message: 'Secondary goals use the same boost catalog item ID',
@@ -665,8 +666,12 @@ export class ConfigurationValidator {
     // Check for inconsistent boost catalog items
     const boostCatalogIds = new Set<string>();
     configurations.forEach(teamConfig => {
-      boostCatalogIds.add(teamConfig.secondaryGoal1.boost.catalogItemId);
-      boostCatalogIds.add(teamConfig.secondaryGoal2.boost.catalogItemId);
+      if (teamConfig.secondaryGoal1.boost) {
+        boostCatalogIds.add(teamConfig.secondaryGoal1.boost.catalogItemId);
+      }
+      if (teamConfig.secondaryGoal2.boost) {
+        boostCatalogIds.add(teamConfig.secondaryGoal2.boost.catalogItemId);
+      }
     });
 
     if (boostCatalogIds.size > 2) {
@@ -766,7 +771,8 @@ export class ConfigurationValidator {
     }
 
     // Check for boost catalog item changes
-    if (oldConfig.secondaryGoal1.boost.catalogItemId !== newConfig.secondaryGoal1.boost.catalogItemId) {
+    if (oldConfig.secondaryGoal1.boost && newConfig.secondaryGoal1.boost && 
+        oldConfig.secondaryGoal1.boost.catalogItemId !== newConfig.secondaryGoal1.boost.catalogItemId) {
       warnings.push({
         field: `${newConfig.teamType}.secondaryGoal1.boost.catalogItemId`,
         message: `Boost catalog item changed - existing boosts may be affected`,
@@ -774,7 +780,8 @@ export class ConfigurationValidator {
       });
     }
 
-    if (oldConfig.secondaryGoal2.boost.catalogItemId !== newConfig.secondaryGoal2.boost.catalogItemId) {
+    if (oldConfig.secondaryGoal2.boost && newConfig.secondaryGoal2.boost && 
+        oldConfig.secondaryGoal2.boost.catalogItemId !== newConfig.secondaryGoal2.boost.catalogItemId) {
       warnings.push({
         field: `${newConfig.teamType}.secondaryGoal2.boost.catalogItemId`,
         message: `Boost catalog item changed - existing boosts may be affected`,

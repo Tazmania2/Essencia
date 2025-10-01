@@ -35,9 +35,9 @@ export const ProgressTimelineChart: React.FC<ProgressTimelineChartProps> = ({
         date: point.date,
         dayInCycle: point.dayInCycle,
         uploadSequence: point.uploadSequence,
-        primaryGoal: metrics[cycleData.finalMetrics.primaryGoal.name] || 0,
-        secondaryGoal1: metrics[cycleData.finalMetrics.secondaryGoal1.name] || 0,
-        secondaryGoal2: metrics[cycleData.finalMetrics.secondaryGoal2.name] || 0
+        primaryGoal: (metrics as any)[cycleData.finalMetrics.primaryGoal.name] || 0,
+        secondaryGoal1: (metrics as any)[cycleData.finalMetrics.secondaryGoal1.name] || 0,
+        secondaryGoal2: (metrics as any)[cycleData.finalMetrics.secondaryGoal2.name] || 0
       };
     });
 

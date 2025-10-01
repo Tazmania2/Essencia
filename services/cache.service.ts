@@ -26,6 +26,17 @@ class SimpleCache {
   clear(): void {
     this.cache.clear();
   }
+
+  async getOrSet<T>(key: string, factory: () => Promise<T>, ttl: number): Promise<T> {
+    const cached = this.get<T>(key);
+    if (cached !== null) {
+      return cached;
+    }
+
+    const data = await factory();
+    this.set(key, data, ttl);
+    return data;
+  }
 }
 
 export const dashboardCache = new SimpleCache();

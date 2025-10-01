@@ -48,6 +48,58 @@ export class ErrorHandlerService {
         return 'Ocorreu um erro inesperado. Tente novamente.';
     }
   }
+
+  handleFunifierError(error: unknown, context?: string): ApiError {
+    if (error instanceof ApiError) {
+      return error;
+    }
+
+    return new ApiError({
+      type: ErrorType.FUNIFIER_API_ERROR,
+      message: error instanceof Error ? error.message : 'Unknown Funifier API error',
+      details: { context: context || 'funifier', originalError: error },
+      timestamp: new Date()
+    });
+  }
+
+  handleNetworkError(error: unknown, context?: string): ApiError {
+    if (error instanceof ApiError) {
+      return error;
+    }
+
+    return new ApiError({
+      type: ErrorType.NETWORK_ERROR,
+      message: error instanceof Error ? error.message : 'Network connection error',
+      details: { context: context || 'network', originalError: error },
+      timestamp: new Date()
+    });
+  }
+
+  getErrorSeverity(error: Error | ApiError): 'low' | 'medium' | 'high' | 'critical' {
+    if (error instanceof ApiError) {
+      switch (error.type) {
+        case ErrorType.AUTHENTICATION_ERROR:
+          return 'high';
+        case ErrorType.VALIDATION_ERROR:
+          return 'medium';
+        case ErrorType.NETWORK_ERROR:
+          return 'medium';
+        case ErrorType.DATA_PROCESSING_ERROR:
+          return 'high';
+        default:
+          return 'medium';
+      }
+    }
+    return 'medium'; // Regular errors are medium severity by default
+  }
+
+  isRecoverableError(error: Error | ApiError): boolean {
+    if (error instanceof ApiError) {
+      return error.type === ErrorType.NETWORK_ERROR || 
+             error.type === ErrorType.VALIDATION_ERROR;
+    }
+    return true; // Regular errors are generally recoverable
+  }
 }
 
 export const errorHandlerService = ErrorHandlerService.getInstance();

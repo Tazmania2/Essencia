@@ -55,7 +55,7 @@ export const useLoadingState = (options: UseLoadingStateOptions = {}): UseLoadin
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const lastOperation = useRef<(() => Promise<any>) | null>(null);
-  const retryTimeoutRef = useRef<number | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const notifications = showNotifications ? useNotifications() : null;
 

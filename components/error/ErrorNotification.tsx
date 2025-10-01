@@ -34,7 +34,13 @@ export const ErrorNotification: React.FC<Props> = ({
       setIsAnimating(true);
 
       // Log the error
-      errorHandlerService.logError(error, 'notification');
+      if (error instanceof Error && !('type' in error)) {
+        // Convert regular Error to ApiError
+        const apiError = errorHandlerService.handleValidationError(error, 'notification');
+        errorHandlerService.logError(apiError, 'notification');
+      } else {
+        errorHandlerService.logError(error as ApiError, 'notification');
+      }
 
       // Auto hide after delay
       if (autoHide) {
@@ -120,7 +126,9 @@ export const ErrorNotification: React.FC<Props> = ({
   }
 
   const isRecoverable = errorHandlerService.isRecoverableError(error);
-  const userMessage = errorHandlerService.getUserFriendlyMessage(error);
+  const userMessage = error instanceof ApiError 
+    ? errorHandlerService.getUserFriendlyMessage(error)
+    : error.message || 'Ocorreu um erro inesperado';
 
   return (
     <div className="fixed top-4 right-4 z-50 max-w-sm w-full">

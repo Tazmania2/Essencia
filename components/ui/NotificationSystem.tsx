@@ -39,6 +39,12 @@ export const useNotificationHelpers = () => {
     },
     notifyConfigurationError: (error: string) => {
       console.log(`ERROR: Erro ao salvar configuração - ${error}`);
+    },
+    notifyHistoryLoaded: (count: number) => {
+      console.log(`SUCCESS: ${count} ciclos históricos carregados`);
+    },
+    notifyNoHistoryData: () => {
+      console.log('INFO: Nenhum dado histórico encontrado');
     }
   };
 };
