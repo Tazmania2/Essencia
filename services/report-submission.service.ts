@@ -27,26 +27,7 @@ export class ReportSubmissionService {
   }
 
   async submitReport(parseResult: ParseResult, file: File): Promise<SubmissionResult> {
-    // Mock implementation - replace with actual submission logic
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing time
-
-    const mockDifferences: DifferenceRecord[] = [
-      {
-        playerId: 'player1',
-        metric: 'faturamento',
-        difference: 5.2,
-        isFirstEntry: false
-      }
-    ];
-
-    return {
-      success: true,
-      recordsProcessed: parseResult.data.length,
-      actionLogsCreated: mockDifferences.length,
-      differences: mockDifferences,
-      errors: [],
-      summary: `Relatório ${file.name} processado com sucesso!\n${parseResult.data.length} registros processados\n${mockDifferences.length} action logs criados`
-    };
+    throw new Error('Report submission service not implemented. Please configure Funifier API integration.');
   }
 }
 

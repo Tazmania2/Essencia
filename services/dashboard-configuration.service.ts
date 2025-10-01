@@ -11,7 +11,7 @@ export class DashboardConfigurationService {
   }
 
   async getCurrentConfiguration(): Promise<DashboardConfigurationRecord> {
-    // Mock implementation - replace with actual API call
+    throw new Error('Dashboard configuration service not implemented. Please configure Funifier API integration.');
     return {
       version: '1.0.0',
       createdAt: new Date().toISOString(),
@@ -278,17 +278,7 @@ export class DashboardConfigurationService {
   }
 
   async saveConfiguration(config: Partial<DashboardConfigurationRecord>): Promise<DashboardConfigurationRecord> {
-    // Mock implementation - replace with actual API call
-    const savedConfig: DashboardConfigurationRecord = {
-      _id: 'config_' + Date.now(),
-      version: config.version || '1.0.0',
-      createdAt: config.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: config.createdBy || 'admin',
-      configurations: config.configurations || {} as any
-    };
-
-    return savedConfig;
+    throw new Error('Dashboard configuration save service not implemented. Please configure Funifier API integration.');
   }
 }
 

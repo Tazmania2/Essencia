@@ -102,26 +102,7 @@ export class ReportProcessingService {
   }
 
   static async parseFile(file: File): Promise<ParseResult> {
-    // Mock implementation - replace with actual parsing logic
-    const mockData: ReportData[] = [
-      {
-        playerId: 'player1',
-        diaDociclo: 15,
-        totalDiasCiclo: 21,
-        faturamentoPercentual: 85,
-        reaisPorAtivoPercentual: 92,
-        atividadePercentual: 78
-      }
-    ];
-
-    const mockErrors: ValidationError[] = [];
-
-    return {
-      isValid: mockErrors.length === 0,
-      data: mockData,
-      errors: mockErrors,
-      summary: `${mockData.length} registros processados com sucesso`
-    };
+    throw new Error('File parsing service not implemented. Please configure CSV/Excel parsing integration.');
   }
 
   static generateSummary(parseResult: ParseResult): string {
