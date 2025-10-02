@@ -156,7 +156,8 @@ function AdminReportsContent() {
           maxFileSize={10} // 10MB
         />
 
-        {/* Upload Results */}
+        {/* Upload Results - Commented out to prevent premature error display */}
+        {/* 
         {uploadResults.length > 0 && (
           <div className="bg-white rounded-2xl shadow-xl p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Resultados do Upload</h2>
@@ -186,6 +187,7 @@ function AdminReportsContent() {
             </div>
           </div>
         )}
+        */}
       </div>
     </AdminLayout>
   );

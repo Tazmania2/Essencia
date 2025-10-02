@@ -46,6 +46,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
   const [uploadProgress, setUploadProgress] = useState({ progress: 0, message: '', fileName: '' });
+  const [cycleNumber, setCycleNumber] = useState<number>(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { notifySuccess, notifyError, notifyInfo } = useNotificationHelpers();
 
@@ -472,7 +473,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
       const result = await reportSubmissionService.submitReport(
         fileToSubmit.parseResult!,
-        fileToSubmit.file
+        fileToSubmit.file,
+        cycleNumber
       );
 
       setUploadProgress(prev => ({
@@ -495,7 +497,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
         setUploadedFiles([]);
       } else {
         notifyError('Problemas no envio', 
-          `${result.errors.length} erros encontrados durante o processamento`);
+          result.message || 'Erro durante o processamento');
       }
 
       // Hide progress modal after a short delay
@@ -508,11 +510,12 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       
       setSubmissionResult({
         success: false,
+        message: `Erro durante o envio: ${errorMessage}`,
+        submissionId: null,
         recordsProcessed: 0,
-        actionLogsCreated: 0,
-        differences: [],
-        errors: [errorMessage],
-        summary: `Erro durante o envio: ${errorMessage}`
+        cycleNumber: cycleNumber,
+        submittedAt: new Date().toISOString(),
+        errors: [errorMessage]
       });
 
       notifyError('Erro no envio', errorMessage);
@@ -537,6 +540,28 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           setIsUploading(false);
         } : undefined}
       />
+
+      {/* Cycle Number Input */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <label htmlFor="cycle-number" className="block text-sm font-medium text-gray-700 mb-2">
+          Número do Ciclo
+        </label>
+        <div className="flex items-center space-x-3">
+          <input
+            id="cycle-number"
+            type="number"
+            min="1"
+            max="100"
+            value={cycleNumber}
+            onChange={(e) => setCycleNumber(parseInt(e.target.value) || 1)}
+            className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            disabled={disabled}
+          />
+          <span className="text-sm text-gray-500">
+            Este número será associado a todos os dados do relatório enviado
+          </span>
+        </div>
+      </div>
 
       {/* Upload Area */}
       <div
@@ -739,10 +764,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           <div className={`text-sm whitespace-pre-line ${
             submissionResult.success ? 'text-green-800' : 'text-red-800'
           }`}>
-            {submissionResult.summary}
+            {submissionResult.message}
           </div>
 
-          {submissionResult.errors.length > 0 && (
+          {submissionResult.errors && submissionResult.errors.length > 0 && (
             <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded">
               <h4 className="font-medium text-red-900 mb-2">Erros:</h4>
               <ul className="text-sm text-red-800 space-y-1">
@@ -753,13 +778,13 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             </div>
           )}
 
-          {submissionResult.success && submissionResult.differences.length > 0 && (
+          {submissionResult.success && submissionResult.differences && submissionResult.differences.length > 0 && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
               <h4 className="font-medium text-blue-900 mb-2">
-                Action Logs Criados ({submissionResult.actionLogsCreated}):
+                Action Logs Criados ({submissionResult.actionLogsCreated || 0}):
               </h4>
               <div className="text-sm text-blue-800 max-h-40 overflow-y-auto">
-                {submissionResult.differences.map((diff, index) => (
+                {submissionResult.differences?.map((diff, index) => (
                   <div key={index} className="mb-1">
                     <strong>{diff.playerId}</strong> - {diff.metric}: 
                     <span className={diff.difference >= 0 ? 'text-green-600' : 'text-red-600'}>
