@@ -198,17 +198,24 @@ export class ReportSubmissionService {
     token: string
   ): Promise<string> {
     try {
-      // Create FormData for file upload
+      // Create FormData for file upload using CORRECT Funifier API
       const formData = new FormData();
       formData.append('file', file);
+      // REQUIRED extra field as JSON string
+      formData.append('extra', JSON.stringify({
+        session: 'reports',
+        name: `report_${Date.now()}`,
+        cycleNumber: 'cycle_data'
+      }));
 
-      // Upload to Funifier reports endpoint
+      // Upload to CORRECT Funifier upload endpoint
       const response = await fetch(
-        `${process.env.FUNIFIER_BASE_URL || 'https://service2.funifier.com/v3'}/reports/upload`,
+        `${process.env.FUNIFIER_BASE_URL || 'https://service2.funifier.com/v3'}/upload/file`,
         {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`,
+            // Don't set Content-Type - let browser set it with boundary for multipart
           },
           body: formData,
         }
@@ -222,11 +229,12 @@ export class ReportSubmissionService {
 
       const result = await response.json();
 
-      if (!result.uploadUrl) {
-        throw new Error('Upload response missing uploadUrl');
+      // Check for correct response structure
+      if (!result.uploads || !result.uploads[0] || !result.uploads[0].url) {
+        throw new Error('Upload response missing url in uploads array');
       }
 
-      return result.uploadUrl;
+      return result.uploads[0].url;
     } catch (error) {
       secureLogger.error('❌ File upload to Funifier failed', error);
       throw new Error(

@@ -29,12 +29,14 @@ export class ActionLogService {
   private static readonly MAX_RETRIES = 3;
   private static readonly RETRY_DELAY = 1000; // 1 second
 
-  // Mapping of metric names to Funifier challenge types
-  private static readonly METRIC_TO_CHALLENGE_MAP: Record<string, string> = {
-    'atividade': 'atividade_challenge',
-    'reaisPorAtivo': 'reais_por_ativo_challenge',
-    'faturamento': 'faturamento_challenge',
-    'multimarcasPorAtivo': 'multimarcas_por_ativo_challenge'
+  // Mapping of metric names to Funifier ACTION IDs (not challenge types)
+  private static readonly METRIC_TO_ACTION_MAP: Record<string, string> = {
+    'atividade': 'atividade',
+    'reaisPorAtivo': 'reais_por_ativo', 
+    'faturamento': 'faturamento',
+    'multimarcasPorAtivo': 'multimarcas_por_ativo',
+    'conversoes': 'conversoes',
+    'upa': 'upa'
   };
 
   /**
@@ -63,9 +65,9 @@ export class ActionLogService {
    * Create individual action log from metric difference
    */
   private static createActionLog(difference: MetricDifference): ActionLog | null {
-    const challengeType = this.METRIC_TO_CHALLENGE_MAP[difference.metric];
+    const actionId = this.METRIC_TO_ACTION_MAP[difference.metric];
     
-    if (!challengeType) {
+    if (!actionId) {
       console.warn(`Unknown metric type: ${difference.metric}`);
       return null;
     }
@@ -76,7 +78,7 @@ export class ActionLogService {
 
     return {
       playerId: difference.playerId,
-      challengeType,
+      challengeType: actionId, // This will be used as actionId in the API call
       attribute: difference.metric,
       value,
       timestamp: new Date().toISOString(),
@@ -123,86 +125,148 @@ export class ActionLogService {
   }
 
   /**
-   * Submit multiple action logs in batch
+   * Submit multiple action logs in batch using BULK endpoint for efficiency
    */
   static async submitActionLogsBatch(
     actionLogs: ActionLog[],
     token: string,
     onProgress?: (completed: number, total: number) => void
   ): Promise<BatchSubmissionResult> {
-    const results: ActionLogSubmissionResult[] = [];
-    let successfulSubmissions = 0;
-    let failedSubmissions = 0;
+    try {
+      // Use bulk endpoint for better performance
+      const bulkPayload = actionLogs.map(actionLog => ({
+        actionId: actionLog.challengeType,
+        userId: actionLog.playerId,
+        attributes: {
+          metric: actionLog.attribute,
+          value: actionLog.value,
+          timestamp: actionLog.timestamp,
+          ...actionLog.metadata
+        }
+      }));
 
-    for (let i = 0; i < actionLogs.length; i++) {
-      const actionLog = actionLogs[i];
+      const response = await axios.post(
+        `${this.BASE_URL}/action/log/bulk`,
+        bulkPayload,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000 // 30 second timeout for bulk
+        }
+      );
+
+      const responseData = response.data;
+      const successfulSubmissions = responseData.total_registered || 0;
+      const failedSubmissions = actionLogs.length - successfulSubmissions;
+
+      // Create results array
+      const results: ActionLogSubmissionResult[] = actionLogs.map((actionLog, index) => ({
+        success: index < successfulSubmissions,
+        actionLog,
+        error: index >= successfulSubmissions ? 'Failed in bulk submission' : undefined
+      }));
+
+      if (onProgress) {
+        onProgress(actionLogs.length, actionLogs.length);
+      }
+
+      const summary = this.generateBatchSummary(
+        actionLogs.length,
+        successfulSubmissions,
+        failedSubmissions
+      );
+
+      return {
+        totalLogs: actionLogs.length,
+        successfulSubmissions,
+        failedSubmissions,
+        results,
+        summary
+      };
+
+    } catch (error) {
+      // Fallback to individual submissions if bulk fails
+      console.warn('Bulk submission failed, falling back to individual submissions:', error);
       
-      try {
-        const result = await this.submitActionLog(actionLog, token);
-        results.push(result);
+      const results: ActionLogSubmissionResult[] = [];
+      let successfulSubmissions = 0;
+      let failedSubmissions = 0;
+
+      for (let i = 0; i < actionLogs.length; i++) {
+        const actionLog = actionLogs[i];
         
-        if (result.success) {
-          successfulSubmissions++;
-        } else {
+        try {
+          const result = await this.submitActionLog(actionLog, token);
+          results.push(result);
+          
+          if (result.success) {
+            successfulSubmissions++;
+          } else {
+            failedSubmissions++;
+          }
+          
+          // Call progress callback if provided
+          if (onProgress) {
+            onProgress(i + 1, actionLogs.length);
+          }
+          
+          // Small delay between requests to avoid rate limiting
+          if (i < actionLogs.length - 1) {
+            await this.delay(100);
+          }
+        } catch (error) {
+          const errorResult: ActionLogSubmissionResult = {
+            success: false,
+            actionLog,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          };
+          
+          results.push(errorResult);
           failedSubmissions++;
-        }
-        
-        // Call progress callback if provided
-        if (onProgress) {
-          onProgress(i + 1, actionLogs.length);
-        }
-        
-        // Small delay between requests to avoid rate limiting
-        if (i < actionLogs.length - 1) {
-          await this.delay(100);
-        }
-      } catch (error) {
-        const errorResult: ActionLogSubmissionResult = {
-          success: false,
-          actionLog,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        };
-        
-        results.push(errorResult);
-        failedSubmissions++;
-        
-        if (onProgress) {
-          onProgress(i + 1, actionLogs.length);
+          
+          if (onProgress) {
+            onProgress(i + 1, actionLogs.length);
+          }
         }
       }
+
+      const summary = this.generateBatchSummary(
+        actionLogs.length,
+        successfulSubmissions,
+        failedSubmissions
+      );
+
+      return {
+        totalLogs: actionLogs.length,
+        successfulSubmissions,
+        failedSubmissions,
+        results,
+        summary
+      };
     }
-
-    const summary = this.generateBatchSummary(
-      actionLogs.length,
-      successfulSubmissions,
-      failedSubmissions
-    );
-
-    return {
-      totalLogs: actionLogs.length,
-      successfulSubmissions,
-      failedSubmissions,
-      results,
-      summary
-    };
   }
 
   /**
-   * Send action log request to Funifier API
+   * Send action log request to Funifier API using CORRECT endpoint and payload
    */
   private static async sendActionLogRequest(
     actionLog: ActionLog,
     token: string
   ): Promise<void> {
-    const url = `${this.BASE_URL}/action-logs`;
+    const url = `${this.BASE_URL}/action/log`;
     
+    // CORRECT payload structure for Funifier API
     const payload = {
-      player_id: actionLog.playerId,
-      challenge_type: actionLog.challengeType,
-      attribute: actionLog.attribute,
-      value: actionLog.value,
-      timestamp: actionLog.timestamp,
-      metadata: actionLog.metadata
+      actionId: actionLog.challengeType, // Use challengeType as actionId
+      userId: actionLog.playerId,
+      attributes: {
+        metric: actionLog.attribute,
+        value: actionLog.value,
+        timestamp: actionLog.timestamp,
+        ...actionLog.metadata
+      }
     };
 
     const response = await axios.post(url, payload, {
