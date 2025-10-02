@@ -153,19 +153,23 @@ describe('HistoryService', () => {
     const mockPlayerId = 'player123';
 
     it('should return true when player has cycles', async () => {
-      const mockCycles = [
-        { cycleNumber: 1, completionStatus: 'completed' }
-      ] as CycleHistoryData[];
+      const mockRecords = [
+        { _id: '1', playerId: mockPlayerId, cycleNumber: 1 }
+      ];
 
-      jest.spyOn(service, 'getPlayerCycles').mockResolvedValue(mockCycles);
+      mockDatabaseService.getReportData.mockResolvedValue(mockRecords as any);
 
       const result = await service.hasHistoricalData(mockPlayerId);
 
       expect(result).toBe(true);
+      expect(mockDatabaseService.getReportData).toHaveBeenCalledWith({
+        playerId: mockPlayerId,
+        cycleNumber: { $exists: true, $ne: null },
+      });
     });
 
     it('should return false when player has no cycles', async () => {
-      jest.spyOn(service, 'getPlayerCycles').mockResolvedValue([]);
+      mockDatabaseService.getReportData.mockResolvedValue([]);
 
       const result = await service.hasHistoricalData(mockPlayerId);
 

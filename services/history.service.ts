@@ -75,15 +75,26 @@ export class HistoryService {
         `📋 Found ${reportMetadata.length} reports with CSV files for player: ${playerId}`
       );
 
-      // Process each report: fetch CSV and extract cycle data
-      const cycleDataPromises = reportMetadata.map(async (metadata) => {
+      // LIMIT CSV downloads to prevent loops and crashes
+      const MAX_CSV_DOWNLOADS = 10; // Circuit breaker
+      const limitedMetadata = reportMetadata.slice(0, MAX_CSV_DOWNLOADS);
+
+      if (reportMetadata.length > MAX_CSV_DOWNLOADS) {
+        secureLogger.warn(
+          `⚠️ Limiting CSV downloads to ${MAX_CSV_DOWNLOADS} out of ${reportMetadata.length} reports for player: ${playerId}`
+        );
+      }
+
+      // Process reports sequentially to avoid overwhelming the system
+      const validCycleData = [];
+
+      for (const metadata of limitedMetadata) {
         try {
-          // Get enhanced record with uploadUrl
           const enhancedRecord = metadata as any as EnhancedReportRecord;
 
           if (!enhancedRecord.uploadUrl) {
             secureLogger.warn(`⚠️ No uploadUrl for report: ${metadata._id}`);
-            return null;
+            continue;
           }
 
           // Parse CSV to get actual goal data
@@ -94,27 +105,24 @@ export class HistoryService {
             secureLogger.warn(
               `⚠️ Failed to parse CSV for report: ${metadata._id}`
             );
-            return null;
+            continue;
           }
 
-          return {
+          validCycleData.push({
             reportDate: metadata.reportDate,
             cycleDay: csvData.cycleDay,
             totalCycleDays: csvData.totalCycleDays,
             csvData,
             uploadUrl: enhancedRecord.uploadUrl,
-          };
+          });
         } catch (error) {
           secureLogger.warn(
             `⚠️ Error processing report ${metadata._id}:`,
             error
           );
-          return null;
+          // Continue processing other reports instead of failing completely
         }
-      });
-
-      const cycleDataResults = await Promise.all(cycleDataPromises);
-      const validCycleData = cycleDataResults.filter((data) => data !== null);
+      }
 
       if (validCycleData.length === 0) {
         secureLogger.log(
@@ -227,7 +235,7 @@ export class HistoryService {
   }
 
   /**
-   * Get detailed data for a specific cycle - SIMPLIFIED
+   * Get detailed data for a specific cycle - DIRECT QUERY (no loops)
    */
   async getCycleDetails(
     playerId: string,
@@ -238,18 +246,117 @@ export class HistoryService {
         `🔍 Getting cycle details for player: ${playerId}, cycle: ${cycleNumber}`
       );
 
-      // Get all cycles and find the specific one
-      const allCycles = await this.getPlayerCycleHistory(playerId);
-      const cycleDetails = allCycles.find(
-        (cycle) => cycle.cycleNumber === cycleNumber
-      );
+      // DIRECT database query for specific cycle - no loops
+      const filter = {
+        playerId: playerId,
+        cycleNumber: cycleNumber,
+        uploadUrl: { $exists: true, $ne: null },
+        status: 'REGISTERED',
+      };
 
-      if (!cycleDetails) {
+      const reportMetadata = await this.databaseService.getReportData(filter);
+
+      if (!reportMetadata || reportMetadata.length === 0) {
         secureLogger.log(
           `❌ No cycle details found for player: ${playerId}, cycle: ${cycleNumber}`
         );
         return null;
       }
+
+      // Process only the reports for this specific cycle
+      const cycleReports = [];
+      for (const metadata of reportMetadata) {
+        try {
+          const enhancedRecord = metadata as any as EnhancedReportRecord;
+          if (!enhancedRecord.uploadUrl) continue;
+
+          const csvData =
+            await this.databaseService.getCSVGoalData(enhancedRecord);
+          if (!csvData) continue;
+
+          cycleReports.push({
+            reportDate: metadata.reportDate,
+            cycleDay: csvData.cycleDay,
+            totalCycleDays: csvData.totalCycleDays,
+            csvData,
+            uploadUrl: enhancedRecord.uploadUrl,
+          });
+        } catch (error) {
+          secureLogger.warn(
+            `⚠️ Error processing report ${metadata._id}:`,
+            error
+          );
+        }
+      }
+
+      if (cycleReports.length === 0) {
+        return null;
+      }
+
+      // Sort reports by date
+      cycleReports.sort(
+        (a, b) =>
+          new Date(a.reportDate).getTime() - new Date(b.reportDate).getTime()
+      );
+
+      const firstReport = cycleReports[0];
+      const lastReport = cycleReports[cycleReports.length - 1];
+
+      // Calculate cycle dates
+      const firstReportDate = new Date(firstReport.reportDate);
+      const cycleStartDate = new Date(firstReportDate);
+      cycleStartDate.setDate(
+        firstReportDate.getDate() - (firstReport.cycleDay - 1)
+      );
+
+      const cycleEndDate = new Date(cycleStartDate);
+      cycleEndDate.setDate(
+        cycleStartDate.getDate() + firstReport.totalCycleDays - 1
+      );
+
+      const cycleDetails: CycleHistoryData = {
+        cycleNumber,
+        startDate: cycleStartDate.toISOString(),
+        endDate: cycleEndDate.toISOString(),
+        totalDays: firstReport.totalCycleDays,
+        completionStatus: 'completed' as const,
+        finalMetrics: {
+          primaryGoal: {
+            name: 'Atividade',
+            percentage: lastReport.csvData.atividade.percentage,
+            target: lastReport.csvData.atividade.target,
+            current: lastReport.csvData.atividade.current,
+            unit: '%',
+            boostActive: false,
+          },
+          secondaryGoal1: {
+            name: 'Reais por Ativo',
+            percentage: lastReport.csvData.reaisPorAtivo.percentage,
+            target: lastReport.csvData.reaisPorAtivo.target,
+            current: lastReport.csvData.reaisPorAtivo.current,
+            unit: '%',
+            boostActive: false,
+          },
+          secondaryGoal2: {
+            name: 'Faturamento',
+            percentage: lastReport.csvData.faturamento.percentage,
+            target: lastReport.csvData.faturamento.target,
+            current: lastReport.csvData.faturamento.current,
+            unit: '%',
+            boostActive: false,
+          },
+        },
+        progressTimeline: cycleReports.map((report, index) => ({
+          date: report.reportDate,
+          dayInCycle: report.cycleDay,
+          uploadSequence: index + 1,
+          metrics: {
+            primaryGoal: report.csvData.atividade.percentage,
+            secondaryGoal1: report.csvData.reaisPorAtivo.percentage,
+            secondaryGoal2: report.csvData.faturamento.percentage,
+          },
+        })),
+      };
 
       secureLogger.log(
         `✅ Found cycle details for player: ${playerId}, cycle: ${cycleNumber}`
@@ -262,7 +369,7 @@ export class HistoryService {
   }
 
   /**
-   * Get progress timeline for a specific cycle - SIMPLIFIED
+   * Get progress timeline for a specific cycle - DIRECT QUERY (no loops)
    */
   async getCycleProgressTimeline(
     playerId: string,
@@ -273,20 +380,62 @@ export class HistoryService {
         `🔍 Getting progress timeline for player: ${playerId}, cycle: ${cycleNumber}`
       );
 
-      // Get cycle details which already contains the timeline
-      const cycleDetails = await this.getCycleDetails(playerId, cycleNumber);
+      // DIRECT database query - no method calls that could loop
+      const filter = {
+        playerId: playerId,
+        cycleNumber: cycleNumber,
+        uploadUrl: { $exists: true, $ne: null },
+        status: 'REGISTERED',
+      };
 
-      if (!cycleDetails) {
+      const reportMetadata = await this.databaseService.getReportData(filter);
+
+      if (!reportMetadata || reportMetadata.length === 0) {
         secureLogger.log(
           `❌ No timeline found for player: ${playerId}, cycle: ${cycleNumber}`
         );
         return [];
       }
 
-      secureLogger.log(
-        `✅ Found ${cycleDetails.progressTimeline.length} progress points for player: ${playerId}, cycle: ${cycleNumber}`
+      // Process timeline data directly
+      const timelinePoints: ProgressDataPoint[] = [];
+
+      for (const metadata of reportMetadata) {
+        try {
+          const enhancedRecord = metadata as any as EnhancedReportRecord;
+          if (!enhancedRecord.uploadUrl) continue;
+
+          const csvData =
+            await this.databaseService.getCSVGoalData(enhancedRecord);
+          if (!csvData) continue;
+
+          timelinePoints.push({
+            date: metadata.reportDate,
+            dayInCycle: csvData.cycleDay,
+            uploadSequence: timelinePoints.length + 1,
+            metrics: {
+              primaryGoal: csvData.atividade.percentage,
+              secondaryGoal1: csvData.reaisPorAtivo.percentage,
+              secondaryGoal2: csvData.faturamento.percentage,
+            },
+          });
+        } catch (error) {
+          secureLogger.warn(
+            `⚠️ Error processing timeline report ${metadata._id}:`,
+            error
+          );
+        }
+      }
+
+      // Sort by date
+      timelinePoints.sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
       );
-      return cycleDetails.progressTimeline;
+
+      secureLogger.log(
+        `✅ Found ${timelinePoints.length} progress points for player: ${playerId}, cycle: ${cycleNumber}`
+      );
+      return timelinePoints;
     } catch (error) {
       secureLogger.error('❌ Error getting progress timeline:', error);
       return [];
@@ -294,13 +443,18 @@ export class HistoryService {
   }
 
   /**
-   * Check if a player has historical data
+   * Check if a player has historical data - FAST CHECK
    */
   async hasHistoricalData(playerId: string): Promise<boolean> {
     try {
-      const cycles = await this.getPlayerCycles(playerId);
-      // Allow access if there's any cycle data (including current cycle)
-      return cycles.length > 0;
+      // FAST database check - no CSV processing
+      const filter = {
+        playerId: playerId,
+        cycleNumber: { $exists: true, $ne: null },
+      };
+
+      const reportMetadata = await this.databaseService.getReportData(filter);
+      return reportMetadata && reportMetadata.length > 0;
     } catch (error) {
       secureLogger.warn(
         `Error checking historical data for player: ${playerId}`,
@@ -312,25 +466,91 @@ export class HistoryService {
   }
 
   /**
-   * Get all cycles for a player (including current) - SIMPLIFIED
+   * Get all cycles for a player (including current) - DIRECT QUERY (no loops)
    */
   async getPlayerCycles(playerId: string): Promise<CycleHistoryData[]> {
     try {
-      // Use the same simplified method as getPlayerCycleHistory
-      return await this.getPlayerCycleHistory(playerId);
+      // DIRECT database query for cycle numbers only - no CSV processing
+      const filter = {
+        playerId: playerId,
+        cycleNumber: { $exists: true, $ne: null },
+        status: 'REGISTERED',
+      };
+
+      const reportMetadata = await this.databaseService.getReportData(filter);
+
+      if (!reportMetadata || reportMetadata.length === 0) {
+        secureLogger.log(`❌ No cycles found for player: ${playerId}`);
+        return [];
+      }
+
+      // Extract unique cycle numbers only - no heavy processing
+      const cycleNumbers = new Set<number>();
+      reportMetadata.forEach((metadata) => {
+        const enhancedRecord = metadata as any as EnhancedReportRecord;
+        if (enhancedRecord.cycleNumber) {
+          cycleNumbers.add(enhancedRecord.cycleNumber);
+        }
+      });
+
+      // Create minimal cycle data - no CSV parsing
+      const cycles: CycleHistoryData[] = Array.from(cycleNumbers).map(
+        (cycleNumber) => ({
+          cycleNumber,
+          startDate: new Date().toISOString(), // Placeholder
+          endDate: new Date().toISOString(), // Placeholder
+          totalDays: 21, // Default
+          completionStatus: 'completed' as const,
+          finalMetrics: {
+            primaryGoal: {
+              name: 'Atividade',
+              percentage: 0,
+              target: 100,
+              current: 0,
+              unit: '%',
+              boostActive: false,
+            },
+            secondaryGoal1: {
+              name: 'Reais por Ativo',
+              percentage: 0,
+              target: 100,
+              current: 0,
+              unit: '%',
+              boostActive: false,
+            },
+            secondaryGoal2: {
+              name: 'Faturamento',
+              percentage: 0,
+              target: 100,
+              current: 0,
+              unit: '%',
+              boostActive: false,
+            },
+          },
+          progressTimeline: [],
+        })
+      );
+
+      // Sort by cycle number (most recent first)
+      cycles.sort((a, b) => b.cycleNumber - a.cycleNumber);
+
+      secureLogger.log(
+        `✅ Found ${cycles.length} cycles for player: ${playerId}`
+      );
+      return cycles;
     } catch (error) {
       secureLogger.error('❌ Error getting player cycles:', error);
-      // Return empty array instead of throwing to prevent crashes
       return [];
     }
   }
 
   /**
-   * Get summary statistics for a player's cycle history
+   * Get summary statistics for a player's cycle history - LIGHTWEIGHT
    */
   async getCycleSummaryStats(playerId: string): Promise<CycleSummaryStats> {
     try {
-      const cycles = await this.getPlayerCycleHistory(playerId);
+      // Use lightweight getPlayerCycles instead of full history
+      const cycles = await this.getPlayerCycles(playerId);
 
       if (cycles.length === 0) {
         return {
