@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { CycleHistoryData } from '../../types';
 import { historyService } from '../../services/history.service';
 import { LoadingState, Skeleton } from '../ui/LoadingSpinner';
-import { CycleDetailsView } from './CycleDetailsView';
 import { useHistoryLoading } from '../../hooks/useLoadingState';
 import { useNotificationHelpers } from '../ui/NotificationSystem';
 
@@ -20,7 +19,7 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
   onBack
 }) => {
   const [cycles, setCycles] = useState<CycleHistoryData[]>([]);
-  const [selectedCycle, setSelectedCycle] = useState<CycleHistoryData | null>(null);
+  const [expandedCycle, setExpandedCycle] = useState<number | null>(null);
   const { loadingState, executeWithLoading, retry } = useHistoryLoading();
   const { notifyHistoryLoaded, notifyNoHistoryData } = useNotificationHelpers();
 
@@ -57,27 +56,13 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
     };
   }, [playerId]); // ✅ Removed executeWithLoading from dependencies to prevent re-renders
 
-  const handleCycleSelect = (cycle: CycleHistoryData) => {
-    setSelectedCycle(cycle);
-  };
-
-  const handleBackToList = () => {
-    setSelectedCycle(null);
+  const handleCycleToggle = (cycleNumber: number) => {
+    setExpandedCycle(expandedCycle === cycleNumber ? null : cycleNumber);
   };
 
   const handleRetry = async () => {
     await retry();
   };
-
-  if (selectedCycle) {
-    return (
-      <CycleDetailsView
-        cycle={selectedCycle}
-        playerId={playerId}
-        onBack={handleBackToList}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
@@ -122,7 +107,9 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
               <CycleHistoryCard
                 key={cycle.cycleNumber}
                 cycle={cycle}
-                onClick={() => handleCycleSelect(cycle)}
+                isExpanded={expandedCycle === cycle.cycleNumber}
+                onClick={() => handleCycleToggle(cycle.cycleNumber)}
+                playerId={playerId}
               />
             ))}
           </div>
@@ -143,10 +130,12 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
 
 interface CycleHistoryCardProps {
   cycle: CycleHistoryData;
+  isExpanded: boolean;
   onClick: () => void;
+  playerId: string;
 }
 
-const CycleHistoryCard: React.FC<CycleHistoryCardProps> = ({ cycle, onClick }) => {
+const CycleHistoryCard: React.FC<CycleHistoryCardProps> = ({ cycle, isExpanded, onClick, playerId }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
@@ -172,98 +161,158 @@ const CycleHistoryCard: React.FC<CycleHistoryCardProps> = ({ cycle, onClick }) =
   const performanceColorClass = getPerformanceColor(overallPerformance);
 
   return (
-    <div
-      className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border border-gray-200 hover:border-blue-300"
-      onClick={onClick}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <div className="flex items-center space-x-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                Ciclo {cycle.cycleNumber}
-              </div>
-              <div className="text-sm text-gray-500">
-                {cycle.totalDays} dias
-              </div>
-            </div>
-            
-            <div className="flex-1">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-500">Início:</span>
-                  <span className="ml-1 font-medium">
-                    {formatDate(cycle.startDate)}
-                  </span>
+    <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 hover:border-blue-300">
+      {/* Main Card Content - Clickable */}
+      <div
+        className="cursor-pointer"
+        onClick={onClick}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center space-x-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  Ciclo {cycle.cycleNumber}
                 </div>
-                <div>
-                  <span className="text-gray-500">Fim:</span>
-                  <span className="ml-1 font-medium">
-                    {formatDate(cycle.endDate)}
-                  </span>
+                <div className="text-sm text-gray-500">
+                  {cycle.totalDays} dias
                 </div>
               </div>
               
-              <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-500">Meta Principal:</span>
-                  <div className="font-semibold text-purple-600">
-                    {cycle.finalMetrics.primaryGoal.percentage.toFixed(1)}%
+              <div className="flex-1">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Início:</span>
+                    <span className="ml-1 font-medium">
+                      {formatDate(cycle.startDate)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Fim:</span>
+                    <span className="ml-1 font-medium">
+                      {formatDate(cycle.endDate)}
+                    </span>
                   </div>
                 </div>
-                <div>
-                  <span className="text-gray-500">Meta Secundária 1:</span>
-                  <div className="font-semibold text-green-600">
-                    {cycle.finalMetrics.secondaryGoal1.percentage.toFixed(1)}%
-                    {cycle.finalMetrics.secondaryGoal1.boostActive && (
-                      <span className="ml-1 text-green-600">🚀</span>
-                    )}
+                
+                <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Meta Principal:</span>
+                    <div className="font-semibold text-purple-600">
+                      {cycle.finalMetrics.primaryGoal.percentage.toFixed(1)}%
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <span className="text-gray-500">Meta Secundária 2:</span>
-                  <div className="font-semibold text-purple-600">
-                    {cycle.finalMetrics.secondaryGoal2.percentage.toFixed(1)}%
-                    {cycle.finalMetrics.secondaryGoal2.boostActive && (
-                      <span className="ml-1 text-purple-600">🚀</span>
-                    )}
+                  <div>
+                    <span className="text-gray-500">Meta Secundária 1:</span>
+                    <div className="font-semibold text-green-600">
+                      {cycle.finalMetrics.secondaryGoal1.percentage.toFixed(1)}%
+                      {cycle.finalMetrics.secondaryGoal1.boostActive && (
+                        <span className="ml-1 text-green-600">🚀</span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Meta Secundária 2:</span>
+                    <div className="font-semibold text-purple-600">
+                      {cycle.finalMetrics.secondaryGoal2.percentage.toFixed(1)}%
+                      {cycle.finalMetrics.secondaryGoal2.boostActive && (
+                        <span className="ml-1 text-purple-600">🚀</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="text-center">
+              <div className={`px-3 py-1 rounded-full text-sm font-medium ${performanceColorClass}`}>
+                {overallPerformance}%
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Performance Geral
+              </div>
+            </div>
+            
+            <div className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
-          <div className="text-center">
-            <div className={`px-3 py-1 rounded-full text-sm font-medium ${performanceColorClass}`}>
-              {overallPerformance}%
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              Performance Geral
-            </div>
+        {/* Progress Timeline Preview */}
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="text-xs text-gray-500 mb-2">
+            Evolução do ciclo ({cycle.progressTimeline.length} pontos de dados)
           </div>
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300"
+              style={{ width: `${Math.min(overallPerformance, 100)}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ✅ Accordion Content - Simple timeline display */}
+      {isExpanded && (
+        <div className="mt-4 pt-4 border-t border-gray-200 animate-in slide-in-from-top duration-200">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+            📊 Relatórios do Ciclo {cycle.cycleNumber}
+          </h4>
           
-          <div className="text-gray-400">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
+          {cycle.progressTimeline.length > 0 ? (
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {cycle.progressTimeline.map((point, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs font-semibold">
+                      {point.dayInCycle}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-700">
+                        Dia {point.dayInCycle} do ciclo
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {formatDate(point.date)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-4 text-xs">
+                    <div className="text-center">
+                      <div className="text-purple-600 font-semibold">
+                        {point.metrics.primaryGoal?.toFixed(1) || '0.0'}%
+                      </div>
+                      <div className="text-gray-500">Atividade</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-green-600 font-semibold">
+                        {point.metrics.secondaryGoal1?.toFixed(1) || '0.0'}%
+                      </div>
+                      <div className="text-gray-500">R$/Ativo</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-blue-600 font-semibold">
+                        {point.metrics.secondaryGoal2?.toFixed(1) || '0.0'}%
+                      </div>
+                      <div className="text-gray-500">Faturamento</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-gray-500">
+              <div className="text-2xl mb-2">📋</div>
+              <div>Nenhum relatório encontrado para este ciclo</div>
+            </div>
+          )}
         </div>
-      </div>
-      
-      {/* Progress Timeline Preview */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <div className="text-xs text-gray-500 mb-2">
-          Evolução do ciclo ({cycle.progressTimeline.length} pontos de dados)
-        </div>
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300"
-            style={{ width: `${Math.min(overallPerformance, 100)}%` }}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -89,6 +89,14 @@ export class HistoryService {
           },
         },
         {
+          $addFields: {
+            // ✅ Treat records without cycleNumber as cycle 1
+            cycleNumber: {
+              $ifNull: ['$cycleNumber', 1],
+            },
+          },
+        },
+        {
           $sort: { reportDate: -1 }, // Most recent first
         },
         {
@@ -316,9 +324,23 @@ export class HistoryService {
         {
           $match: {
             playerId: playerId,
-            cycleNumber: cycleNumber,
             uploadUrl: { $exists: true, $ne: null },
             status: 'REGISTERED',
+            // ✅ Handle cycle 1 requests for records without cycleNumber
+            $or: [
+              { cycleNumber: cycleNumber },
+              ...(cycleNumber === 1
+                ? [{ cycleNumber: { $exists: false } }, { cycleNumber: null }]
+                : []),
+            ],
+          },
+        },
+        {
+          $addFields: {
+            // ✅ Treat records without cycleNumber as cycle 1
+            cycleNumber: {
+              $ifNull: ['$cycleNumber', 1],
+            },
           },
         },
         {
@@ -469,9 +491,23 @@ export class HistoryService {
         {
           $match: {
             playerId: playerId,
-            cycleNumber: cycleNumber,
             uploadUrl: { $exists: true, $ne: null },
             status: 'REGISTERED',
+            // ✅ Handle cycle 1 requests for records without cycleNumber
+            $or: [
+              { cycleNumber: cycleNumber },
+              ...(cycleNumber === 1
+                ? [{ cycleNumber: { $exists: false } }, { cycleNumber: null }]
+                : []),
+            ],
+          },
+        },
+        {
+          $addFields: {
+            // ✅ Treat records without cycleNumber as cycle 1
+            cycleNumber: {
+              $ifNull: ['$cycleNumber', 1],
+            },
           },
         },
         {
@@ -550,12 +586,12 @@ export class HistoryService {
    */
   async hasHistoricalData(playerId: string): Promise<boolean> {
     try {
-      // Use MongoDB aggregation for fast existence check
+      // Use MongoDB aggregation for fast existence check (any reports, including cycle 1)
       const aggregationPipeline = [
         {
           $match: {
             playerId: playerId,
-            cycleNumber: { $exists: true, $ne: null },
+            // ✅ Check for any reports - cycle number can be missing (treated as cycle 1)
           },
         },
         {
@@ -591,8 +627,15 @@ export class HistoryService {
         {
           $match: {
             playerId: playerId,
-            cycleNumber: { $exists: true, $ne: null },
             status: 'REGISTERED',
+          },
+        },
+        {
+          $addFields: {
+            // ✅ Treat records without cycleNumber as cycle 1
+            cycleNumber: {
+              $ifNull: ['$cycleNumber', 1],
+            },
           },
         },
         {
