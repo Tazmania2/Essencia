@@ -525,7 +525,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [uploadedFiles, onSubmissionComplete, notifySuccess, notifyError]);
+  }, [uploadedFiles, onSubmissionComplete, notifySuccess, notifyError, cycleNumber, forceFirstUpload]);
 
   const canSubmit = uploadedFiles.some(f => f.status === 'success' && f.parseResult?.isValid) && !isSubmitting;
 
