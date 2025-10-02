@@ -47,6 +47,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
   const [uploadProgress, setUploadProgress] = useState({ progress: 0, message: '', fileName: '' });
   const [cycleNumber, setCycleNumber] = useState<number>(1);
+  const [forceFirstUpload, setForceFirstUpload] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { notifySuccess, notifyError, notifyInfo } = useNotificationHelpers();
 
@@ -474,7 +475,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       const result = await reportSubmissionService.submitReport(
         fileToSubmit.parseResult!,
         fileToSubmit.file,
-        cycleNumber
+        cycleNumber,
+        forceFirstUpload
       );
 
       setUploadProgress(prev => ({
@@ -561,6 +563,46 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             Este número será associado a todos os dados do relatório enviado
           </span>
         </div>
+      </div>
+
+      {/* Force First Upload Toggle */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <label htmlFor="force-first-upload" className="block text-sm font-medium text-gray-700 mb-1">
+              Forçar Primeiro Upload
+            </label>
+            <p className="text-sm text-gray-500">
+              Ignora dados anteriores e envia valores completos (útil para resets e correções)
+            </p>
+          </div>
+          <div className="ml-4">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                id="force-first-upload"
+                type="checkbox"
+                checked={forceFirstUpload}
+                onChange={(e) => setForceFirstUpload(e.target.checked)}
+                disabled={disabled}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
+            </label>
+          </div>
+        </div>
+        {forceFirstUpload && (
+          <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md">
+            <div className="flex items-center">
+              <AlertCircle className="h-4 w-4 text-amber-600 mr-2" />
+              <span className="text-sm text-amber-800 font-medium">
+                Modo Reset Ativado
+              </span>
+            </div>
+            <p className="text-sm text-amber-700 mt-1">
+              Os valores serão enviados como se fosse o primeiro upload, ignorando comparações com dados anteriores.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Upload Area */}

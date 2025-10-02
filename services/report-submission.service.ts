@@ -44,7 +44,8 @@ export class ReportSubmissionService {
   async submitReport(
     parseResult: ParseResult,
     file: File,
-    cycleNumber?: number
+    cycleNumber?: number,
+    forceFirstUpload?: boolean
   ): Promise<SubmissionResult> {
     const submissionId = `sub_${Date.now()}`;
     const cycle = cycleNumber || 1;
@@ -65,9 +66,11 @@ export class ReportSubmissionService {
 
       // Step 2: Check if this is a new cycle and compare with existing data
       secureLogger.log('📊 Checking cycle and comparing report data with stored data...');
-      const isNewCycle = await this.checkIfNewCycle(cycle, token);
+      const isNewCycle = forceFirstUpload || await this.checkIfNewCycle(cycle, token);
       
-      if (isNewCycle) {
+      if (forceFirstUpload) {
+        secureLogger.log('🔄 Force first upload enabled - treating all data as new (reset mode)');
+      } else if (isNewCycle) {
         secureLogger.log('🆕 New cycle detected - treating all data as new');
       }
       

@@ -52,13 +52,13 @@ describe('ActionLogService', () => {
       expect(actionLogs).toHaveLength(2);
       expect(actionLogs[0]).toMatchObject({
         playerId: 'P001',
-        challengeType: 'atividade_challenge',
+        challengeType: 'atividade',
         attribute: 'atividade',
         value: 5
       });
       expect(actionLogs[1]).toMatchObject({
         playerId: 'P001',
-        challengeType: 'reais_por_ativo_challenge',
+        challengeType: 'reais_por_ativo',
         attribute: 'reaisPorAtivo',
         value: 10
       });
@@ -146,7 +146,7 @@ describe('ActionLogService', () => {
     it('should submit action log successfully', async () => {
       const actionLog: ActionLog = {
         playerId: 'P001',
-        challengeType: 'atividade_challenge',
+        challengeType: 'atividade',
         attribute: 'atividade',
         value: 5,
         timestamp: '2024-01-01T00:00:00.000Z'
@@ -160,14 +160,13 @@ describe('ActionLogService', () => {
       expect(result.actionLog).toBe(actionLog);
       expect(result.error).toBeUndefined();
       expect(mockAxios.post).toHaveBeenCalledWith(
-        'https://service2.funifier.com/v3/action-logs',
+        'https://service2.funifier.com/v3/action/log',
         {
-          player_id: 'P001',
-          challenge_type: 'atividade_challenge',
-          attribute: 'atividade',
-          value: 5,
-          timestamp: '2024-01-01T00:00:00.000Z',
-          metadata: undefined
+          actionId: 'atividade',
+          userId: 'P001',
+          attributes: {
+            porcentagem_da_meta: 5
+          }
         },
         {
           headers: {
@@ -182,7 +181,7 @@ describe('ActionLogService', () => {
     it('should handle submission errors with retries', async () => {
       const actionLog: ActionLog = {
         playerId: 'P001',
-        challengeType: 'atividade_challenge',
+        challengeType: 'atividade',
         attribute: 'atividade',
         value: 5,
         timestamp: '2024-01-01T00:00:00.000Z'
@@ -200,7 +199,7 @@ describe('ActionLogService', () => {
     it('should handle HTTP error responses', async () => {
       const actionLog: ActionLog = {
         playerId: 'P001',
-        challengeType: 'atividade_challenge',
+        challengeType: 'atividade',
         attribute: 'atividade',
         value: 5,
         timestamp: '2024-01-01T00:00:00.000Z'
@@ -220,21 +219,25 @@ describe('ActionLogService', () => {
       const actionLogs: ActionLog[] = [
         {
           playerId: 'P001',
-          challengeType: 'atividade_challenge',
+          challengeType: 'atividade',
           attribute: 'atividade',
           value: 5,
           timestamp: '2024-01-01T00:00:00.000Z'
         },
         {
           playerId: 'P002',
-          challengeType: 'faturamento_challenge',
+          challengeType: 'faturamento',
           attribute: 'faturamento',
           value: 10,
           timestamp: '2024-01-01T00:00:00.000Z'
         }
       ];
 
-      mockAxios.post.mockResolvedValue({ status: 200, statusText: 'OK' });
+      mockAxios.post.mockResolvedValue({ 
+        status: 200, 
+        statusText: 'OK',
+        data: { total_registered: 2 }
+      });
 
       const mockProgress = jest.fn();
       const result = await ActionLogService.submitActionLogsBatch(actionLogs, mockToken, mockProgress);
@@ -251,24 +254,25 @@ describe('ActionLogService', () => {
       const actionLogs: ActionLog[] = [
         {
           playerId: 'P001',
-          challengeType: 'atividade_challenge',
+          challengeType: 'atividade',
           attribute: 'atividade',
           value: 5,
           timestamp: '2024-01-01T00:00:00.000Z'
         },
         {
           playerId: 'P002',
-          challengeType: 'faturamento_challenge',
+          challengeType: 'faturamento',
           attribute: 'faturamento',
           value: 10,
           timestamp: '2024-01-01T00:00:00.000Z'
         }
       ];
 
-      // First call succeeds, next 3 calls fail (for retries)
+      // Mock bulk submission to fail, then individual submissions to have mixed results
       mockAxios.post
-        .mockResolvedValueOnce({ status: 200, statusText: 'OK' })
-        .mockRejectedValue(new Error('Network error'));
+        .mockRejectedValueOnce(new Error('Bulk submission failed')) // Bulk fails
+        .mockResolvedValueOnce({ status: 200, statusText: 'OK' }) // First individual succeeds
+        .mockRejectedValue(new Error('Network error')); // Second individual fails
 
       const result = await ActionLogService.submitActionLogsBatch(actionLogs, mockToken);
 
@@ -285,7 +289,7 @@ describe('ActionLogService', () => {
       const actionLogs: ActionLog[] = [
         {
           playerId: 'P001',
-          challengeType: 'atividade_challenge',
+          challengeType: 'atividade',
           attribute: 'atividade',
           value: 5,
           timestamp: '2024-01-01T00:00:00.000Z'
@@ -323,7 +327,7 @@ describe('ActionLogService', () => {
       const actionLogs: ActionLog[] = [
         {
           playerId: 'P001',
-          challengeType: 'atividade_challenge',
+          challengeType: 'atividade',
           attribute: 'atividade',
           value: 5,
           timestamp: 'invalid-date'
@@ -355,7 +359,7 @@ describe('ActionLogService', () => {
             success: true,
             actionLog: {
               playerId: 'P001',
-              challengeType: 'atividade_challenge',
+              challengeType: 'atividade',
               attribute: 'atividade',
               value: 5,
               timestamp: '2024-01-01T00:00:00.000Z'
@@ -388,7 +392,7 @@ describe('ActionLogService', () => {
       const actionLogs: ActionLog[] = [
         {
           playerId: 'P001',
-          challengeType: 'atividade_challenge',
+          challengeType: 'atividade',
           attribute: 'atividade',
           value: 5,
           timestamp: '2024-01-01T00:00:00.000Z'
@@ -402,7 +406,7 @@ describe('ActionLogService', () => {
         },
         {
           playerId: 'P002',
-          challengeType: 'atividade_challenge',
+          challengeType: 'atividade',
           attribute: 'atividade',
           value: 15,
           timestamp: '2024-01-01T00:00:00.000Z'
@@ -421,14 +425,14 @@ describe('ActionLogService', () => {
       const actionLogs: ActionLog[] = [
         {
           playerId: 'P001',
-          challengeType: 'atividade_challenge',
+          challengeType: 'atividade',
           attribute: 'atividade',
           value: 5,
           timestamp: '2024-01-01T00:00:00.000Z'
         },
         {
           playerId: 'P002',
-          challengeType: 'atividade_challenge',
+          challengeType: 'atividade',
           attribute: 'atividade',
           value: 10,
           timestamp: '2024-01-01T00:00:00.000Z'
@@ -454,7 +458,7 @@ describe('ActionLogService', () => {
       const actionLogs: ActionLog[] = [
         {
           playerId: 'P001',
-          challengeType: 'atividade_challenge',
+          challengeType: 'atividade',
           attribute: 'atividade',
           value: 5,
           timestamp: '2024-01-01T00:00:00.000Z'
@@ -480,7 +484,7 @@ describe('ActionLogService', () => {
             success: true,
             actionLog: {
               playerId: 'P001',
-              challengeType: 'atividade_challenge',
+              challengeType: 'atividade',
               attribute: 'atividade',
               value: 5,
               timestamp: '2024-01-01T00:00:00.000Z'
@@ -493,7 +497,7 @@ describe('ActionLogService', () => {
       const csv = ActionLogService.exportBatchResultsToCSV(batchResult);
 
       expect(csv).toContain('Player ID,Challenge Type,Attribute,Value,Timestamp,Success,Error');
-      expect(csv).toContain('P001,atividade_challenge,atividade,5,2024-01-01T00:00:00.000Z,true,');
+      expect(csv).toContain('P001,atividade,atividade,5,2024-01-01T00:00:00.000Z,true,');
     });
   });
 });

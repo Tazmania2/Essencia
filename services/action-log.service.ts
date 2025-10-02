@@ -72,8 +72,8 @@ export class ActionLogService {
       return null;
     }
 
-    // Calculate the value to send to Funifier
-    // We send the difference, not the absolute value
+    // Calculate the porcentagem_da_meta to send to Funifier
+    // This is the percentage change since last report - what awards/deducts points
     const value = difference.difference;
 
     return {
@@ -138,10 +138,7 @@ export class ActionLogService {
         actionId: actionLog.challengeType,
         userId: actionLog.playerId,
         attributes: {
-          metric: actionLog.attribute,
-          value: actionLog.value,
-          timestamp: actionLog.timestamp,
-          ...actionLog.metadata
+          porcentagem_da_meta: actionLog.value // ✅ Only send the essential field
         }
       }));
 
@@ -169,7 +166,10 @@ export class ActionLogService {
       }));
 
       if (onProgress) {
-        onProgress(actionLogs.length, actionLogs.length);
+        // Simulate progress for bulk submission to provide better UX feedback
+        for (let i = 1; i <= actionLogs.length; i++) {
+          onProgress(i, actionLogs.length);
+        }
       }
 
       const summary = this.generateBatchSummary(
@@ -257,15 +257,12 @@ export class ActionLogService {
   ): Promise<void> {
     const url = `${this.BASE_URL}/action/log`;
     
-    // CORRECT payload structure for Funifier API
+    // ✅ CORRECT payload structure for Funifier API - only porcentagem_da_meta is essential
     const payload = {
       actionId: actionLog.challengeType, // Use challengeType as actionId
       userId: actionLog.playerId,
       attributes: {
-        metric: actionLog.attribute,
-        value: actionLog.value,
-        timestamp: actionLog.timestamp,
-        ...actionLog.metadata
+        porcentagem_da_meta: actionLog.value // ✅ This is the key field that awards/deducts points
       }
     };
 
