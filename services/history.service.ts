@@ -3,6 +3,7 @@ import {
   ProgressDataPoint,
   EssenciaReportRecord,
   EnhancedReportRecord,
+  CSVGoalData,
 } from '../types';
 import { FunifierDatabaseService } from './funifier-database.service';
 import { errorHandlerService } from './error-handler.service';
@@ -49,91 +50,164 @@ export class HistoryService {
   }
 
   /**
-   * Get cycle history for a player - SIMPLIFIED to prevent infinite loops
+   * Get cycle history for a player - Fetch minimal metadata, then parse CSV files
    */
   async getPlayerCycleHistory(playerId: string): Promise<CycleHistoryData[]> {
     try {
       secureLogger.log('🔍 Getting cycle history for player:', playerId);
 
-      // SIMPLE database query - no complex aggregations that could loop
+      // Fetch ONLY minimal metadata from database
       const filter = {
         playerId: playerId,
-        cycleNumber: { $exists: true, $ne: null },
+        uploadUrl: { $exists: true, $ne: null }, // Only reports with CSV files
+        status: 'REGISTERED',
       };
 
-      // Use enhanced report data which has cycleNumber
-      const records = (await this.databaseService.getReportData(
-        filter
-      )) as EnhancedReportRecord[];
+      // Get minimal report metadata
+      const reportMetadata = await this.databaseService.getReportData(filter);
 
-      if (!records || records.length === 0) {
-        secureLogger.log(`❌ No cycle data found for player: ${playerId}`);
+      if (!reportMetadata || reportMetadata.length === 0) {
+        secureLogger.log(`❌ No report metadata found for player: ${playerId}`);
         return [];
       }
 
-      // Process records in JavaScript (not MongoDB aggregation)
-      const cycleMap = new Map<number, any[]>();
+      secureLogger.log(
+        `📋 Found ${reportMetadata.length} reports with CSV files for player: ${playerId}`
+      );
 
-      records.forEach((record) => {
-        const cycleNum = record.cycleNumber;
-        if (cycleNum && !cycleMap.has(cycleNum)) {
-          cycleMap.set(cycleNum, []);
+      // Process each report: fetch CSV and extract cycle data
+      const cycleDataPromises = reportMetadata.map(async (metadata) => {
+        try {
+          // Get enhanced record with uploadUrl
+          const enhancedRecord = metadata as any as EnhancedReportRecord;
+
+          if (!enhancedRecord.uploadUrl) {
+            secureLogger.warn(`⚠️ No uploadUrl for report: ${metadata._id}`);
+            return null;
+          }
+
+          // Parse CSV to get actual goal data
+          const csvData =
+            await this.databaseService.getCSVGoalData(enhancedRecord);
+
+          if (!csvData) {
+            secureLogger.warn(
+              `⚠️ Failed to parse CSV for report: ${metadata._id}`
+            );
+            return null;
+          }
+
+          return {
+            reportDate: metadata.reportDate,
+            cycleDay: csvData.cycleDay,
+            totalCycleDays: csvData.totalCycleDays,
+            csvData,
+            uploadUrl: enhancedRecord.uploadUrl,
+          };
+        } catch (error) {
+          secureLogger.warn(
+            `⚠️ Error processing report ${metadata._id}:`,
+            error
+          );
+          return null;
         }
-        if (cycleNum) {
-          cycleMap.get(cycleNum)!.push(record);
+      });
+
+      const cycleDataResults = await Promise.all(cycleDataPromises);
+      const validCycleData = cycleDataResults.filter((data) => data !== null);
+
+      if (validCycleData.length === 0) {
+        secureLogger.log(
+          `❌ No valid cycle data found for player: ${playerId}`
+        );
+        return [];
+      }
+
+      // Group by cycle (estimate cycle number from dates and cycle days)
+      const cycleMap = new Map<number, typeof validCycleData>();
+
+      validCycleData.forEach((data) => {
+        // Estimate cycle number based on report date and cycle day
+        const reportDate = new Date(data.reportDate);
+        const cycleStartDate = new Date(reportDate);
+        cycleStartDate.setDate(reportDate.getDate() - (data.cycleDay - 1));
+
+        // Use cycle start date as cycle identifier (convert to cycle number)
+        const cycleNumber = Math.floor(
+          cycleStartDate.getTime() / (1000 * 60 * 60 * 24 * data.totalCycleDays)
+        );
+
+        if (!cycleMap.has(cycleNumber)) {
+          cycleMap.set(cycleNumber, []);
         }
+        cycleMap.get(cycleNumber)!.push(data);
       });
 
       // Convert to CycleHistoryData format
       const cycleHistory: CycleHistoryData[] = Array.from(
         cycleMap.entries()
-      ).map(([cycleNumber, cycleRecords]) => {
-        // Get the latest record for final metrics
-        const latestRecord = cycleRecords.sort(
+      ).map(([cycleNumber, cycleReports]) => {
+        // Sort reports by date
+        cycleReports.sort(
           (a, b) =>
-            new Date(b.reportDate).getTime() - new Date(a.reportDate).getTime()
-        )[0];
+            new Date(a.reportDate).getTime() - new Date(b.reportDate).getTime()
+        );
+
+        const firstReport = cycleReports[0];
+        const lastReport = cycleReports[cycleReports.length - 1];
+
+        // Calculate cycle start and end dates
+        const firstReportDate = new Date(firstReport.reportDate);
+        const cycleStartDate = new Date(firstReportDate);
+        cycleStartDate.setDate(
+          firstReportDate.getDate() - (firstReport.cycleDay - 1)
+        );
+
+        const cycleEndDate = new Date(cycleStartDate);
+        cycleEndDate.setDate(
+          cycleStartDate.getDate() + firstReport.totalCycleDays - 1
+        );
 
         return {
           cycleNumber,
-          startDate: cycleRecords[0]?.reportDate || new Date().toISOString(),
-          endDate: latestRecord?.reportDate || new Date().toISOString(),
-          totalDays: latestRecord?.totalCycleDays || 21,
+          startDate: cycleStartDate.toISOString(),
+          endDate: cycleEndDate.toISOString(),
+          totalDays: firstReport.totalCycleDays,
           completionStatus: 'completed' as const,
           finalMetrics: {
             primaryGoal: {
               name: 'Atividade',
-              percentage: latestRecord?.atividadePercentual || 0,
-              target: 100,
-              current: latestRecord?.atividadePercentual || 0,
+              percentage: lastReport.csvData.atividade.percentage,
+              target: lastReport.csvData.atividade.target,
+              current: lastReport.csvData.atividade.current,
               unit: '%',
               boostActive: false,
             },
             secondaryGoal1: {
               name: 'Reais por Ativo',
-              percentage: latestRecord?.reaisPorAtivoPercentual || 0,
-              target: 100,
-              current: latestRecord?.reaisPorAtivoPercentual || 0,
+              percentage: lastReport.csvData.reaisPorAtivo.percentage,
+              target: lastReport.csvData.reaisPorAtivo.target,
+              current: lastReport.csvData.reaisPorAtivo.current,
               unit: '%',
               boostActive: false,
             },
             secondaryGoal2: {
               name: 'Faturamento',
-              percentage: latestRecord?.faturamentoPercentual || 0,
-              target: 100,
-              current: latestRecord?.faturamentoPercentual || 0,
+              percentage: lastReport.csvData.faturamento.percentage,
+              target: lastReport.csvData.faturamento.target,
+              current: lastReport.csvData.faturamento.current,
               unit: '%',
               boostActive: false,
             },
           },
-          progressTimeline: cycleRecords.map((record, index) => ({
-            date: record.reportDate,
-            dayInCycle: record.diaDociclo || 1,
+          progressTimeline: cycleReports.map((report, index) => ({
+            date: report.reportDate,
+            dayInCycle: report.cycleDay,
             uploadSequence: index + 1,
             metrics: {
-              primaryGoal: record.atividadePercentual,
-              secondaryGoal1: record.reaisPorAtivoPercentual,
-              secondaryGoal2: record.faturamentoPercentual,
+              primaryGoal: report.csvData.atividade.percentage,
+              secondaryGoal1: report.csvData.reaisPorAtivo.percentage,
+              secondaryGoal2: report.csvData.faturamento.percentage,
             },
           })),
         };
@@ -143,13 +217,11 @@ export class HistoryService {
       cycleHistory.sort((a, b) => b.cycleNumber - a.cycleNumber);
 
       secureLogger.log(
-        `✅ Found ${cycleHistory.length} cycles for player:`,
-        playerId
+        `✅ Found ${cycleHistory.length} cycles for player: ${playerId}`
       );
       return cycleHistory;
     } catch (error) {
       secureLogger.error('❌ Error getting cycle history:', error);
-      // Return empty array instead of throwing to prevent crashes
       return [];
     }
   }
@@ -398,13 +470,18 @@ export class HistoryService {
 
   /**
    * Get cycle history with backward compatibility for legacy data
+   * Returns minimal metadata only - CSV parsing should be done separately
    */
   async getPlayerCycleHistoryWithCompatibility(
     playerId: string
   ): Promise<EssenciaReportRecord[]> {
     try {
-      // Get all records for the player, including those without cycle information
-      const filter = { playerId: playerId };
+      // Get minimal metadata only - no heavy data processing
+      const filter = {
+        playerId: playerId,
+        // Don't filter by uploadUrl here for backward compatibility
+      };
+
       const records = await this.databaseService.getReportData(filter);
 
       // Sort by report date to maintain chronological order
@@ -413,17 +490,16 @@ export class HistoryService {
           new Date(a.reportDate).getTime() - new Date(b.reportDate).getTime()
       );
 
+      secureLogger.log(
+        `📋 Found ${records.length} report records for player: ${playerId}`
+      );
       return records;
     } catch (error) {
-      const apiError = errorHandlerService.handleDataProcessingError(
-        error as Error,
-        'getPlayerCycleHistoryWithCompatibility'
+      secureLogger.error(
+        '❌ Error getting player cycle history with compatibility:',
+        error
       );
-      errorHandlerService.logError(
-        apiError,
-        'HistoryService.getPlayerCycleHistoryWithCompatibility'
-      );
-      throw apiError;
+      return [];
     }
   }
 }
