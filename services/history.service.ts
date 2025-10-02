@@ -38,6 +38,10 @@ export class HistoryService {
   private static instance: HistoryService;
   private databaseService: FunifierDatabaseService;
 
+  // Circuit breaker to prevent rapid successive calls
+  private lastCallTime: Map<string, number> = new Map();
+  private readonly CALL_COOLDOWN = 5000; // 5 seconds between calls for same player
+
   private constructor() {
     this.databaseService = FunifierDatabaseService.getInstance();
   }
@@ -54,17 +58,74 @@ export class HistoryService {
    */
   async getPlayerCycleHistory(playerId: string): Promise<CycleHistoryData[]> {
     try {
+      // ✅ CIRCUIT BREAKER: Prevent rapid successive calls
+      const now = Date.now();
+      const lastCall = this.lastCallTime.get(playerId);
+
+      if (lastCall && now - lastCall < this.CALL_COOLDOWN) {
+        const remainingTime = Math.ceil(
+          (this.CALL_COOLDOWN - (now - lastCall)) / 1000
+        );
+        secureLogger.warn(
+          `⏳ Rate limit: Please wait ${remainingTime}s before calling again for player: ${playerId}`
+        );
+        return [];
+      }
+
+      this.lastCallTime.set(playerId, now);
+
       secureLogger.log('🔍 Getting cycle history for player:', playerId);
 
-      // Fetch ONLY minimal metadata from database
-      const filter = {
-        playerId: playerId,
-        uploadUrl: { $exists: true, $ne: null }, // Only reports with CSV files
-        status: 'REGISTERED',
-      };
+      // LIMIT CSV downloads to prevent loops and crashes
+      const MAX_CSV_DOWNLOADS = 10; // Circuit breaker
 
-      // Get minimal report metadata
-      const reportMetadata = await this.databaseService.getReportData(filter);
+      // Use MongoDB aggregation pipeline for better performance (Funifier preferred method)
+      const aggregationPipeline = [
+        {
+          $match: {
+            playerId: playerId,
+            uploadUrl: { $exists: true, $ne: null },
+            status: 'REGISTERED',
+          },
+        },
+        {
+          $sort: { reportDate: -1 }, // Most recent first
+        },
+        {
+          $limit: MAX_CSV_DOWNLOADS, // Limit results to prevent overload
+        },
+        {
+          $project: {
+            _id: 1,
+            playerId: 1,
+            reportDate: 1,
+            uploadUrl: 1,
+            status: 1,
+            cycleNumber: 1,
+            time: 1,
+          },
+        },
+      ];
+
+      // Get minimal report metadata with timeout protection using aggregation
+      let reportMetadata;
+      try {
+        reportMetadata = (await Promise.race([
+          this.databaseService.aggregateReportData(aggregationPipeline),
+          new Promise((_, reject) =>
+            setTimeout(
+              () => reject(new Error('Database aggregation timeout')),
+              10000
+            )
+          ),
+        ])) as any[];
+      } catch (dbError) {
+        secureLogger.error(
+          `❌ Database aggregation error for player ${playerId}:`,
+          dbError
+        );
+        return [];
+      }
 
       if (!reportMetadata || reportMetadata.length === 0) {
         secureLogger.log(`❌ No report metadata found for player: ${playerId}`);
@@ -75,8 +136,7 @@ export class HistoryService {
         `📋 Found ${reportMetadata.length} reports with CSV files for player: ${playerId}`
       );
 
-      // LIMIT CSV downloads to prevent loops and crashes
-      const MAX_CSV_DOWNLOADS = 10; // Circuit breaker
+      // LIMIT CSV downloads to prevent loops and crashes (using constant defined above)
       const limitedMetadata = reportMetadata.slice(0, MAX_CSV_DOWNLOADS);
 
       if (reportMetadata.length > MAX_CSV_DOWNLOADS) {
@@ -230,6 +290,11 @@ export class HistoryService {
       return cycleHistory;
     } catch (error) {
       secureLogger.error('❌ Error getting cycle history:', error);
+
+      // Clear the rate limit on error to allow immediate retry if needed
+      this.lastCallTime.delete(playerId);
+
+      // Return empty array to prevent crashes
       return [];
     }
   }
@@ -246,15 +311,34 @@ export class HistoryService {
         `🔍 Getting cycle details for player: ${playerId}, cycle: ${cycleNumber}`
       );
 
-      // DIRECT database query for specific cycle - no loops
-      const filter = {
-        playerId: playerId,
-        cycleNumber: cycleNumber,
-        uploadUrl: { $exists: true, $ne: null },
-        status: 'REGISTERED',
-      };
+      // Use MongoDB aggregation for specific cycle query
+      const aggregationPipeline = [
+        {
+          $match: {
+            playerId: playerId,
+            cycleNumber: cycleNumber,
+            uploadUrl: { $exists: true, $ne: null },
+            status: 'REGISTERED',
+          },
+        },
+        {
+          $sort: { reportDate: 1 }, // Chronological order for timeline
+        },
+        {
+          $project: {
+            _id: 1,
+            playerId: 1,
+            reportDate: 1,
+            uploadUrl: 1,
+            status: 1,
+            cycleNumber: 1,
+            time: 1,
+          },
+        },
+      ];
 
-      const reportMetadata = await this.databaseService.getReportData(filter);
+      const reportMetadata =
+        await this.databaseService.aggregateReportData(aggregationPipeline);
 
       if (!reportMetadata || reportMetadata.length === 0) {
         secureLogger.log(
@@ -380,15 +464,34 @@ export class HistoryService {
         `🔍 Getting progress timeline for player: ${playerId}, cycle: ${cycleNumber}`
       );
 
-      // DIRECT database query - no method calls that could loop
-      const filter = {
-        playerId: playerId,
-        cycleNumber: cycleNumber,
-        uploadUrl: { $exists: true, $ne: null },
-        status: 'REGISTERED',
-      };
+      // Use MongoDB aggregation for timeline query
+      const aggregationPipeline = [
+        {
+          $match: {
+            playerId: playerId,
+            cycleNumber: cycleNumber,
+            uploadUrl: { $exists: true, $ne: null },
+            status: 'REGISTERED',
+          },
+        },
+        {
+          $sort: { reportDate: 1 }, // Chronological order for timeline
+        },
+        {
+          $project: {
+            _id: 1,
+            playerId: 1,
+            reportDate: 1,
+            uploadUrl: 1,
+            status: 1,
+            cycleNumber: 1,
+            time: 1,
+          },
+        },
+      ];
 
-      const reportMetadata = await this.databaseService.getReportData(filter);
+      const reportMetadata =
+        await this.databaseService.aggregateReportData(aggregationPipeline);
 
       if (!reportMetadata || reportMetadata.length === 0) {
         secureLogger.log(
@@ -447,14 +550,27 @@ export class HistoryService {
    */
   async hasHistoricalData(playerId: string): Promise<boolean> {
     try {
-      // FAST database check - no CSV processing
-      const filter = {
-        playerId: playerId,
-        cycleNumber: { $exists: true, $ne: null },
-      };
+      // Use MongoDB aggregation for fast existence check
+      const aggregationPipeline = [
+        {
+          $match: {
+            playerId: playerId,
+            cycleNumber: { $exists: true, $ne: null },
+          },
+        },
+        {
+          $limit: 1, // Just check if any record exists
+        },
+        {
+          $project: {
+            _id: 1,
+          },
+        },
+      ];
 
-      const reportMetadata = await this.databaseService.getReportData(filter);
-      return reportMetadata && reportMetadata.length > 0;
+      const result =
+        await this.databaseService.aggregateReportData(aggregationPipeline);
+      return result && result.length > 0;
     } catch (error) {
       secureLogger.warn(
         `Error checking historical data for player: ${playerId}`,
@@ -470,66 +586,79 @@ export class HistoryService {
    */
   async getPlayerCycles(playerId: string): Promise<CycleHistoryData[]> {
     try {
-      // DIRECT database query for cycle numbers only - no CSV processing
-      const filter = {
-        playerId: playerId,
-        cycleNumber: { $exists: true, $ne: null },
-        status: 'REGISTERED',
-      };
+      // Use MongoDB aggregation to get unique cycle numbers efficiently
+      const aggregationPipeline = [
+        {
+          $match: {
+            playerId: playerId,
+            cycleNumber: { $exists: true, $ne: null },
+            status: 'REGISTERED',
+          },
+        },
+        {
+          $group: {
+            _id: '$cycleNumber',
+            cycleNumber: { $first: '$cycleNumber' },
+            firstReport: { $min: '$reportDate' },
+            lastReport: { $max: '$reportDate' },
+          },
+        },
+        {
+          $sort: { cycleNumber: -1 }, // Most recent cycles first
+        },
+        {
+          $project: {
+            _id: 0,
+            cycleNumber: 1,
+            firstReport: 1,
+            lastReport: 1,
+          },
+        },
+      ];
 
-      const reportMetadata = await this.databaseService.getReportData(filter);
+      const cycleData =
+        await this.databaseService.aggregateReportData(aggregationPipeline);
 
-      if (!reportMetadata || reportMetadata.length === 0) {
+      if (!cycleData || cycleData.length === 0) {
         secureLogger.log(`❌ No cycles found for player: ${playerId}`);
         return [];
       }
 
-      // Extract unique cycle numbers only - no heavy processing
-      const cycleNumbers = new Set<number>();
-      reportMetadata.forEach((metadata) => {
-        const enhancedRecord = metadata as any as EnhancedReportRecord;
-        if (enhancedRecord.cycleNumber) {
-          cycleNumbers.add(enhancedRecord.cycleNumber);
-        }
-      });
-
-      // Create minimal cycle data - no CSV parsing
-      const cycles: CycleHistoryData[] = Array.from(cycleNumbers).map(
-        (cycleNumber) => ({
-          cycleNumber,
-          startDate: new Date().toISOString(), // Placeholder
-          endDate: new Date().toISOString(), // Placeholder
-          totalDays: 21, // Default
-          completionStatus: 'completed' as const,
-          finalMetrics: {
-            primaryGoal: {
-              name: 'Atividade',
-              percentage: 0,
-              target: 100,
-              current: 0,
-              unit: '%',
-              boostActive: false,
-            },
-            secondaryGoal1: {
-              name: 'Reais por Ativo',
-              percentage: 0,
-              target: 100,
-              current: 0,
-              unit: '%',
-              boostActive: false,
-            },
-            secondaryGoal2: {
-              name: 'Faturamento',
-              percentage: 0,
-              target: 100,
-              current: 0,
-              unit: '%',
-              boostActive: false,
-            },
+      // Create minimal cycle data from aggregation results - no CSV parsing
+      const cycles: CycleHistoryData[] = cycleData.map((cycle) => ({
+        cycleNumber: cycle.cycleNumber,
+        startDate: cycle.firstReport || new Date().toISOString(),
+        endDate: cycle.lastReport || new Date().toISOString(),
+        totalDays: 21, // Default
+        completionStatus: 'completed' as const,
+        finalMetrics: {
+          primaryGoal: {
+            name: 'Atividade',
+            percentage: 0,
+            target: 100,
+            current: 0,
+            unit: '%',
+            boostActive: false,
           },
-          progressTimeline: [],
-        })
-      );
+          secondaryGoal1: {
+            name: 'Reais por Ativo',
+            percentage: 0,
+            target: 100,
+            current: 0,
+            unit: '%',
+            boostActive: false,
+          },
+          secondaryGoal2: {
+            name: 'Faturamento',
+            percentage: 0,
+            target: 100,
+            current: 0,
+            unit: '%',
+            boostActive: false,
+          },
+        },
+        progressTimeline: [],
+      }));
 
       // Sort by cycle number (most recent first)
       cycles.sort((a, b) => b.cycleNumber - a.cycleNumber);

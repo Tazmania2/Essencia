@@ -25,8 +25,10 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
   const { notifyHistoryLoaded, notifyNoHistoryData } = useNotificationHelpers();
 
   useEffect(() => {
+    let isMounted = true; // Prevent state updates if component unmounts
+    
     const loadCycleHistory = async () => {
-      if (!playerId) return;
+      if (!playerId || !isMounted) return;
 
       const result = await executeWithLoading(
         async () => {
@@ -36,7 +38,7 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
         'Carregando histórico de ciclos...'
       );
 
-      if (result) {
+      if (result && isMounted) {
         setCycles(result);
         
         if (result.length === 0) {
@@ -48,7 +50,12 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
     };
 
     loadCycleHistory();
-  }, [playerId, executeWithLoading, notifyHistoryLoaded, notifyNoHistoryData]);
+    
+    // Cleanup function to prevent memory leaks
+    return () => {
+      isMounted = false;
+    };
+  }, [playerId]); // ✅ Removed executeWithLoading from dependencies to prevent re-renders
 
   const handleCycleSelect = (cycle: CycleHistoryData) => {
     setSelectedCycle(cycle);

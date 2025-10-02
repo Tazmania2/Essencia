@@ -271,9 +271,9 @@ export const useLoadingState = (options: UseLoadingStateOptions = {}): UseLoadin
 export const useHistoryLoading = () => {
   return useLoadingState({
     showNotifications: true,
-    autoRetry: true,
-    retryAttempts: 2,
-    retryDelay: 2000
+    autoRetry: false,        // ✅ Disable auto-retry to prevent loops
+    retryAttempts: 1,        // ✅ Only manual retry allowed
+    retryDelay: 3000         // ✅ Longer delay if manual retry is used
   });
 };
 

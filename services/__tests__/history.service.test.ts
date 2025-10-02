@@ -18,6 +18,7 @@ describe('HistoryService', () => {
     mockDatabaseService = {
       getReportData: jest.fn(),
       getCSVGoalData: jest.fn(),
+      aggregateReportData: jest.fn(),
     } as any;
     
     // Mock the getInstance method to return our mock
@@ -75,25 +76,31 @@ describe('HistoryService', () => {
     };
 
     beforeEach(() => {
-      mockDatabaseService.getReportData = jest.fn().mockResolvedValue(mockReportMetadata);
+      mockDatabaseService.aggregateReportData = jest.fn().mockResolvedValue(mockReportMetadata);
       mockDatabaseService.getCSVGoalData = jest.fn().mockResolvedValue(mockCSVData);
     });
 
-    it('should fetch minimal metadata and parse CSV files', async () => {
+    it('should fetch minimal metadata and parse CSV files using aggregation', async () => {
       const result = await service.getPlayerCycleHistory(mockPlayerId);
 
-      expect(mockDatabaseService.getReportData).toHaveBeenCalledWith({
-        playerId: mockPlayerId,
-        uploadUrl: { $exists: true, $ne: null },
-        status: 'REGISTERED'
-      });
+      expect(mockDatabaseService.aggregateReportData).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            $match: {
+              playerId: mockPlayerId,
+              uploadUrl: { $exists: true, $ne: null },
+              status: 'REGISTERED'
+            }
+          })
+        ])
+      );
       
       expect(mockDatabaseService.getCSVGoalData).toHaveBeenCalledTimes(2);
       expect(result).toHaveLength(1); // Should group into 1 cycle
     });
 
     it('should return empty array when no reports found', async () => {
-      mockDatabaseService.getReportData = jest.fn().mockResolvedValue([]);
+      mockDatabaseService.aggregateReportData = jest.fn().mockResolvedValue([]);
       
       const result = await service.getPlayerCycleHistory(mockPlayerId);
       
@@ -154,22 +161,28 @@ describe('HistoryService', () => {
 
     it('should return true when player has cycles', async () => {
       const mockRecords = [
-        { _id: '1', playerId: mockPlayerId, cycleNumber: 1 }
+        { _id: '1' }
       ];
 
-      mockDatabaseService.getReportData.mockResolvedValue(mockRecords as any);
+      mockDatabaseService.aggregateReportData.mockResolvedValue(mockRecords as any);
 
       const result = await service.hasHistoricalData(mockPlayerId);
 
       expect(result).toBe(true);
-      expect(mockDatabaseService.getReportData).toHaveBeenCalledWith({
-        playerId: mockPlayerId,
-        cycleNumber: { $exists: true, $ne: null },
-      });
+      expect(mockDatabaseService.aggregateReportData).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({
+            $match: {
+              playerId: mockPlayerId,
+              cycleNumber: { $exists: true, $ne: null }
+            }
+          })
+        ])
+      );
     });
 
     it('should return false when player has no cycles', async () => {
-      mockDatabaseService.getReportData.mockResolvedValue([]);
+      mockDatabaseService.aggregateReportData.mockResolvedValue([]);
 
       const result = await service.hasHistoricalData(mockPlayerId);
 
