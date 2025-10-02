@@ -43,6 +43,45 @@ export class FunifierDatabaseService {
   }
 
   /**
+   * Create or update custom collection with bulk data insertion (Enhanced Records)
+   */
+  public async bulkInsertEnhancedReportData(data: EnhancedReportRecord[]): Promise<BulkInsertResult> {
+    try {
+      const token = await funifierAuthService.getAccessToken();
+      if (!token) {
+        throw new ApiError({
+          type: ErrorType.AUTHENTICATION_ERROR,
+          message: 'No valid authentication token available',
+          timestamp: new Date()
+        });
+      }
+
+      // Validate enhanced data before sending
+      this.validateEnhancedReportData(data);
+
+      const response = await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/${FUNIFIER_CONFIG.CUSTOM_COLLECTION}/bulk`,
+        data,
+        {
+          headers: {
+            ...funifierAuthService.getAuthHeader(),
+            'Content-Type': 'application/json',
+          },
+          timeout: 30000, // 30 second timeout for bulk operations
+        }
+      );
+
+      return {
+        insertedCount: response.data.insertedCount || 0,
+        updatedCount: response.data.updatedCount || 0,
+        errors: response.data.errors || []
+      };
+    } catch (error) {
+      throw this.handleDatabaseError(error, 'bulk insert enhanced');
+    }
+  }
+
+  /**
    * Create or update custom collection with bulk data insertion
    */
   public async bulkInsertReportData(data: EssenciaReportRecord[]): Promise<BulkInsertResult> {
@@ -593,6 +632,65 @@ export class FunifierDatabaseService {
   }
 
   /**
+   * Validate enhanced report data structure
+   */
+  private validateEnhancedReportData(data: EnhancedReportRecord[]): void {
+    if (!Array.isArray(data)) {
+      throw new ApiError({
+        type: ErrorType.VALIDATION_ERROR,
+        message: 'Enhanced report data must be an array',
+        timestamp: new Date()
+      });
+    }
+
+    if (data.length === 0) {
+      throw new ApiError({
+        type: ErrorType.VALIDATION_ERROR,
+        message: 'Enhanced report data array cannot be empty',
+        timestamp: new Date()
+      });
+    }
+
+    for (let i = 0; i < data.length; i++) {
+      const record = data[i];
+      
+      // Check required fields for enhanced records
+      if (!record._id || !record.playerId || !record.reportDate || !record.status) {
+        throw new ApiError({
+          type: ErrorType.VALIDATION_ERROR,
+          message: `Missing required fields in enhanced record ${i}`,
+          details: { record, missingFields: this.getMissingEnhancedFields(record) },
+          timestamp: new Date()
+        });
+      }
+
+      // Validate date format
+      if (!this.isValidDateString(record.reportDate)) {
+        throw new ApiError({
+          type: ErrorType.VALIDATION_ERROR,
+          message: `Invalid date format in enhanced record ${i}: ${record.reportDate}`,
+          details: { record },
+          timestamp: new Date()
+        });
+      }
+
+      // Validate numeric fields
+      const numericFields = ['reaisPorAtivoPercentual', 'diaDociclo', 'totalDiasCiclo', 'faturamentoPercentual', 'atividadePercentual', 'multimarcasPorAtivoPercentual', 'cycleNumber', 'time'];
+      for (const field of numericFields) {
+        const value = record[field as keyof EnhancedReportRecord];
+        if (value !== undefined && (typeof value !== 'number' || isNaN(value))) {
+          throw new ApiError({
+            type: ErrorType.VALIDATION_ERROR,
+            message: `Invalid numeric value for ${field} in enhanced record ${i}: ${value}`,
+            details: { record },
+            timestamp: new Date()
+          });
+        }
+      }
+    }
+  }
+
+  /**
    * Validate report data structure
    */
   private validateReportData(data: EssenciaReportRecord[]): void {
@@ -697,6 +795,14 @@ export class FunifierDatabaseService {
         });
       }
     }
+  }
+
+  /**
+   * Get missing required fields from an enhanced record
+   */
+  private getMissingEnhancedFields(record: Partial<EnhancedReportRecord>): string[] {
+    const requiredFields = ['_id', 'playerId', 'reportDate', 'status'];
+    return requiredFields.filter(field => !record[field as keyof EnhancedReportRecord]);
   }
 
   /**

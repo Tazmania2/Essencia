@@ -76,6 +76,7 @@ export interface EnhancedReportRecord {
   faturamentoPercentual: number;
   atividadePercentual: number;
   multimarcasPorAtivoPercentual: number;
+  cycleNumber?: number;
   uploadUrl?: string;
   reportDate: string;
   createdAt: string;
@@ -126,7 +127,7 @@ export enum TeamType {
   CARTEIRA_II = 'CARTEIRA_II',
   CARTEIRA_III = 'CARTEIRA_III',
   CARTEIRA_IV = 'CARTEIRA_IV',
-  ER = 'ER'
+  ER = 'ER',
 }
 
 export enum ErrorType {
@@ -134,7 +135,7 @@ export enum ErrorType {
   FUNIFIER_API_ERROR = 'FUNIFIER_API_ERROR',
   DATA_PROCESSING_ERROR = 'DATA_PROCESSING_ERROR',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
-  NETWORK_ERROR = 'NETWORK_ERROR'
+  NETWORK_ERROR = 'NETWORK_ERROR',
 }
 
 export interface ApiErrorData {
@@ -201,7 +202,7 @@ export interface ProgressBarConfig {
 
 export interface TeamProcessor {
   processPlayerData(
-    rawData: FunifierPlayerStatus, 
+    rawData: FunifierPlayerStatus,
     reportData?: EssenciaReportRecord
   ): PlayerMetrics;
 }
@@ -402,16 +403,16 @@ export const FUNIFIER_CONFIG = {
     UNLOCK_POINTS: 'E6F0O5f',
     LOCK_POINTS: 'E6F0MJ3',
     BOOST_SECONDARY_1: 'E6F0WGc',
-    BOOST_SECONDARY_2: 'E6K79Mt'
+    BOOST_SECONDARY_2: 'E6K79Mt',
   },
   TEAM_IDS: {
     CARTEIRA_0: 'E6F5k30',
     CARTEIRA_I: 'E6F4sCh',
-    CARTEIRA_II: 'E6F4O1b', 
+    CARTEIRA_II: 'E6F4O1b',
     CARTEIRA_III: 'E6F4Xf2',
     CARTEIRA_IV: 'E6F41Bb',
     ER: 'E500AbT',
-    ADMIN: 'E6U1B1p'
+    ADMIN: 'E6U1B1p',
   },
   ACTION_IDS: {
     ATIVIDADE: 'atividade',
@@ -419,6 +420,6 @@ export const FUNIFIER_CONFIG = {
     FATURAMENTO: 'faturamento',
     MULTIMARCAS_POR_ATIVO: 'multimarcas_por_ativo',
     CONVERSOES: 'conversoes',
-    UPA: 'upa'
-  }
+    UPA: 'upa',
+  },
 } as const;

@@ -38,11 +38,32 @@ export class ReportComparisonService {
    */
   static async compareReportData(
     reportData: ReportData[],
-    token: string
+    token: string,
+    cycleNumber?: number,
+    isNewCycle?: boolean
   ): Promise<ComparisonReport> {
     try {
-      // Get current data from Funifier custom collection
-      const storedData = await this.getStoredData();
+      // If it's a new cycle, treat all data as new (no comparison needed)
+      if (isNewCycle) {
+        const results: ComparisonResult[] = reportData.map(reportRecord => 
+          this.comparePlayerData(reportRecord, null, true)
+        );
+        
+        const playersWithChanges = results.length; // All players are "new" in a new cycle
+        const totalDifferences = results.reduce((sum, r) => sum + r.differences.length, 0);
+        const summary = `Novo ciclo ${cycleNumber || 'N/A'}: Todos os ${results.length} jogadores são novos`;
+
+        return {
+          totalPlayers: results.length,
+          playersWithChanges,
+          totalDifferences,
+          results,
+          summary
+        };
+      }
+
+      // Get current data from Funifier custom collection for the specific cycle
+      const storedData = await this.getStoredData(cycleNumber);
       
       // Create lookup map for stored data
       const storedDataMap = new Map<string, any>();
@@ -55,7 +76,7 @@ export class ReportComparisonService {
       
       for (const reportRecord of reportData) {
         const storedRecord = storedDataMap.get(reportRecord.playerId);
-        const comparisonResult = this.comparePlayerData(reportRecord, storedRecord);
+        const comparisonResult = this.comparePlayerData(reportRecord, storedRecord, false);
         results.push(comparisonResult);
       }
 
@@ -78,11 +99,18 @@ export class ReportComparisonService {
   }
 
   /**
-   * Get stored data from Funifier custom collection
+   * Get stored data from Funifier custom collection for specific cycle
    */
-  private static async getStoredData(): Promise<any[]> {
+  private static async getStoredData(cycleNumber?: number): Promise<any[]> {
     try {
       const databaseService = FunifierDatabaseService.getInstance();
+      
+      // If cycle number is provided, filter by cycle
+      if (cycleNumber) {
+        return await databaseService.getReportData({ cycleNumber });
+      }
+      
+      // Otherwise get all data
       return await databaseService.getCollectionData();
     } catch (error) {
       // If collection doesn't exist or is empty, return empty array
@@ -96,13 +124,14 @@ export class ReportComparisonService {
    */
   private static comparePlayerData(
     reportRecord: ReportData,
-    storedRecord?: any
+    storedRecord?: any,
+    isNewCycle: boolean = false
   ): ComparisonResult {
     const differences: MetricDifference[] = [];
 
-    // If no stored record exists, all values are new
-    if (!storedRecord) {
-      const metrics = ['atividade', 'reaisPorAtivo', 'faturamento', 'multimarcasPorAtivo'];
+    // If no stored record exists OR it's a new cycle, all values are new
+    if (!storedRecord || isNewCycle) {
+      const metrics = ['atividadePercentual', 'reaisPorAtivoPercentual', 'faturamentoPercentual', 'multimarcasPorAtivoPercentual'];
       
       metrics.forEach(metric => {
         const reportValue = (reportRecord as any)[metric];
@@ -110,7 +139,7 @@ export class ReportComparisonService {
           differences.push({
             playerId: reportRecord.playerId,
             playerName: reportRecord.playerId, // Use playerId as fallback since playerName is not available
-            metric,
+            metric: metric.replace('Percentual', ''), // Remove 'Percentual' suffix for cleaner metric names
             funifierValue: 0,
             reportValue,
             difference: reportValue,
@@ -120,8 +149,8 @@ export class ReportComparisonService {
         }
       });
     } else {
-      // Compare each metric
-      const metrics = ['atividade', 'reaisPorAtivo', 'faturamento', 'multimarcasPorAtivo'];
+      // Compare each metric using the correct field names
+      const metrics = ['atividadePercentual', 'reaisPorAtivoPercentual', 'faturamentoPercentual', 'multimarcasPorAtivoPercentual'];
       
       metrics.forEach(metric => {
         const reportValue = (reportRecord as any)[metric];
@@ -136,7 +165,7 @@ export class ReportComparisonService {
             differences.push({
               playerId: reportRecord.playerId,
               playerName: reportRecord.playerId, // Use playerId as fallback since playerName is not available
-              metric,
+              metric: metric.replace('Percentual', ''), // Remove 'Percentual' suffix for cleaner metric names
               funifierValue: storedValue,
               reportValue,
               difference,
