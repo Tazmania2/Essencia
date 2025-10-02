@@ -18,6 +18,7 @@ interface QuickAction {
 }
 
 interface PlayerDashboardProps {
+  playerId: string;
   playerName: string;
   totalPoints: number;
   pointsLocked: boolean;
@@ -68,6 +69,7 @@ interface PlayerDashboardProps {
 }
 
 export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
+  playerId,
   playerName,
   totalPoints,
   pointsLocked,
@@ -213,7 +215,11 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
         <GoalDetailsAccordion goals={goalDetails.length > 0 ? goalDetails : defaultGoalDetails} />
 
         {/* Ações Rápidas */}
-        <QuickActions actions={customActions} />
+        <QuickActions 
+          playerId={playerId} 
+          playerName={playerName}
+          actions={customActions} 
+        />
       </main>
     </div>
   );

@@ -85,7 +85,7 @@ export class DashboardService {
       const playerMetrics = processor.processPlayerData(playerStatus, enhancedReportData);
       
       // Convert to dashboard format with enhanced data
-      const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData, reportRecord, csvData);
+      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, reportData, reportRecord, csvData);
       
       // Cache the result with team-specific key
       const teamSpecificCacheKey = CacheKeys.dashboardData(playerId, teamType);
@@ -173,6 +173,7 @@ export class DashboardService {
   }
 
   private convertTodashboardData(
+    playerId: string,
     metrics: PlayerMetrics, 
     teamType: TeamType, 
     reportData?: EssenciaReportRecord,
@@ -215,6 +216,7 @@ export class DashboardService {
     };
 
     return {
+      playerId: playerId,
       playerName: metrics.playerName,
       totalPoints: metrics.totalPoints,
       pointsLocked: metrics.pointsLocked,
@@ -245,8 +247,114 @@ export class DashboardService {
         hasBoost: true,
         isBoostActive: metrics.secondaryGoal2.boostActive || false,
         ...getEnhancedGoalData(metrics.secondaryGoal2.name)
-      }
+      },
+      goalDetails: this.generateGoalDetails(metrics, enhancedRecord, csvData)
     };
+  }
+
+  private generateGoalDetails(
+    metrics: PlayerMetrics, 
+    enhancedRecord?: any, 
+    csvData?: any
+  ): Array<{
+    title: string;
+    items: string[];
+    bgColor: string;
+    textColor: string;
+  }> {
+    const details = [];
+
+    // Primary Goal Details
+    const primaryGoalData = this.getGoalDataFromSources(metrics.primaryGoal.name, enhancedRecord, csvData);
+    details.push({
+      title: metrics.primaryGoal.name,
+      items: this.formatGoalItems(metrics.primaryGoal.name, primaryGoalData, metrics.primaryGoal.percentage),
+      bgColor: 'bg-boticario-light',
+      textColor: 'text-boticario-dark'
+    });
+
+    // Secondary Goal 1 Details
+    const secondary1Data = this.getGoalDataFromSources(metrics.secondaryGoal1.name, enhancedRecord, csvData);
+    details.push({
+      title: metrics.secondaryGoal1.name,
+      items: this.formatGoalItems(metrics.secondaryGoal1.name, secondary1Data, metrics.secondaryGoal1.percentage),
+      bgColor: 'bg-yellow-50',
+      textColor: 'text-yellow-800'
+    });
+
+    // Secondary Goal 2 Details
+    const secondary2Data = this.getGoalDataFromSources(metrics.secondaryGoal2.name, enhancedRecord, csvData);
+    details.push({
+      title: metrics.secondaryGoal2.name,
+      items: this.formatGoalItems(metrics.secondaryGoal2.name, secondary2Data, metrics.secondaryGoal2.percentage),
+      bgColor: 'bg-pink-50',
+      textColor: 'text-pink-800'
+    });
+
+    return details;
+  }
+
+  private getGoalDataFromSources(goalName: string, enhancedRecord?: any, csvData?: any): any {
+    // Try to get data from CSV first (most detailed)
+    if (csvData) {
+      const goalKey = this.getGoalKeyFromName(goalName);
+      if (csvData[goalKey]) {
+        return csvData[goalKey];
+      }
+    }
+
+    // Fallback to enhanced record
+    if (enhancedRecord) {
+      const goalKey = this.getGoalKeyFromName(goalName);
+      return {
+        target: enhancedRecord[`${goalKey}Meta`],
+        current: enhancedRecord[`${goalKey}Atual`],
+        percentage: enhancedRecord[`${goalKey}Percentual`]
+      };
+    }
+
+    return null;
+  }
+
+  private formatGoalItems(goalName: string, goalData: any, percentage: number): string[] {
+    const items = [];
+
+    if (goalData?.target !== undefined) {
+      const unit = this.getGoalUnit(this.getGoalKeyFromName(goalName));
+      items.push(`META: ${this.formatValue(goalData.target, unit)}`);
+    } else {
+      items.push(`META: Não disponível`);
+    }
+
+    if (goalData?.current !== undefined) {
+      const unit = this.getGoalUnit(this.getGoalKeyFromName(goalName));
+      items.push(`ATUAL: ${this.formatValue(goalData.current, unit)}`);
+    } else {
+      items.push(`ATUAL: Não disponível`);
+    }
+
+    items.push(`PROGRESSO: ${percentage.toFixed(1)}%`);
+
+    if (goalData?.target && goalData?.current) {
+      const remaining = Math.max(0, goalData.target - goalData.current);
+      const unit = this.getGoalUnit(this.getGoalKeyFromName(goalName));
+      items.push(`FALTAM: ${this.formatValue(remaining, unit)}`);
+    }
+
+    return items;
+  }
+
+  private formatValue(value: number, unit: string): string {
+    if (unit === 'R$') {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(value);
+    } else if (unit === '%') {
+      return `${value.toFixed(1)}%`;
+    } else {
+      return value.toLocaleString('pt-BR');
+    }
   }
 
   private getGoalEmojis(teamType: TeamType): { primary: string; secondary1: string; secondary2: string } {
@@ -348,7 +456,7 @@ export class DashboardService {
    * Process player data directly to dashboard format without making API calls
    * This is used when we already have the player data from login
    */
-  async processPlayerDataToDashboard(playerStatus: FunifierPlayerStatus, teamType: TeamType): Promise<DashboardData> {
+  async processPlayerDataToDashboard(playerId: string, playerStatus: FunifierPlayerStatus, teamType: TeamType): Promise<DashboardData> {
     try {
       // Get report data from custom collection (optional)
       const reportData = await this.getLatestReportData(playerStatus._id);
@@ -358,7 +466,7 @@ export class DashboardService {
       const playerMetrics = processor.processPlayerData(playerStatus, reportData);
       
       // Convert to dashboard format
-      const dashboardData = this.convertTodashboardData(playerMetrics, teamType, reportData);
+      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, reportData);
       
       return dashboardData;
     } catch (error) {
@@ -374,7 +482,7 @@ export class DashboardService {
    * IMPORTANT: When players reach 100% and have boosts active, Funifier stops tracking
    * progress in challenge_progress. In this case, we should fetch from collection data.
    */
-  static extractDirectDashboardData(playerStatus: FunifierPlayerStatus): DashboardData {
+  static extractDirectDashboardData(playerId: string, playerStatus: FunifierPlayerStatus): DashboardData {
     // Extract basic player info
     const playerName = playerStatus.name;
     const totalPoints = playerStatus.total_points;
@@ -567,6 +675,7 @@ export class DashboardService {
     };
 
     return {
+      playerId,
       playerName,
       totalPoints,
       pointsLocked,

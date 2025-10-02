@@ -94,7 +94,7 @@ export const useFreshDashboardData = (playerId: string): UseFreshDashboardDataRe
     
     console.log('🔄 Fresh Funifier Data Fetched:', rawPlayerData);
     
-    const dashboardData = DashboardService.extractDirectDashboardData(rawPlayerData);
+    const dashboardData = DashboardService.extractDirectDashboardData(playerId, rawPlayerData);
     
     return { dashboardData, rawPlayerData };
   }, [playerId]);

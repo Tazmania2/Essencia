@@ -131,16 +131,12 @@ export class ReportProcessingService {
         };
       }
 
-      const headers = lines[0]
-        .split(',')
-        .map((h) => h.trim().replace(/"/g, ''));
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
       const data: ReportData[] = [];
       const errors: ValidationError[] = [];
 
       for (let i = 1; i < lines.length; i++) {
-        const values = lines[i]
-          .split(',')
-          .map((v) => v.trim().replace(/"/g, ''));
+        const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
 
         if (values.length !== headers.length) {
           errors.push({
@@ -167,12 +163,9 @@ export class ReportProcessingService {
           reaisPorAtivoMeta: parseFloat(record['Reais por Ativo Meta']) || 0,
           reaisPorAtivoAtual: parseFloat(record['Reais por Ativo Atual']) || 0,
           reaisPorAtivoPercentual: parseFloat(record['Reais por Ativo %']) || 0,
-          multimarcasPorAtivoMeta:
-            parseFloat(record['Multimarcas por Ativo Meta']) || 0,
-          multimarcasPorAtivoAtual:
-            parseFloat(record['Multimarcas por Ativo Atual']) || 0,
-          multimarcasPorAtivoPercentual:
-            parseFloat(record['Multimarcas por Ativo %']) || 0,
+          multimarcasPorAtivoMeta: parseFloat(record['Multimarcas por Ativo Meta']) || 0,
+          multimarcasPorAtivoAtual: parseFloat(record['Multimarcas por Ativo Atual']) || 0,
+          multimarcasPorAtivoPercentual: parseFloat(record['Multimarcas por Ativo %']) || 0,
           atividadeMeta: parseFloat(record['Atividade Meta']) || 0,
           atividadeAtual: parseFloat(record['Atividade Atual']) || 0,
           atividadePercentual: parseFloat(record['Atividade %']) || 0,

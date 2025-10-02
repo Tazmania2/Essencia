@@ -255,6 +255,7 @@ export interface DashboardGoal {
 }
 
 export interface DashboardData {
+  playerId: string;
   playerName: string;
   totalPoints: number;
   pointsLocked: boolean;
@@ -264,6 +265,12 @@ export interface DashboardData {
   primaryGoal: DashboardGoal;
   secondaryGoal1: DashboardGoal & { hasBoost: true };
   secondaryGoal2: DashboardGoal & { hasBoost: true };
+  goalDetails?: Array<{
+    title: string;
+    items: string[];
+    bgColor: string;
+    textColor: string;
+  }>;
 }
 
 export interface GoalDetail {
