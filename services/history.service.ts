@@ -1,7 +1,8 @@
-import { 
-  CycleHistoryData, 
-  ProgressDataPoint, 
-  EssenciaReportRecord 
+import {
+  CycleHistoryData,
+  ProgressDataPoint,
+  EssenciaReportRecord,
+  EnhancedReportRecord,
 } from '../types';
 import { FunifierDatabaseService } from './funifier-database.service';
 import { errorHandlerService } from './error-handler.service';
@@ -48,256 +49,175 @@ export class HistoryService {
   }
 
   /**
-   * Get cycle history for a player, excluding current cycle
+   * Get cycle history for a player - SIMPLIFIED to prevent infinite loops
    */
   async getPlayerCycleHistory(playerId: string): Promise<CycleHistoryData[]> {
     try {
       secureLogger.log('🔍 Getting cycle history for player:', playerId);
 
-      // Get all cycle data for the player
-      const pipeline = [
-        {
-          $match: {
-            playerId: playerId,
-            cycleNumber: { $exists: true, $ne: null },
-            completionStatus: 'completed' // Only show completed cycles
-          }
-        },
-        {
-          $group: {
-            _id: '$cycleNumber',
-            cycleNumber: { $first: '$cycleNumber' },
-            startDate: { $min: '$cycleStartDate' },
-            endDate: { $max: '$cycleEndDate' },
-            totalDays: { $first: '$totalCycleDays' },
-            completionStatus: { $first: '$completionStatus' },
-            finalMetrics: {
-              $last: {
-                primaryGoal: {
-                  name: '$primaryGoalName',
-                  percentage: '$primaryGoalPercentage',
-                  target: '$primaryGoalTarget',
-                  current: '$primaryGoalCurrent',
-                  unit: '$primaryGoalUnit',
-                  boostActive: false
-                },
-                secondaryGoal1: {
-                  name: '$secondaryGoal1Name',
-                  percentage: '$secondaryGoal1Percentage',
-                  target: '$secondaryGoal1Target',
-                  current: '$secondaryGoal1Current',
-                  unit: '$secondaryGoal1Unit',
-                  boostActive: '$secondaryGoal1BoostActive'
-                },
-                secondaryGoal2: {
-                  name: '$secondaryGoal2Name',
-                  percentage: '$secondaryGoal2Percentage',
-                  target: '$secondaryGoal2Target',
-                  current: '$secondaryGoal2Current',
-                  unit: '$secondaryGoal2Unit',
-                  boostActive: '$secondaryGoal2BoostActive'
-                }
-              }
-            },
-            progressTimeline: {
-              $push: {
-                date: '$reportDate',
-                dayInCycle: '$currentCycleDay',
-                uploadSequence: '$uploadSequence',
-                metrics: {
-                  primaryGoal: '$primaryGoalPercentage',
-                  secondaryGoal1: '$secondaryGoal1Percentage',
-                  secondaryGoal2: '$secondaryGoal2Percentage'
-                }
-              }
-            }
-          }
-        },
-        {
-          $sort: { cycleNumber: -1 } // Most recent first
+      // SIMPLE database query - no complex aggregations that could loop
+      const filter = {
+        playerId: playerId,
+        cycleNumber: { $exists: true, $ne: null },
+      };
+
+      // Use enhanced report data which has cycleNumber
+      const records = (await this.databaseService.getReportData(
+        filter
+      )) as EnhancedReportRecord[];
+
+      if (!records || records.length === 0) {
+        secureLogger.log(`❌ No cycle data found for player: ${playerId}`);
+        return [];
+      }
+
+      // Process records in JavaScript (not MongoDB aggregation)
+      const cycleMap = new Map<number, any[]>();
+
+      records.forEach((record) => {
+        const cycleNum = record.cycleNumber;
+        if (cycleNum && !cycleMap.has(cycleNum)) {
+          cycleMap.set(cycleNum, []);
         }
-      ];
+        if (cycleNum) {
+          cycleMap.get(cycleNum)!.push(record);
+        }
+      });
 
-      const results = await this.databaseService.aggregateReportData(pipeline);
-      
-      const cycleHistory: CycleHistoryData[] = results.map(result => ({
-        cycleNumber: result.cycleNumber,
-        startDate: result.startDate,
-        endDate: result.endDate,
-        totalDays: result.totalDays || 21,
-        completionStatus: result.completionStatus || 'completed',
-        finalMetrics: result.finalMetrics || {
-          primaryGoal: { name: 'Unknown', percentage: 0, target: 0, current: 0, unit: '', boostActive: false },
-          secondaryGoal1: { name: 'Unknown', percentage: 0, target: 0, current: 0, unit: '', boostActive: false },
-          secondaryGoal2: { name: 'Unknown', percentage: 0, target: 0, current: 0, unit: '', boostActive: false }
-        },
-        progressTimeline: result.progressTimeline || []
-      }));
+      // Convert to CycleHistoryData format
+      const cycleHistory: CycleHistoryData[] = Array.from(
+        cycleMap.entries()
+      ).map(([cycleNumber, cycleRecords]) => {
+        // Get the latest record for final metrics
+        const latestRecord = cycleRecords.sort(
+          (a, b) =>
+            new Date(b.reportDate).getTime() - new Date(a.reportDate).getTime()
+        )[0];
 
-      secureLogger.log(`✅ Found ${cycleHistory.length} completed cycles for player:`, playerId);
-      return cycleHistory;
+        return {
+          cycleNumber,
+          startDate: cycleRecords[0]?.reportDate || new Date().toISOString(),
+          endDate: latestRecord?.reportDate || new Date().toISOString(),
+          totalDays: latestRecord?.totalCycleDays || 21,
+          completionStatus: 'completed' as const,
+          finalMetrics: {
+            primaryGoal: {
+              name: 'Atividade',
+              percentage: latestRecord?.atividadePercentual || 0,
+              target: 100,
+              current: latestRecord?.atividadePercentual || 0,
+              unit: '%',
+              boostActive: false,
+            },
+            secondaryGoal1: {
+              name: 'Reais por Ativo',
+              percentage: latestRecord?.reaisPorAtivoPercentual || 0,
+              target: 100,
+              current: latestRecord?.reaisPorAtivoPercentual || 0,
+              unit: '%',
+              boostActive: false,
+            },
+            secondaryGoal2: {
+              name: 'Faturamento',
+              percentage: latestRecord?.faturamentoPercentual || 0,
+              target: 100,
+              current: latestRecord?.faturamentoPercentual || 0,
+              unit: '%',
+              boostActive: false,
+            },
+          },
+          progressTimeline: cycleRecords.map((record, index) => ({
+            date: record.reportDate,
+            dayInCycle: record.diaDociclo || 1,
+            uploadSequence: index + 1,
+            metrics: {
+              primaryGoal: record.atividadePercentual,
+              secondaryGoal1: record.reaisPorAtivoPercentual,
+              secondaryGoal2: record.faturamentoPercentual,
+            },
+          })),
+        };
+      });
 
-    } catch (error) {
-      const apiError = errorHandlerService.handleDataProcessingError(
-        error as Error,
-        'getPlayerCycleHistory'
+      // Sort by cycle number (most recent first)
+      cycleHistory.sort((a, b) => b.cycleNumber - a.cycleNumber);
+
+      secureLogger.log(
+        `✅ Found ${cycleHistory.length} cycles for player:`,
+        playerId
       );
-      errorHandlerService.logError(apiError, 'HistoryService.getPlayerCycleHistory');
-      throw apiError;
+      return cycleHistory;
+    } catch (error) {
+      secureLogger.error('❌ Error getting cycle history:', error);
+      // Return empty array instead of throwing to prevent crashes
+      return [];
     }
   }
 
   /**
-   * Get detailed data for a specific cycle
+   * Get detailed data for a specific cycle - SIMPLIFIED
    */
-  async getCycleDetails(playerId: string, cycleNumber: number): Promise<CycleHistoryData | null> {
+  async getCycleDetails(
+    playerId: string,
+    cycleNumber: number
+  ): Promise<CycleHistoryData | null> {
     try {
-      secureLogger.log(`🔍 Getting cycle details for player: ${playerId}, cycle: ${cycleNumber}`);
+      secureLogger.log(
+        `🔍 Getting cycle details for player: ${playerId}, cycle: ${cycleNumber}`
+      );
 
-      const pipeline = [
-        {
-          $match: {
-            playerId: playerId,
-            cycleNumber: cycleNumber
-          }
-        },
-        {
-          $group: {
-            _id: '$cycleNumber',
-            cycleNumber: { $first: '$cycleNumber' },
-            startDate: { $min: '$cycleStartDate' },
-            endDate: { $max: '$cycleEndDate' },
-            totalDays: { $first: '$totalCycleDays' },
-            completionStatus: { $first: '$completionStatus' },
-            finalMetrics: {
-              $last: {
-                primaryGoal: {
-                  name: '$primaryGoalName',
-                  percentage: '$primaryGoalPercentage',
-                  target: '$primaryGoalTarget',
-                  current: '$primaryGoalCurrent',
-                  unit: '$primaryGoalUnit',
-                  boostActive: false
-                },
-                secondaryGoal1: {
-                  name: '$secondaryGoal1Name',
-                  percentage: '$secondaryGoal1Percentage',
-                  target: '$secondaryGoal1Target',
-                  current: '$secondaryGoal1Current',
-                  unit: '$secondaryGoal1Unit',
-                  boostActive: '$secondaryGoal1BoostActive'
-                },
-                secondaryGoal2: {
-                  name: '$secondaryGoal2Name',
-                  percentage: '$secondaryGoal2Percentage',
-                  target: '$secondaryGoal2Target',
-                  current: '$secondaryGoal2Current',
-                  unit: '$secondaryGoal2Unit',
-                  boostActive: '$secondaryGoal2BoostActive'
-                }
-              }
-            },
-            progressTimeline: {
-              $push: {
-                date: '$reportDate',
-                dayInCycle: '$currentCycleDay',
-                uploadSequence: '$uploadSequence',
-                metrics: {
-                  primaryGoal: '$primaryGoalPercentage',
-                  secondaryGoal1: '$secondaryGoal1Percentage',
-                  secondaryGoal2: '$secondaryGoal2Percentage'
-                }
-              }
-            }
-          }
-        }
-      ];
+      // Get all cycles and find the specific one
+      const allCycles = await this.getPlayerCycleHistory(playerId);
+      const cycleDetails = allCycles.find(
+        (cycle) => cycle.cycleNumber === cycleNumber
+      );
 
-      const results = await this.databaseService.aggregateReportData(pipeline);
-      
-      if (results.length === 0) {
-        secureLogger.log(`❌ No cycle details found for player: ${playerId}, cycle: ${cycleNumber}`);
+      if (!cycleDetails) {
+        secureLogger.log(
+          `❌ No cycle details found for player: ${playerId}, cycle: ${cycleNumber}`
+        );
         return null;
       }
 
-      const result = results[0];
-      const cycleDetails: CycleHistoryData = {
-        cycleNumber: result.cycleNumber,
-        startDate: result.startDate,
-        endDate: result.endDate,
-        totalDays: result.totalDays || 21,
-        completionStatus: result.completionStatus || 'completed',
-        finalMetrics: result.finalMetrics || {
-          primaryGoal: { name: 'Unknown', percentage: 0, target: 0, current: 0, unit: '', boostActive: false },
-          secondaryGoal1: { name: 'Unknown', percentage: 0, target: 0, current: 0, unit: '', boostActive: false },
-          secondaryGoal2: { name: 'Unknown', percentage: 0, target: 0, current: 0, unit: '', boostActive: false }
-        },
-        progressTimeline: result.progressTimeline || []
-      };
-
-      secureLogger.log(`✅ Found cycle details for player: ${playerId}, cycle: ${cycleNumber}`);
-      return cycleDetails;
-
-    } catch (error) {
-      const apiError = errorHandlerService.handleDataProcessingError(
-        error as Error,
-        'getCycleDetails'
+      secureLogger.log(
+        `✅ Found cycle details for player: ${playerId}, cycle: ${cycleNumber}`
       );
-      errorHandlerService.logError(apiError, 'HistoryService.getCycleDetails');
-      throw apiError;
+      return cycleDetails;
+    } catch (error) {
+      secureLogger.error('❌ Error getting cycle details:', error);
+      return null;
     }
   }
 
   /**
-   * Get progress timeline for a specific cycle
+   * Get progress timeline for a specific cycle - SIMPLIFIED
    */
-  async getCycleProgressTimeline(playerId: string, cycleNumber: number): Promise<ProgressDataPoint[]> {
+  async getCycleProgressTimeline(
+    playerId: string,
+    cycleNumber: number
+  ): Promise<ProgressDataPoint[]> {
     try {
-      secureLogger.log(`🔍 Getting progress timeline for player: ${playerId}, cycle: ${cycleNumber}`);
-
-      const pipeline = [
-        {
-          $match: {
-            playerId: playerId,
-            cycleNumber: cycleNumber
-          }
-        },
-        {
-          $project: {
-            date: '$reportDate',
-            dayInCycle: '$currentCycleDay',
-            uploadSequence: '$uploadSequence',
-            metrics: {
-              primaryGoal: '$primaryGoalPercentage',
-              secondaryGoal1: '$secondaryGoal1Percentage',
-              secondaryGoal2: '$secondaryGoal2Percentage'
-            }
-          }
-        },
-        {
-          $sort: { uploadSequence: 1 } // Chronological order
-        }
-      ];
-
-      const results = await this.databaseService.aggregateReportData(pipeline);
-      
-      const timeline: ProgressDataPoint[] = results.map(result => ({
-        date: result.date,
-        dayInCycle: result.dayInCycle || 1,
-        uploadSequence: result.uploadSequence || 1,
-        metrics: result.metrics || {}
-      }));
-
-      secureLogger.log(`✅ Found ${timeline.length} progress points for player: ${playerId}, cycle: ${cycleNumber}`);
-      return timeline;
-
-    } catch (error) {
-      const apiError = errorHandlerService.handleDataProcessingError(
-        error as Error,
-        'getCycleProgressTimeline'
+      secureLogger.log(
+        `🔍 Getting progress timeline for player: ${playerId}, cycle: ${cycleNumber}`
       );
-      errorHandlerService.logError(apiError, 'HistoryService.getCycleProgressTimeline');
-      throw apiError;
+
+      // Get cycle details which already contains the timeline
+      const cycleDetails = await this.getCycleDetails(playerId, cycleNumber);
+
+      if (!cycleDetails) {
+        secureLogger.log(
+          `❌ No timeline found for player: ${playerId}, cycle: ${cycleNumber}`
+        );
+        return [];
+      }
+
+      secureLogger.log(
+        `✅ Found ${cycleDetails.progressTimeline.length} progress points for player: ${playerId}, cycle: ${cycleNumber}`
+      );
+      return cycleDetails.progressTimeline;
+    } catch (error) {
+      secureLogger.error('❌ Error getting progress timeline:', error);
+      return [];
     }
   }
 
@@ -310,102 +230,26 @@ export class HistoryService {
       // Allow access if there's any cycle data (including current cycle)
       return cycles.length > 0;
     } catch (error) {
-      secureLogger.warn(`Error checking historical data for player: ${playerId}`, error);
+      secureLogger.warn(
+        `Error checking historical data for player: ${playerId}`,
+        error
+      );
       // If there's an error, allow access anyway - the history page will handle empty data gracefully
       return true;
     }
   }
 
   /**
-   * Get all cycles for a player (including current)
+   * Get all cycles for a player (including current) - SIMPLIFIED
    */
   async getPlayerCycles(playerId: string): Promise<CycleHistoryData[]> {
     try {
-      const pipeline = [
-        {
-          $match: {
-            playerId: playerId,
-            cycleNumber: { $exists: true, $ne: null }
-          }
-        },
-        {
-          $group: {
-            _id: '$cycleNumber',
-            cycleNumber: { $first: '$cycleNumber' },
-            startDate: { $min: '$cycleStartDate' },
-            endDate: { $max: '$cycleEndDate' },
-            totalDays: { $first: '$totalCycleDays' },
-            completionStatus: { $first: '$completionStatus' },
-            finalMetrics: {
-              $last: {
-                primaryGoal: {
-                  name: '$primaryGoalName',
-                  percentage: '$primaryGoalPercentage',
-                  target: '$primaryGoalTarget',
-                  current: '$primaryGoalCurrent',
-                  unit: '$primaryGoalUnit',
-                  boostActive: false
-                },
-                secondaryGoal1: {
-                  name: '$secondaryGoal1Name',
-                  percentage: '$secondaryGoal1Percentage',
-                  target: '$secondaryGoal1Target',
-                  current: '$secondaryGoal1Current',
-                  unit: '$secondaryGoal1Unit',
-                  boostActive: '$secondaryGoal1BoostActive'
-                },
-                secondaryGoal2: {
-                  name: '$secondaryGoal2Name',
-                  percentage: '$secondaryGoal2Percentage',
-                  target: '$secondaryGoal2Target',
-                  current: '$secondaryGoal2Current',
-                  unit: '$secondaryGoal2Unit',
-                  boostActive: '$secondaryGoal2BoostActive'
-                }
-              }
-            },
-            progressTimeline: {
-              $push: {
-                date: '$reportDate',
-                dayInCycle: '$currentCycleDay',
-                uploadSequence: '$uploadSequence',
-                metrics: {
-                  primaryGoal: '$primaryGoalPercentage',
-                  secondaryGoal1: '$secondaryGoal1Percentage',
-                  secondaryGoal2: '$secondaryGoal2Percentage'
-                }
-              }
-            }
-          }
-        },
-        {
-          $sort: { cycleNumber: -1 }
-        }
-      ];
-
-      const results = await this.databaseService.aggregateReportData(pipeline);
-      
-      return results.map(result => ({
-        cycleNumber: result.cycleNumber,
-        startDate: result.startDate,
-        endDate: result.endDate,
-        totalDays: result.totalDays || 21,
-        completionStatus: result.completionStatus || 'in_progress',
-        finalMetrics: result.finalMetrics || {
-          primaryGoal: { name: 'Unknown', percentage: 0, target: 0, current: 0, unit: '', boostActive: false },
-          secondaryGoal1: { name: 'Unknown', percentage: 0, target: 0, current: 0, unit: '', boostActive: false },
-          secondaryGoal2: { name: 'Unknown', percentage: 0, target: 0, current: 0, unit: '', boostActive: false }
-        },
-        progressTimeline: result.progressTimeline || []
-      }));
-
+      // Use the same simplified method as getPlayerCycleHistory
+      return await this.getPlayerCycleHistory(playerId);
     } catch (error) {
-      const apiError = errorHandlerService.handleDataProcessingError(
-        error as Error,
-        'getPlayerCycles'
-      );
-      errorHandlerService.logError(apiError, 'HistoryService.getPlayerCycles');
-      throw apiError;
+      secureLogger.error('❌ Error getting player cycles:', error);
+      // Return empty array instead of throwing to prevent crashes
+      return [];
     }
   }
 
@@ -415,34 +259,36 @@ export class HistoryService {
   async getCycleSummaryStats(playerId: string): Promise<CycleSummaryStats> {
     try {
       const cycles = await this.getPlayerCycleHistory(playerId);
-      
+
       if (cycles.length === 0) {
         return {
           totalCycles: 0,
           averagePerformance: 0,
           bestCycle: null,
           worstCycle: null,
-          improvementTrend: 'stable'
+          improvementTrend: 'stable',
         };
       }
 
       // Calculate average performance across all goals
-      const performances = cycles.map(cycle => {
-        const avg = (
-          cycle.finalMetrics.primaryGoal.percentage +
-          cycle.finalMetrics.secondaryGoal1.percentage +
-          cycle.finalMetrics.secondaryGoal2.percentage
-        ) / 3;
+      const performances = cycles.map((cycle) => {
+        const avg =
+          (cycle.finalMetrics.primaryGoal.percentage +
+            cycle.finalMetrics.secondaryGoal1.percentage +
+            cycle.finalMetrics.secondaryGoal2.percentage) /
+          3;
         return { cycleNumber: cycle.cycleNumber, performance: avg };
       });
 
-      const averagePerformance = performances.reduce((sum, p) => sum + p.performance, 0) / performances.length;
-      
-      const bestCycle = performances.reduce((best, current) => 
+      const averagePerformance =
+        performances.reduce((sum, p) => sum + p.performance, 0) /
+        performances.length;
+
+      const bestCycle = performances.reduce((best, current) =>
         current.performance > best.performance ? current : best
       );
-      
-      const worstCycle = performances.reduce((worst, current) => 
+
+      const worstCycle = performances.reduce((worst, current) =>
         current.performance < worst.performance ? current : worst
       );
 
@@ -452,10 +298,14 @@ export class HistoryService {
         const midPoint = Math.floor(performances.length / 2);
         const firstHalf = performances.slice(0, midPoint);
         const secondHalf = performances.slice(midPoint);
-        
-        const firstHalfAvg = firstHalf.reduce((sum, p) => sum + p.performance, 0) / firstHalf.length;
-        const secondHalfAvg = secondHalf.reduce((sum, p) => sum + p.performance, 0) / secondHalf.length;
-        
+
+        const firstHalfAvg =
+          firstHalf.reduce((sum, p) => sum + p.performance, 0) /
+          firstHalf.length;
+        const secondHalfAvg =
+          secondHalf.reduce((sum, p) => sum + p.performance, 0) /
+          secondHalf.length;
+
         const difference = secondHalfAvg - firstHalfAvg;
         if (difference > 5) improvementTrend = 'improving';
         else if (difference < -5) improvementTrend = 'declining';
@@ -466,15 +316,17 @@ export class HistoryService {
         averagePerformance: Math.round(averagePerformance),
         bestCycle,
         worstCycle,
-        improvementTrend
+        improvementTrend,
       };
-
     } catch (error) {
       const apiError = errorHandlerService.handleDataProcessingError(
         error as Error,
         'getCycleSummaryStats'
       );
-      errorHandlerService.logError(apiError, 'HistoryService.getCycleSummaryStats');
+      errorHandlerService.logError(
+        apiError,
+        'HistoryService.getCycleSummaryStats'
+      );
       throw apiError;
     }
   }
@@ -482,28 +334,41 @@ export class HistoryService {
   /**
    * Compare two cycles for a player
    */
-  async compareCycles(playerId: string, cycle1Number: number, cycle2Number: number): Promise<CycleComparison> {
+  async compareCycles(
+    playerId: string,
+    cycle1Number: number,
+    cycle2Number: number
+  ): Promise<CycleComparison> {
     try {
       const [cycle1Data, cycle2Data] = await Promise.all([
         this.getCycleDetails(playerId, cycle1Number),
-        this.getCycleDetails(playerId, cycle2Number)
+        this.getCycleDetails(playerId, cycle2Number),
       ]);
 
       const improvements = {
         primaryGoal: 0,
         secondaryGoal1: 0,
-        secondaryGoal2: 0
+        secondaryGoal2: 0,
       };
 
       let summary = 'Não foi possível comparar os ciclos.';
 
       if (cycle1Data && cycle2Data) {
-        improvements.primaryGoal = cycle2Data.finalMetrics.primaryGoal.percentage - cycle1Data.finalMetrics.primaryGoal.percentage;
-        improvements.secondaryGoal1 = cycle2Data.finalMetrics.secondaryGoal1.percentage - cycle1Data.finalMetrics.secondaryGoal1.percentage;
-        improvements.secondaryGoal2 = cycle2Data.finalMetrics.secondaryGoal2.percentage - cycle1Data.finalMetrics.secondaryGoal2.percentage;
+        improvements.primaryGoal =
+          cycle2Data.finalMetrics.primaryGoal.percentage -
+          cycle1Data.finalMetrics.primaryGoal.percentage;
+        improvements.secondaryGoal1 =
+          cycle2Data.finalMetrics.secondaryGoal1.percentage -
+          cycle1Data.finalMetrics.secondaryGoal1.percentage;
+        improvements.secondaryGoal2 =
+          cycle2Data.finalMetrics.secondaryGoal2.percentage -
+          cycle1Data.finalMetrics.secondaryGoal2.percentage;
 
-        const totalImprovement = improvements.primaryGoal + improvements.secondaryGoal1 + improvements.secondaryGoal2;
-        
+        const totalImprovement =
+          improvements.primaryGoal +
+          improvements.secondaryGoal1 +
+          improvements.secondaryGoal2;
+
         if (totalImprovement > 10) {
           summary = `Excelente melhoria! Performance geral aumentou ${totalImprovement.toFixed(1)} pontos percentuais.`;
         } else if (totalImprovement > 0) {
@@ -519,9 +384,8 @@ export class HistoryService {
         cycle1Data,
         cycle2Data,
         improvements,
-        summary
+        summary,
       };
-
     } catch (error) {
       const apiError = errorHandlerService.handleDataProcessingError(
         error as Error,
@@ -535,22 +399,30 @@ export class HistoryService {
   /**
    * Get cycle history with backward compatibility for legacy data
    */
-  async getPlayerCycleHistoryWithCompatibility(playerId: string): Promise<EssenciaReportRecord[]> {
+  async getPlayerCycleHistoryWithCompatibility(
+    playerId: string
+  ): Promise<EssenciaReportRecord[]> {
     try {
       // Get all records for the player, including those without cycle information
       const filter = { playerId: playerId };
       const records = await this.databaseService.getReportData(filter);
-      
+
       // Sort by report date to maintain chronological order
-      records.sort((a, b) => new Date(a.reportDate).getTime() - new Date(b.reportDate).getTime());
-      
+      records.sort(
+        (a, b) =>
+          new Date(a.reportDate).getTime() - new Date(b.reportDate).getTime()
+      );
+
       return records;
     } catch (error) {
       const apiError = errorHandlerService.handleDataProcessingError(
         error as Error,
         'getPlayerCycleHistoryWithCompatibility'
       );
-      errorHandlerService.logError(apiError, 'HistoryService.getPlayerCycleHistoryWithCompatibility');
+      errorHandlerService.logError(
+        apiError,
+        'HistoryService.getPlayerCycleHistoryWithCompatibility'
+      );
       throw apiError;
     }
   }
