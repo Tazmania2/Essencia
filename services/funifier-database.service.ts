@@ -804,7 +804,7 @@ export class FunifierDatabaseService {
     }
 
     // Basic validation of pipeline stages
-    const validStages = ['$match', '$group', '$sort', '$limit', '$skip', '$project', '$unwind', '$lookup'];
+    const validStages = ['$match', '$group', '$sort', '$limit', '$skip', '$project', '$unwind', '$lookup', '$replaceRoot'];
     
     for (let i = 0; i < pipeline.length; i++) {
       const stage = pipeline[i];
