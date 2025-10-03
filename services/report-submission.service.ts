@@ -199,13 +199,29 @@ export class ReportSubmissionService {
 
   private async checkIfNewCycle(cycleNumber: number, token: string): Promise<boolean> {
     try {
-      // Check if there are any records for this cycle number
-      const existingRecords = await this.databaseService.getReportData({
-        cycleNumber: cycleNumber
-      });
+      // Use aggregation to efficiently check if there are any records for this cycle
+      const pipeline = [
+        {
+          $match: { 
+            cycleNumber: cycleNumber,
+            status: "REGISTERED"
+          }
+        },
+        {
+          $limit: 1 // We only need to know if at least one record exists
+        },
+        {
+          $project: { _id: 1 } // Only return the _id field to minimize data transfer
+        }
+      ];
       
-      // If no records exist for this cycle, it's a new cycle
-      return existingRecords.length === 0;
+      secureLogger.log(`🔍 Checking for existing cycle ${cycleNumber} using aggregation`);
+      const existingRecords = await this.databaseService.aggregateReportData(pipeline);
+      
+      const isNewCycle = existingRecords.length === 0;
+      secureLogger.log(`📊 Cycle ${cycleNumber} check result: ${isNewCycle ? 'NEW CYCLE' : 'EXISTING CYCLE'} (${existingRecords.length} records found)`);
+      
+      return isNewCycle;
     } catch (error) {
       secureLogger.warn('⚠️ Could not check for existing cycle data, treating as new cycle', error);
       // If we can't check, assume it's a new cycle to be safe
