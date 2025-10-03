@@ -44,7 +44,10 @@ export class ReportComparisonService {
   ): Promise<ComparisonReport> {
     try {
       // If it's a new cycle, treat all data as new (no comparison needed)
+      console.log(`🔍 [COMPARISON] isNewCycle = ${isNewCycle}, cycleNumber = ${cycleNumber}`);
       if (isNewCycle) {
+        console.log('🆕 [COMPARISON] Taking NEW CYCLE path - no stored data retrieval needed');
+        console.log('🆕 [COMPARISON] This is why you only see checkIfNewCycle aggregation in network tab');
         const results: ComparisonResult[] = reportData.map(reportRecord =>
           this.comparePlayerData(reportRecord, null, true)
         );
@@ -61,6 +64,9 @@ export class ReportComparisonService {
           summary
         };
       }
+
+      console.log('🔄 [COMPARISON] Taking EXISTING CYCLE path - will retrieve stored data');
+      console.log('🔄 [COMPARISON] You should see getStoredData aggregation request next...');
 
       // Get current data from Funifier custom collection for the specific cycle
       // This will get the LATEST report for each player using aggregation

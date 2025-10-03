@@ -68,10 +68,14 @@ export class ReportSubmissionService {
       secureLogger.log('📊 Checking cycle and comparing report data with stored data...');
       const isNewCycle = forceFirstUpload || await this.checkIfNewCycle(cycle, token);
       
+      secureLogger.log(`🔍 [SUBMISSION] checkIfNewCycle result: ${isNewCycle} (forceFirstUpload: ${forceFirstUpload})`);
+      
       if (forceFirstUpload) {
         secureLogger.log('🔄 Force first upload enabled - treating all data as new (reset mode)');
       } else if (isNewCycle) {
         secureLogger.log('🆕 New cycle detected - treating all data as new');
+      } else {
+        secureLogger.log('🔄 Existing cycle detected - will compare with stored data');
       }
       
       const comparisonReport = await ReportComparisonService.compareReportData(
