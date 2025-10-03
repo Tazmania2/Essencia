@@ -165,6 +165,21 @@ export class ReportComparisonService {
       
       console.log(`📊 Found ${results.length} latest records for cycle ${cycleNumber || 'all'}`);
       
+      // Debug: Log the first few results to see what we're getting
+      if (results.length > 0) {
+        console.log('📋 Sample results from aggregation:');
+        results.slice(0, 2).forEach((result, index) => {
+          console.log(`  Result ${index + 1}:`, {
+            playerId: result.playerId,
+            time: result.time,
+            createdAt: result.createdAt,
+            hasPercentages: !!(result.atividadePercentual !== undefined && result.reaisPorAtivoPercentual !== undefined)
+          });
+        });
+      } else {
+        console.log('❌ No results returned from aggregation');
+      }
+      
       return results;
     } catch (error) {
       // If collection doesn't exist or is empty, return empty array
