@@ -70,13 +70,33 @@ export interface EssenciaReportRecord {
 export interface EnhancedReportRecord {
   _id: string;
   playerId: string;
+  // Percentage fields
   reaisPorAtivoPercentual: number;
-  diaDociclo: number;
-  totalDiasCiclo: number;
   faturamentoPercentual: number;
   atividadePercentual: number;
   multimarcasPorAtivoPercentual: number;
+  // Target (Meta) fields
+  faturamentoMeta?: number;
+  reaisPorAtivoMeta?: number;
+  multimarcasPorAtivoMeta?: number;
+  atividadeMeta?: number;
+  // Current (Atual) fields
+  faturamentoAtual?: number;
+  reaisPorAtivoAtual?: number;
+  multimarcasPorAtivoAtual?: number;
+  atividadeAtual?: number;
+  // Cycle information
+  diaDociclo: number;
+  totalDiasCiclo: number;
   cycleNumber?: number;
+  // Optional new metrics
+  conversoesMeta?: number;
+  conversoesAtual?: number;
+  conversoesPercentual?: number;
+  upaMeta?: number;
+  upaAtual?: number;
+  upaPercentual?: number;
+  // System fields
   uploadUrl?: string;
   reportDate: string;
   createdAt: string;

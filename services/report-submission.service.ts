@@ -103,22 +103,39 @@ export class ReportSubmissionService {
       const uploadUrl = await this.uploadFileToFunifier(file, token);
       secureLogger.log('✅ File uploaded successfully', { uploadUrl });
 
-      // Step 6: Store report data in database with ORIGINAL structure INCLUDING CYCLE
+      // Step 6: Store report data in database with COMPLETE data INCLUDING targets and current values
       secureLogger.log('💾 Storing report data in database...');
       const reportRecords: EnhancedReportRecord[] = parseResult.data.map(
-        (record) => ({
-          _id: `${record.playerId}_${cycle}_${new Date().toISOString().split('T')[0]}`,
+        (record, index) => ({
+          _id: `${record.playerId}_${cycle}_${new Date().toISOString().split('T')[0]}_${index}`,
           playerId: record.playerId,
-          // Store the ORIGINAL percentage fields that were working
+          // Store percentage fields
           reaisPorAtivoPercentual: record.reaisPorAtivoPercentual || 0,
-          diaDociclo: record.diaDociclo,
-          totalDiasCiclo: record.totalDiasCiclo,
           faturamentoPercentual: record.faturamentoPercentual || 0,
           atividadePercentual: record.atividadePercentual || 0,
-          multimarcasPorAtivoPercentual:
-            record.multimarcasPorAtivoPercentual || 0,
-          // Add the CRITICAL missing fields INCLUDING CYCLE
+          multimarcasPorAtivoPercentual: record.multimarcasPorAtivoPercentual || 0,
+          // Store target (Meta) values
+          faturamentoMeta: record.faturamentoMeta || 0,
+          reaisPorAtivoMeta: record.reaisPorAtivoMeta || 0,
+          multimarcasPorAtivoMeta: record.multimarcasPorAtivoMeta || 0,
+          atividadeMeta: record.atividadeMeta || 0,
+          // Store current (Atual) values
+          faturamentoAtual: record.faturamentoAtual || 0,
+          reaisPorAtivoAtual: record.reaisPorAtivoAtual || 0,
+          multimarcasPorAtivoAtual: record.multimarcasPorAtivoAtual || 0,
+          atividadeAtual: record.atividadeAtual || 0,
+          // Store cycle information
+          diaDociclo: record.diaDociclo,
+          totalDiasCiclo: record.totalDiasCiclo,
           cycleNumber: cycle,
+          // Store optional new metrics if present
+          conversoesMeta: record.conversoesMeta,
+          conversoesAtual: record.conversoesAtual,
+          conversoesPercentual: record.conversoesPercentual,
+          upaMeta: record.upaMeta,
+          upaAtual: record.upaAtual,
+          upaPercentual: record.upaPercentual,
+          // System fields
           uploadUrl: uploadUrl,
           status: 'REGISTERED',
           time: currentTime,

@@ -296,46 +296,80 @@ export class FunifierDatabaseService {
 
   /**
    * Get CSV goal data from report record
+   * NOTE: This method is deprecated for individual player lookups.
+   * CSV data should be processed during upload and stored per player in the database.
+   * For individual player data, use the enhanced report record directly.
    */
   public async getCSVGoalData(reportRecord: EnhancedReportRecord): Promise<CSVGoalData | null> {
-    if (!reportRecord.uploadUrl) {
-      console.log('❌ No CSV URL available in report record for player:', reportRecord.playerId);
+    // For individual player dashboard data, we should use the database record directly
+    // instead of trying to parse the multi-player CSV
+    console.log('⚠️ CSV parsing for individual players is deprecated. Using database record instead.');
+    
+    if (!reportRecord) {
+      console.log('❌ No report record available for CSV goal data conversion');
       return null;
     }
 
     try {
-      console.log('📄 Processing CSV from URL:', reportRecord.uploadUrl);
-      
-      // Check cache first
-      const cacheKey = CacheKeys.csvData(reportRecord.uploadUrl);
-      const cachedData = csvDataCache.get<CSVGoalData>(cacheKey);
-      
-      if (cachedData) {
-        console.log('📋 Found cached CSV data');
-        return cachedData;
+      // Convert the enhanced report record to CSV goal data format
+      const csvGoalData: CSVGoalData = {
+        playerId: reportRecord.playerId,
+        cycleDay: reportRecord.diaDociclo || 0,
+        totalCycleDays: reportRecord.totalDiasCiclo || 21,
+        faturamento: {
+          target: reportRecord.faturamentoMeta || 0,
+          current: reportRecord.faturamentoAtual || 0,
+          percentage: reportRecord.faturamentoPercentual || 0
+        },
+        reaisPorAtivo: {
+          target: reportRecord.reaisPorAtivoMeta || 0,
+          current: reportRecord.reaisPorAtivoAtual || 0,
+          percentage: reportRecord.reaisPorAtivoPercentual || 0
+        },
+        multimarcasPorAtivo: {
+          target: reportRecord.multimarcasPorAtivoMeta || 0,
+          current: reportRecord.multimarcasPorAtivoAtual || 0,
+          percentage: reportRecord.multimarcasPorAtivoPercentual || 0
+        },
+        atividade: {
+          target: reportRecord.atividadeMeta || 0,
+          current: reportRecord.atividadeAtual || 0,
+          percentage: reportRecord.atividadePercentual || 0
+        }
+      };
+
+      // Add optional new metrics if present
+      if (reportRecord.conversoesMeta !== undefined && reportRecord.conversoesAtual !== undefined && reportRecord.conversoesPercentual !== undefined) {
+        csvGoalData.conversoes = {
+          target: reportRecord.conversoesMeta,
+          current: reportRecord.conversoesAtual,
+          percentage: reportRecord.conversoesPercentual
+        };
       }
 
-      const csvData = await csvProcessingService.downloadAndParseCSV(reportRecord.uploadUrl);
-      
-      if (csvData) {
-        console.log('✅ Successfully processed CSV data:', {
-          playerId: csvData.playerId,
-          cycleDay: csvData.cycleDay,
-          totalCycleDays: csvData.totalCycleDays,
-          hasGoalData: !!(csvData.faturamento && csvData.reaisPorAtivo && csvData.atividade)
-        });
-      } else {
-        console.log('❌ Failed to process CSV data');
+      if (reportRecord.upaMeta !== undefined && reportRecord.upaAtual !== undefined && reportRecord.upaPercentual !== undefined) {
+        csvGoalData.upa = {
+          target: reportRecord.upaMeta,
+          current: reportRecord.upaAtual,
+          percentage: reportRecord.upaPercentual
+        };
       }
-      
-      // Cache the result
-      if (csvData) {
-        csvDataCache.set(cacheKey, csvData, 15 * 60 * 1000); // 15 minutes TTL
-      }
-      
-      return csvData;
+
+      console.log('✅ Converted enhanced record to CSV goal data format:', {
+        playerId: csvGoalData.playerId,
+        cycleDay: csvGoalData.cycleDay,
+        totalCycleDays: csvGoalData.totalCycleDays,
+        percentages: {
+          faturamento: csvGoalData.faturamento.percentage,
+          reaisPorAtivo: csvGoalData.reaisPorAtivo.percentage,
+          multimarcasPorAtivo: csvGoalData.multimarcasPorAtivo.percentage,
+          atividade: csvGoalData.atividade.percentage
+        }
+      });
+
+      return csvGoalData;
     } catch (error) {
-      console.error('❌ Failed to process CSV goal data:', error);
+      console.error('❌ Failed to convert enhanced record to CSV goal data:', error);
       return null;
     }
   }
