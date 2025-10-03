@@ -215,7 +215,8 @@ export class ReportSubmissionService {
         }
       ];
       
-      secureLogger.log(`🔍 Checking for existing cycle ${cycleNumber} using aggregation`);
+      secureLogger.log(`🔍 [CHECK_CYCLE] Checking for existing cycle ${cycleNumber} using aggregation`);
+      secureLogger.log(`🔍 [CHECK_CYCLE] Pipeline:`, JSON.stringify(pipeline, null, 2));
       const existingRecords = await this.databaseService.aggregateReportData(pipeline);
       
       const isNewCycle = existingRecords.length === 0;

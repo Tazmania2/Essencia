@@ -45,10 +45,10 @@ export class ReportComparisonService {
     try {
       // If it's a new cycle, treat all data as new (no comparison needed)
       if (isNewCycle) {
-        const results: ComparisonResult[] = reportData.map(reportRecord => 
+        const results: ComparisonResult[] = reportData.map(reportRecord =>
           this.comparePlayerData(reportRecord, null, true)
         );
-        
+
         const playersWithChanges = results.length; // All players are "new" in a new cycle
         const totalDifferences = results.reduce((sum, r) => sum + r.differences.length, 0);
         const summary = `Novo ciclo ${cycleNumber || 'N/A'}: Todos os ${results.length} jogadores são novos`;
@@ -65,9 +65,9 @@ export class ReportComparisonService {
       // Get current data from Funifier custom collection for the specific cycle
       // This will get the LATEST report for each player using aggregation
       const storedData = await this.getStoredData(cycleNumber);
-      
+
       console.log(`📊 Comparison: Found ${storedData.length} stored records for cycle ${cycleNumber || 'all'}`);
-      
+
       // Create lookup map for stored data
       const storedDataMap = new Map<string, any>();
       storedData.forEach(record => {
@@ -87,7 +87,7 @@ export class ReportComparisonService {
 
       // Compare each player's data
       const results: ComparisonResult[] = [];
-      
+
       for (const reportRecord of reportData) {
         const storedRecord = storedDataMap.get(reportRecord.playerId);
         const comparisonResult = this.comparePlayerData(reportRecord, storedRecord, false);
@@ -119,15 +119,15 @@ export class ReportComparisonService {
   private static async getStoredData(cycleNumber?: number): Promise<any[]> {
     try {
       const databaseService = FunifierDatabaseService.getInstance();
-      
+
       // Use aggregation to get the latest report for each player
       // This is much more efficient and accurate than filtering
       const pipeline = [];
-      
+
       // Match records for the specific cycle (if provided)
       if (cycleNumber) {
         pipeline.push({
-          $match: { 
+          $match: {
             cycleNumber: cycleNumber,
             status: "REGISTERED",
             time: { $exists: true }
@@ -135,39 +135,40 @@ export class ReportComparisonService {
         });
       } else {
         pipeline.push({
-          $match: { 
+          $match: {
             status: "REGISTERED",
             time: { $exists: true }
           }
         });
       }
-      
+
       // Group by playerId and get the latest record for each player
       pipeline.push({
         $sort: { time: -1 } // Sort by time descending (latest first)
       });
-      
+
       pipeline.push({
         $group: {
           _id: "$playerId",
           latestRecord: { $first: "$$ROOT" } // Get the first (latest) record for each player
         }
       });
-      
+
       // Replace root with the latest record
       pipeline.push({
         $replaceRoot: { newRoot: "$latestRecord" }
       });
-      
-      console.log('🔍 Using aggregation pipeline for stored data:', JSON.stringify(pipeline, null, 2));
-      
+
+      console.log('🔍 [COMPARISON] Using aggregation pipeline for stored data:', JSON.stringify(pipeline, null, 2));
+      console.log('🔍 [COMPARISON] This should be the FULL pipeline, not the limited checkIfNewCycle pipeline!');
+
       const results = await databaseService.aggregateReportData(pipeline);
-      
-      console.log(`📊 Found ${results.length} latest records for cycle ${cycleNumber || 'all'}`);
-      
+
+      console.log(`📊 [COMPARISON] Found ${results.length} latest records for cycle ${cycleNumber || 'all'}`);
+
       // Debug: Log the first few results to see what we're getting
       if (results.length > 0) {
-        console.log('📋 Sample results from aggregation:');
+        console.log('📋 [COMPARISON] Sample results from aggregation:');
         results.slice(0, 2).forEach((result, index) => {
           console.log(`  Result ${index + 1}:`, {
             playerId: result.playerId,
@@ -179,7 +180,7 @@ export class ReportComparisonService {
       } else {
         console.log('❌ No results returned from aggregation');
       }
-      
+
       return results;
     } catch (error) {
       // If collection doesn't exist or is empty, return empty array
@@ -201,7 +202,7 @@ export class ReportComparisonService {
     // If no stored record exists OR it's a new cycle, all values are new
     if (!storedRecord || isNewCycle) {
       const metrics = ['atividadePercentual', 'reaisPorAtivoPercentual', 'faturamentoPercentual', 'multimarcasPorAtivoPercentual'];
-      
+
       metrics.forEach(metric => {
         const reportValue = (reportRecord as any)[metric];
         if (reportValue !== undefined && reportValue !== null) {
@@ -220,7 +221,7 @@ export class ReportComparisonService {
     } else {
       // Compare each metric using the correct field names
       const metrics = ['atividadePercentual', 'reaisPorAtivoPercentual', 'faturamentoPercentual', 'multimarcasPorAtivoPercentual'];
-      
+
       metrics.forEach(metric => {
         const reportValue = (reportRecord as any)[metric];
         const storedValue = storedRecord[metric] || 0;
@@ -268,11 +269,11 @@ export class ReportComparisonService {
     }
 
     let summary = `${playerName}: ${differences.length} alteração(ões) detectada(s)\n`;
-    
+
     differences.forEach(diff => {
       const direction = diff.difference > 0 ? '↑' : '↓';
       const absChange = Math.abs(diff.percentageChange);
-      
+
       summary += `• ${diff.metric}: ${diff.funifierValue.toFixed(1)}% → ${diff.reportValue.toFixed(1)}% `;
       summary += `(${direction} ${absChange.toFixed(1)}%)\n`;
     });
@@ -308,7 +309,7 @@ export class ReportComparisonService {
    */
   static filterChangesOnly(comparisonReport: ComparisonReport): ComparisonReport {
     const filteredResults = comparisonReport.results.filter(result => result.hasChanges);
-    
+
     return {
       ...comparisonReport,
       results: filteredResults,
@@ -346,7 +347,7 @@ export class ReportComparisonService {
     thresholdPercentage: number = 10
   ): ComparisonResult[] {
     return comparisonReport.results.filter(result => {
-      return result.differences.some(diff => 
+      return result.differences.some(diff =>
         Math.abs(diff.percentageChange) >= thresholdPercentage
       );
     });
@@ -358,7 +359,7 @@ export class ReportComparisonService {
   static exportToCSV(comparisonReport: ComparisonReport): string {
     const headers = [
       'Player ID',
-      'Player Name', 
+      'Player Name',
       'Team',
       'Metric',
       'Funifier Value',
@@ -411,30 +412,30 @@ export class ReportComparisonService {
   static async getLatestPlayerReport(playerId: string, cycleNumber?: number): Promise<any | null> {
     try {
       const databaseService = FunifierDatabaseService.getInstance();
-      
+
       const pipeline = [];
-      
+
       // Match the specific player and cycle
-      const matchConditions: any = { 
+      const matchConditions: any = {
         playerId: playerId,
         status: "REGISTERED",
         time: { $exists: true }
       };
-      
+
       if (cycleNumber) {
         matchConditions.cycleNumber = cycleNumber;
       }
-      
+
       pipeline.push({ $match: matchConditions });
       pipeline.push({ $sort: { time: -1 } }); // Latest first
       pipeline.push({ $limit: 1 }); // Only the latest one
-      
+
       console.log(`🔍 Getting latest report for player ${playerId}, cycle ${cycleNumber || 'any'}`);
-      
+
       const results = await databaseService.aggregateReportData(pipeline);
-      
+
       const result = results.length > 0 ? results[0] : null;
-      
+
       if (result) {
         console.log(`✅ Found latest report for player ${playerId}:`, {
           time: result.time,
@@ -444,7 +445,7 @@ export class ReportComparisonService {
       } else {
         console.log(`❌ No report found for player ${playerId}`);
       }
-      
+
       return result;
     } catch (error) {
       console.error(`Error getting latest report for player ${playerId}:`, error);
