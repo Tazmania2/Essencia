@@ -63,11 +63,25 @@ export class ReportComparisonService {
       }
 
       // Get current data from Funifier custom collection for the specific cycle
+      // This will get the LATEST report for each player using aggregation
       const storedData = await this.getStoredData(cycleNumber);
+      
+      console.log(`📊 Comparison: Found ${storedData.length} stored records for cycle ${cycleNumber || 'all'}`);
       
       // Create lookup map for stored data
       const storedDataMap = new Map<string, any>();
       storedData.forEach(record => {
+        console.log(`📋 Stored data for player ${record.playerId}:`, {
+          time: record.time,
+          createdAt: record.createdAt,
+          cycleNumber: record.cycleNumber,
+          percentages: {
+            atividade: record.atividadePercentual,
+            reaisPorAtivo: record.reaisPorAtivoPercentual,
+            faturamento: record.faturamentoPercentual,
+            multimarcas: record.multimarcasPorAtivoPercentual
+          }
+        });
         storedDataMap.set(record.playerId, record);
       });
 
@@ -100,18 +114,58 @@ export class ReportComparisonService {
 
   /**
    * Get stored data from Funifier custom collection for specific cycle
+   * Uses aggregation to get the LATEST report for each player in the cycle
    */
   private static async getStoredData(cycleNumber?: number): Promise<any[]> {
     try {
       const databaseService = FunifierDatabaseService.getInstance();
       
-      // If cycle number is provided, filter by cycle
+      // Use aggregation to get the latest report for each player
+      // This is much more efficient and accurate than filtering
+      const pipeline = [];
+      
+      // Match records for the specific cycle (if provided)
       if (cycleNumber) {
-        return await databaseService.getReportData({ cycleNumber });
+        pipeline.push({
+          $match: { 
+            cycleNumber: cycleNumber,
+            status: "REGISTERED",
+            time: { $exists: true }
+          }
+        });
+      } else {
+        pipeline.push({
+          $match: { 
+            status: "REGISTERED",
+            time: { $exists: true }
+          }
+        });
       }
       
-      // Otherwise get all data
-      return await databaseService.getCollectionData();
+      // Group by playerId and get the latest record for each player
+      pipeline.push({
+        $sort: { time: -1 } // Sort by time descending (latest first)
+      });
+      
+      pipeline.push({
+        $group: {
+          _id: "$playerId",
+          latestRecord: { $first: "$$ROOT" } // Get the first (latest) record for each player
+        }
+      });
+      
+      // Replace root with the latest record
+      pipeline.push({
+        $replaceRoot: { newRoot: "$latestRecord" }
+      });
+      
+      console.log('🔍 Using aggregation pipeline for stored data:', JSON.stringify(pipeline, null, 2));
+      
+      const results = await databaseService.aggregateReportData(pipeline);
+      
+      console.log(`📊 Found ${results.length} latest records for cycle ${cycleNumber || 'all'}`);
+      
+      return results;
     } catch (error) {
       // If collection doesn't exist or is empty, return empty array
       console.warn('No stored data found in Funifier collection:', error);
@@ -333,6 +387,54 @@ export class ReportComparisonService {
     });
 
     return rows.join('\n');
+  }
+
+  /**
+   * Get the latest report for a specific player in a cycle
+   * Useful for debugging and individual player comparisons
+   */
+  static async getLatestPlayerReport(playerId: string, cycleNumber?: number): Promise<any | null> {
+    try {
+      const databaseService = FunifierDatabaseService.getInstance();
+      
+      const pipeline = [];
+      
+      // Match the specific player and cycle
+      const matchConditions: any = { 
+        playerId: playerId,
+        status: "REGISTERED",
+        time: { $exists: true }
+      };
+      
+      if (cycleNumber) {
+        matchConditions.cycleNumber = cycleNumber;
+      }
+      
+      pipeline.push({ $match: matchConditions });
+      pipeline.push({ $sort: { time: -1 } }); // Latest first
+      pipeline.push({ $limit: 1 }); // Only the latest one
+      
+      console.log(`🔍 Getting latest report for player ${playerId}, cycle ${cycleNumber || 'any'}`);
+      
+      const results = await databaseService.aggregateReportData(pipeline);
+      
+      const result = results.length > 0 ? results[0] : null;
+      
+      if (result) {
+        console.log(`✅ Found latest report for player ${playerId}:`, {
+          time: result.time,
+          createdAt: result.createdAt,
+          cycleNumber: result.cycleNumber
+        });
+      } else {
+        console.log(`❌ No report found for player ${playerId}`);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error(`Error getting latest report for player ${playerId}:`, error);
+      return null;
+    }
   }
 
   /**
