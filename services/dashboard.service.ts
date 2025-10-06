@@ -491,7 +491,7 @@ export class DashboardService {
    * IMPORTANT: When players reach 100% and have boosts active, Funifier stops tracking
    * progress in challenge_progress. In this case, we should fetch from collection data.
    */
-  static extractDirectDashboardData(playerId: string, playerStatus: FunifierPlayerStatus): DashboardData {
+  static async extractDirectDashboardData(playerId: string, playerStatus: FunifierPlayerStatus): Promise<DashboardData> {
     // Extract basic player info
     const playerName = playerStatus.name;
     const totalPoints = playerStatus.total_points;
@@ -529,7 +529,7 @@ export class DashboardService {
     }
 
     // Get challenge IDs from configuration (with fallback to hardcoded values)
-    const configuration = await this.getCurrentConfiguration();
+    const configuration = await dashboardConfigurationService.getCurrentConfiguration();
     const teamConfig = configuration.configurations[teamType];
     
     const challengeIds = {

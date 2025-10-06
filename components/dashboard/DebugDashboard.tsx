@@ -31,7 +31,7 @@ export const DebugDashboard: React.FC<DebugDashboardProps> = ({ playerId, token 
         setRawPlayerData(playerStatus);
 
         // Extract dashboard data directly
-        const dashboardData = DashboardService.extractDirectDashboardData(playerId, playerStatus);
+        const dashboardData = await DashboardService.extractDirectDashboardData(playerId, playerStatus);
         
         console.log('Extracted Dashboard Data:', dashboardData);
         setDashboardData(dashboardData);

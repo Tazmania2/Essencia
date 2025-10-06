@@ -84,7 +84,7 @@ describe('DebugDashboard', () => {
 
     // Mock DashboardService static method
     (DashboardService.extractDirectDashboardData as jest.MockedFunction<typeof DashboardService.extractDirectDashboardData>)
-      .mockReturnValue(mockDashboardData);
+      .mockResolvedValue(mockDashboardData);
   });
 
   afterEach(() => {
