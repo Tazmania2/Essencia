@@ -528,47 +528,30 @@ export class DashboardService {
         break;
     }
 
-    // Team-specific challenge IDs for goal tracking
-    let challengeIds: { atividade?: string; reaisPorAtivo: string; faturamento?: string; multimarcas?: string; conversoes?: string; upa?: string };
+    // Get challenge IDs from configuration (with fallback to hardcoded values)
+    const configuration = await this.getCurrentConfiguration();
+    const teamConfig = configuration.configurations[teamType];
     
-    switch (teamType) {
-      case TeamType.CARTEIRA_0:
-        challengeIds = {
-          conversoes: 'E6GglPq',     // Carteira 0 - Conversões (reusing challenge ID)
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
-          faturamento: 'E6GglPq'     // Carteira I - Bater Faturamento (Meta)
-        };
-        break;
-      case TeamType.CARTEIRA_I:
-        challengeIds = {
-          atividade: 'E6FQIjs',      // Carteira I - Bater Meta Atividade %
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
-          faturamento: 'E6GglPq'     // Carteira I - Bater Faturamento (Meta)
-        };
-        break;
-      case TeamType.CARTEIRA_II:
-        challengeIds = {
-          reaisPorAtivo: 'E6MTIIK',  // Carteira II - Subir Reais por Ativo (PRIMARY GOAL)
-          atividade: 'E6Gv58l',      // Carteira II - Subir Atividade (SECONDARY GOAL 1)
-          multimarcas: 'E6MWJKs'     // Carteira II - Subir Multimarcas por Ativo (SECONDARY GOAL 2)
-        };
-        break;
-      case TeamType.CARTEIRA_III:
-      case TeamType.CARTEIRA_IV:
-        challengeIds = {
-          faturamento: 'E6Gahd4',    // Carteira III & IV - Subir Faturamento (Pre-Meta)
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
-          multimarcas: 'E6MMH5v'     // Carteira III & IV - Subir Multimarcas por Ativo
-        };
-        break;
-      case TeamType.ER:
-        challengeIds = {
-          faturamento: 'E6Gahd4',    // Carteira III & IV - Subir Faturamento (Pre-Meta) (reused)
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo (reused)
-          upa: 'E62x2PW'             // ER - UPA metric
-        };
-        break;
-    }
+    const challengeIds = {
+      atividade: teamConfig.primaryGoal.name === 'atividade' ? teamConfig.primaryGoal.challengeId :
+                teamConfig.secondaryGoal1.name === 'atividade' ? teamConfig.secondaryGoal1.challengeId :
+                teamConfig.secondaryGoal2.name === 'atividade' ? teamConfig.secondaryGoal2.challengeId : undefined,
+      reaisPorAtivo: teamConfig.primaryGoal.name === 'reaisPorAtivo' ? teamConfig.primaryGoal.challengeId :
+                    teamConfig.secondaryGoal1.name === 'reaisPorAtivo' ? teamConfig.secondaryGoal1.challengeId :
+                    teamConfig.secondaryGoal2.name === 'reaisPorAtivo' ? teamConfig.secondaryGoal2.challengeId : 'E6Gm8RI',
+      faturamento: teamConfig.primaryGoal.name === 'faturamento' ? teamConfig.primaryGoal.challengeId :
+                  teamConfig.secondaryGoal1.name === 'faturamento' ? teamConfig.secondaryGoal1.challengeId :
+                  teamConfig.secondaryGoal2.name === 'faturamento' ? teamConfig.secondaryGoal2.challengeId : undefined,
+      multimarcas: teamConfig.primaryGoal.name === 'multimarcasPorAtivo' ? teamConfig.primaryGoal.challengeId :
+                  teamConfig.secondaryGoal1.name === 'multimarcasPorAtivo' ? teamConfig.secondaryGoal1.challengeId :
+                  teamConfig.secondaryGoal2.name === 'multimarcasPorAtivo' ? teamConfig.secondaryGoal2.challengeId : undefined,
+      conversoes: teamConfig.primaryGoal.name === 'conversoes' ? teamConfig.primaryGoal.challengeId :
+                 teamConfig.secondaryGoal1.name === 'conversoes' ? teamConfig.secondaryGoal1.challengeId :
+                 teamConfig.secondaryGoal2.name === 'conversoes' ? teamConfig.secondaryGoal2.challengeId : undefined,
+      upa: teamConfig.primaryGoal.name === 'upa' ? teamConfig.primaryGoal.challengeId :
+          teamConfig.secondaryGoal1.name === 'upa' ? teamConfig.secondaryGoal1.challengeId :
+          teamConfig.secondaryGoal2.name === 'upa' ? teamConfig.secondaryGoal2.challengeId : undefined
+    };
 
     // Extract goal progress from challenge_progress using team-specific challenge IDs
     const getGoalProgress = (challengeId: string): number => {

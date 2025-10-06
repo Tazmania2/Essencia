@@ -117,7 +117,7 @@ export class DashboardConfigurationService {
             name: 'conversoes',
             displayName: 'Conversões', 
             metric: 'conversoes',
-            challengeId: 'CONV001',
+            challengeId: 'E6GglPq', // Real Funifier Challenge ID for Conversões
             actionId: 'action_conversoes',
             calculationType: 'funifier_api'
           },
@@ -125,11 +125,11 @@ export class DashboardConfigurationService {
             name: 'reaisPorAtivo',
             displayName: 'Reais por Ativo', 
             metric: 'reaisPorAtivo',
-            challengeId: 'RPA001',
+            challengeId: 'E6Gm8RI', // Real Funifier Challenge ID for Reais por Ativo
             actionId: 'action_reais_ativo',
             calculationType: 'funifier_api',
             boost: {
-              catalogItemId: 'boost_rpa_0',
+              catalogItemId: 'E6F0WGc',
               name: 'Boost RPA',
               description: 'Boost para Reais por Ativo'
             }
@@ -138,11 +138,11 @@ export class DashboardConfigurationService {
             name: 'faturamento',
             displayName: 'Faturamento', 
             metric: 'faturamento',
-            challengeId: 'FAT001',
+            challengeId: 'E6GglPq', // Real Funifier Challenge ID for Faturamento
             actionId: 'action_faturamento',
             calculationType: 'funifier_api',
             boost: {
-              catalogItemId: 'boost_fat_0',
+              catalogItemId: 'E6K79Mt',
               name: 'Boost Faturamento',
               description: 'Boost para Faturamento'
             }
@@ -159,7 +159,7 @@ export class DashboardConfigurationService {
             name: 'atividade',
             displayName: 'Atividade', 
             metric: 'atividade',
-            challengeId: 'ATIV001',
+            challengeId: 'E6FQIjs', // Real Funifier Challenge ID for Atividade
             actionId: 'action_atividade',
             calculationType: 'funifier_api'
           },
@@ -167,11 +167,11 @@ export class DashboardConfigurationService {
             name: 'reaisPorAtivo',
             displayName: 'Reais por Ativo', 
             metric: 'reaisPorAtivo',
-            challengeId: 'RPA002',
+            challengeId: 'E6Gm8RI', // Real Funifier Challenge ID for Reais por Ativo
             actionId: 'action_reais_ativo',
             calculationType: 'funifier_api',
             boost: {
-              catalogItemId: 'boost_rpa_1',
+              catalogItemId: 'E6F0WGc',
               name: 'Boost RPA',
               description: 'Boost para Reais por Ativo'
             }
@@ -180,11 +180,11 @@ export class DashboardConfigurationService {
             name: 'faturamento',
             displayName: 'Faturamento', 
             metric: 'faturamento',
-            challengeId: 'FAT002',
+            challengeId: 'E6GglPq', // Real Funifier Challenge ID for Faturamento
             actionId: 'action_faturamento',
             calculationType: 'funifier_api',
             boost: {
-              catalogItemId: 'boost_fat_1',
+              catalogItemId: 'E6K79Mt',
               name: 'Boost Faturamento',
               description: 'Boost para Faturamento'
             }
@@ -201,7 +201,7 @@ export class DashboardConfigurationService {
             name: 'reaisPorAtivo',
             displayName: 'Reais por Ativo', 
             metric: 'reaisPorAtivo',
-            challengeId: 'RPA003',
+            challengeId: 'E6MTIIK', // Real Funifier Challenge ID for Carteira II Reais por Ativo
             actionId: 'action_reais_ativo',
             calculationType: 'local_processing'
           },
@@ -209,11 +209,11 @@ export class DashboardConfigurationService {
             name: 'atividade',
             displayName: 'Atividade', 
             metric: 'atividade',
-            challengeId: 'ATIV003',
+            challengeId: 'E6Gv58l', // Real Funifier Challenge ID for Carteira II Atividade
             actionId: 'action_atividade',
             calculationType: 'local_processing',
             boost: {
-              catalogItemId: 'boost_ativ_2',
+              catalogItemId: 'E6F0WGc',
               name: 'Boost Atividade',
               description: 'Boost para Atividade'
             }
@@ -222,11 +222,11 @@ export class DashboardConfigurationService {
             name: 'multimarcasPorAtivo',
             displayName: 'Multimarcas por Ativo', 
             metric: 'multimarcasPorAtivo',
-            challengeId: 'MPA003',
+            challengeId: 'E6MWJKs', // Real Funifier Challenge ID for Carteira II Multimarcas
             actionId: 'action_multimarcas',
             calculationType: 'local_processing',
             boost: {
-              catalogItemId: 'boost_multi_2',
+              catalogItemId: 'E6K79Mt',
               name: 'Boost Multimarcas',
               description: 'Boost para Multimarcas'
             }
@@ -247,7 +247,7 @@ export class DashboardConfigurationService {
             name: 'faturamento',
             displayName: 'Faturamento', 
             metric: 'faturamento',
-            challengeId: 'FAT003',
+            challengeId: 'E6Gahd4', // Real Funifier Challenge ID for Carteira III/IV Faturamento
             actionId: 'action_faturamento',
             calculationType: 'funifier_api'
           },
@@ -255,11 +255,11 @@ export class DashboardConfigurationService {
             name: 'reaisPorAtivo',
             displayName: 'Reais por Ativo', 
             metric: 'reaisPorAtivo',
-            challengeId: 'RPA004',
+            challengeId: 'E6Gm8RI', // Real Funifier Challenge ID for Reais por Ativo
             actionId: 'action_reais_ativo',
             calculationType: 'funifier_api',
             boost: {
-              catalogItemId: 'boost_rpa_3',
+              catalogItemId: 'E6F0WGc',
               name: 'Boost RPA',
               description: 'Boost para Reais por Ativo'
             }
@@ -268,11 +268,11 @@ export class DashboardConfigurationService {
             name: 'multimarcasPorAtivo',
             displayName: 'Multimarcas por Ativo', 
             metric: 'multimarcasPorAtivo',
-            challengeId: 'MPA004',
+            challengeId: 'E6MMH5v', // Real Funifier Challenge ID for Carteira III/IV Multimarcas
             actionId: 'action_multimarcas',
             calculationType: 'funifier_api',
             boost: {
-              catalogItemId: 'boost_multi_3',
+              catalogItemId: 'E6K79Mt',
               name: 'Boost Multimarcas',
               description: 'Boost para Multimarcas'
             }
@@ -289,7 +289,7 @@ export class DashboardConfigurationService {
             name: 'faturamento',
             displayName: 'Faturamento', 
             metric: 'faturamento',
-            challengeId: 'FAT004',
+            challengeId: 'E6Gahd4', // Real Funifier Challenge ID for Carteira III/IV Faturamento
             actionId: 'action_faturamento',
             calculationType: 'funifier_api'
           },
@@ -297,11 +297,11 @@ export class DashboardConfigurationService {
             name: 'reaisPorAtivo',
             displayName: 'Reais por Ativo', 
             metric: 'reaisPorAtivo',
-            challengeId: 'RPA005',
+            challengeId: 'E6Gm8RI', // Real Funifier Challenge ID for Reais por Ativo
             actionId: 'action_reais_ativo',
             calculationType: 'funifier_api',
             boost: {
-              catalogItemId: 'boost_rpa_4',
+              catalogItemId: 'E6F0WGc',
               name: 'Boost RPA',
               description: 'Boost para Reais por Ativo'
             }
@@ -310,11 +310,11 @@ export class DashboardConfigurationService {
             name: 'multimarcasPorAtivo',
             displayName: 'Multimarcas por Ativo', 
             metric: 'multimarcasPorAtivo',
-            challengeId: 'MPA005',
+            challengeId: 'E6MMH5v', // Real Funifier Challenge ID for Carteira III/IV Multimarcas
             actionId: 'action_multimarcas',
             calculationType: 'funifier_api',
             boost: {
-              catalogItemId: 'boost_multi_4',
+              catalogItemId: 'E6K79Mt',
               name: 'Boost Multimarcas',
               description: 'Boost para Multimarcas'
             }
@@ -331,7 +331,7 @@ export class DashboardConfigurationService {
             name: 'faturamento',
             displayName: 'Faturamento', 
             metric: 'faturamento',
-            challengeId: 'FAT005',
+            challengeId: 'E6Gahd4', // Real Funifier Challenge ID for Faturamento (reused)
             actionId: 'action_faturamento',
             calculationType: 'funifier_api'
           },
@@ -339,11 +339,11 @@ export class DashboardConfigurationService {
             name: 'reaisPorAtivo',
             displayName: 'Reais por Ativo', 
             metric: 'reaisPorAtivo',
-            challengeId: 'RPA006',
+            challengeId: 'E6Gm8RI', // Real Funifier Challenge ID for Reais por Ativo (reused)
             actionId: 'action_reais_ativo',
             calculationType: 'funifier_api',
             boost: {
-              catalogItemId: 'boost_rpa_er',
+              catalogItemId: 'E6F0WGc',
               name: 'Boost RPA',
               description: 'Boost para Reais por Ativo'
             }
@@ -352,11 +352,11 @@ export class DashboardConfigurationService {
             name: 'upa',
             displayName: 'UPA', 
             metric: 'upa',
-            challengeId: 'UPA001',
+            challengeId: 'E62x2PW', // Real Funifier Challenge ID for UPA
             actionId: 'action_upa',
             calculationType: 'funifier_api',
             boost: {
-              catalogItemId: 'boost_upa_er',
+              catalogItemId: 'E6K79Mt',
               name: 'Boost UPA',
               description: 'Boost para UPA'
             }

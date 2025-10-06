@@ -413,6 +413,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Challenge ID
+              <span className="text-xs text-gray-500 ml-1">(ID do desafio no Funifier para rastrear progresso)</span>
             </label>
             <input
               type="text"
@@ -420,7 +421,11 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
               onChange={(e) => handleGoalChange('primaryGoal', 'challengeId', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
+              placeholder="Ex: E6FQIjs"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Este ID é usado para buscar o progresso da meta no Funifier. Formato: E6 + 5 caracteres
+            </p>
           </div>
         </div>
       </div>
@@ -444,6 +449,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Challenge ID
+              <span className="text-xs text-gray-500 ml-1">(ID do desafio no Funifier)</span>
             </label>
             <input
               type="text"
@@ -451,7 +457,11 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
               onChange={(e) => handleGoalChange('secondaryGoal1', 'challengeId', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               disabled={isLoading}
+              placeholder="Ex: E6Gm8RI"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              ID usado para rastrear progresso desta meta secundária
+            </p>
           </div>
         </div>
       </div>
