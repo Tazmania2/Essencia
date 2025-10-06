@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { DashboardConfigurationRecord } from '../../types';
 import { configurationValidator } from '../../services/configuration-validator.service';
+import { dashboardConfigurationService } from '../../services/dashboard-configuration.service';
 
 interface ConfigurationExportImportProps {
   currentConfiguration?: DashboardConfigurationRecord;
@@ -81,7 +82,7 @@ export const ConfigurationExportImport: React.FC<ConfigurationExportImportProps>
       const config = importData.configuration as DashboardConfigurationRecord;
 
       // Validate configuration
-      const validationResult = await configurationValidator.validateConfiguration(config);
+      const validationResult = configurationValidator.validateDashboardConfiguration(config);
 
       if (!validationResult.isValid) {
         const errorMessages = validationResult.errors
@@ -95,10 +96,9 @@ export const ConfigurationExportImport: React.FC<ConfigurationExportImportProps>
       const importConfig: DashboardConfigurationRecord = {
         ...config,
         _id: '', // Will be generated on save
-        version: (currentConfiguration?.version || 0) + 1,
+        version: ((parseFloat(currentConfiguration?.version || '0')) + 0.1).toFixed(1),
         createdAt: new Date().toISOString(),
-        createdBy: 'admin', // TODO: Get from auth context
-        isActive: true
+        createdBy: 'admin' // TODO: Get from auth context
       };
 
       setImportSuccess(`Configuração importada com sucesso! Versão ${importData.version} de ${new Date(importData.exportedAt).toLocaleDateString('pt-BR')}`);
@@ -129,62 +129,8 @@ export const ConfigurationExportImport: React.FC<ConfigurationExportImportProps>
   };
 
   const handleCreateTemplate = () => {
-    // Create a template configuration with placeholder values
-    const templateConfig: DashboardConfigurationRecord = {
-      _id: 'template',
-      version: 1,
-      createdAt: new Date().toISOString(),
-      createdBy: 'template',
-      isActive: false,
-      configurations: {
-        CARTEIRA_I: {
-          teamType: 'CARTEIRA_I' as any,
-          displayName: 'Carteira I',
-          primaryGoal: {
-            name: 'atividade',
-            displayName: 'Atividade',
-            challengeId: 'CHALLENGE_ID_AQUI',
-            actionId: 'atividade',
-            emoji: '🎯',
-            unit: 'pontos',
-            calculationType: 'funifier_direct'
-          },
-          secondaryGoal1: {
-            name: 'reaisPorAtivo',
-            displayName: 'Reais por Ativo',
-            challengeId: 'CHALLENGE_ID_AQUI',
-            actionId: 'reais_por_ativo',
-            emoji: '💰',
-            unit: 'R$',
-            calculationType: 'funifier_direct',
-            boost: {
-              catalogItemId: 'CATALOG_ITEM_ID_AQUI',
-              name: 'Boost Reais por Ativo',
-              description: 'Multiplicador ativo quando meta é atingida'
-            }
-          },
-          secondaryGoal2: {
-            name: 'faturamento',
-            displayName: 'Faturamento',
-            challengeId: 'CHALLENGE_ID_AQUI',
-            actionId: 'faturamento',
-            emoji: '📈',
-            unit: 'R$',
-            calculationType: 'funifier_direct',
-            boost: {
-              catalogItemId: 'CATALOG_ITEM_ID_AQUI',
-              name: 'Boost Faturamento',
-              description: 'Multiplicador ativo quando meta é atingida'
-            }
-          },
-          unlockConditions: {
-            catalogItemId: 'CATALOG_ITEM_ID_AQUI',
-            description: 'Pontos desbloqueados quando condições são atendidas'
-          }
-        }
-      }
-    };
-
+    // Use the default configuration as template
+    const templateConfig = dashboardConfigurationService.getDefaultConfiguration();
     exportConfiguration(templateConfig, 'template-configuracao');
   };
 
