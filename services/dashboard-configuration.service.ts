@@ -1,7 +1,16 @@
-import { DashboardConfigurationRecord, TeamType } from '../types';
+import { DashboardConfigurationRecord, TeamType, DashboardConfig } from '../types';
+import { FunifierDatabaseService } from './funifier-database.service';
 
 export class DashboardConfigurationService {
   private static instance: DashboardConfigurationService;
+  private funifierDb: FunifierDatabaseService;
+  private configCache: DashboardConfigurationRecord | null = null;
+  private cacheTimestamp: number = 0;
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  private constructor() {
+    this.funifierDb = FunifierDatabaseService.getInstance();
+  }
 
   public static getInstance(): DashboardConfigurationService {
     if (!DashboardConfigurationService.instance) {
@@ -11,8 +20,92 @@ export class DashboardConfigurationService {
   }
 
   async getCurrentConfiguration(): Promise<DashboardConfigurationRecord> {
-    // Return default configuration for now
+    try {
+      // Check cache first
+      if (this.isCacheValid()) {
+        return this.configCache!;
+      }
+
+      // Try to get configuration from Funifier database first
+      const storedConfig = await this.funifierDb.getDashboardConfiguration();
+      
+      if (storedConfig && storedConfig.configurations) {
+        const config: DashboardConfigurationRecord = {
+          _id: storedConfig._id || 'dashboard_config_v1',
+          version: storedConfig.version,
+          createdAt: storedConfig.createdAt,
+          createdBy: storedConfig.createdBy,
+          configurations: storedConfig.configurations
+        };
+        
+        // Update cache
+        this.updateCache(config);
+        return config;
+      }
+    } catch (error) {
+      console.warn('Failed to load configuration from database, using defaults:', error);
+    }
+
+    // Return default configuration if none exists in database
+    return this.getDefaultConfiguration();
+  }
+
+  async saveConfiguration(config: Omit<DashboardConfigurationRecord, '_id' | 'version' | 'createdAt'>): Promise<DashboardConfigurationRecord> {
+    try {
+      // Get current configuration to determine next version
+      let nextVersion = '1.0.0';
+      try {
+        const currentConfig = await this.getCurrentConfiguration();
+        if (currentConfig._id && currentConfig._id !== 'default_config') {
+          const currentVersionNum = parseFloat(currentConfig.version) || 1.0;
+          nextVersion = (currentVersionNum + 0.1).toFixed(1);
+        }
+      } catch (error) {
+        console.warn('Could not determine current version, starting with version 1.0.0');
+      }
+
+      // Create new configuration record
+      const newConfig: DashboardConfigurationRecord = {
+        _id: 'dashboard_config_v1',
+        version: nextVersion,
+        createdAt: new Date().toISOString(),
+        createdBy: config.createdBy,
+        configurations: config.configurations
+      };
+
+      // Save to Funifier database using dashboard__c collection
+      await this.funifierDb.saveDashboardConfiguration(newConfig);
+      
+      // Update cache
+      this.updateCache(newConfig);
+      
+      console.log('Dashboard configuration saved successfully:', {
+        version: newConfig.version,
+        configId: newConfig._id,
+        createdBy: newConfig.createdBy 
+      });
+
+      return newConfig;
+
+    } catch (error) {
+      console.error('Error saving configuration:', error);
+      throw error;
+    }
+  }
+
+  async getTeamConfiguration(teamType: TeamType): Promise<DashboardConfig> {
+    const currentConfig = await this.getCurrentConfiguration();
+    return currentConfig.configurations[teamType];
+  }
+
+  clearCache(): void {
+    this.configCache = null;
+    this.cacheTimestamp = 0;
+  }
+
+  public getDefaultConfiguration(): DashboardConfigurationRecord {
     return {
+      _id: 'default_config',
       version: '1.0.0',
       createdAt: new Date().toISOString(),
       createdBy: 'system',
@@ -277,18 +370,14 @@ export class DashboardConfigurationService {
     };
   }
 
-  async saveConfiguration(config: Partial<DashboardConfigurationRecord>): Promise<DashboardConfigurationRecord> {
-    // For now, just return the current configuration with updates
-    // In a real implementation, this would save to the database
-    const currentConfig = await this.getCurrentConfiguration();
-    
-    return {
-      ...currentConfig,
-      ...config,
-      version: config.version || currentConfig.version,
-      createdAt: new Date().toISOString(),
-      createdBy: config.createdBy || 'admin'
-    };
+  private isCacheValid(): boolean {
+    return this.configCache !== null && 
+           (Date.now() - this.cacheTimestamp) < this.CACHE_TTL;
+  }
+
+  private updateCache(config: DashboardConfigurationRecord): void {
+    this.configCache = config;
+    this.cacheTimestamp = Date.now();
   }
 }
 

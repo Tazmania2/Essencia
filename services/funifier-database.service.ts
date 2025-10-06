@@ -953,6 +953,91 @@ export class FunifierDatabaseService {
       timestamp: new Date()
     });
   }
+
+  /**
+   * Save dashboard configuration to Funifier custom collection
+   */
+  public async saveDashboardConfiguration(config: any): Promise<any> {
+    try {
+      const token = await funifierAuthService.getAccessToken();
+      if (!token) {
+        throw new ApiError({
+          type: ErrorType.AUTHENTICATION_ERROR,
+          message: 'No valid authentication token available',
+          timestamp: new Date()
+        });
+      }
+
+      // Use dashboard__c collection for configurations
+      const configRecord = {
+        _id: 'dashboard_config_v1', // Fixed ID for singleton configuration
+        type: 'dashboard_configuration',
+        version: config.version || '1.0.0',
+        createdAt: new Date().toISOString(),
+        createdBy: config.createdBy || 'admin',
+        configurations: config.configurations,
+        updatedAt: new Date().toISOString()
+      };
+
+      const response = await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/dashboard__c`,
+        configRecord,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 15000,
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      throw this.handleDatabaseError(error, 'save dashboard configuration');
+    }
+  }
+
+  /**
+   * Get dashboard configuration from Funifier custom collection
+   */
+  public async getDashboardConfiguration(): Promise<any | null> {
+    try {
+      const token = await funifierAuthService.getAccessToken();
+      if (!token) {
+        throw new ApiError({
+          type: ErrorType.AUTHENTICATION_ERROR,
+          message: 'No valid authentication token available',
+          timestamp: new Date()
+        });
+      }
+
+      const filter = { 
+        _id: 'dashboard_config_v1',
+        type: 'dashboard_configuration'
+      };
+
+      const response = await axios.get(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/dashboard__c`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          params: { filter: JSON.stringify(filter) },
+          timeout: 15000,
+        }
+      );
+
+      const results = response.data || [];
+      return results.length > 0 ? results[0] : null;
+    } catch (error) {
+      // If configuration doesn't exist, return null instead of throwing
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw this.handleDatabaseError(error, 'get dashboard configuration');
+    }
+  }
 }
 
 // Export singleton instance

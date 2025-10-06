@@ -2,6 +2,7 @@ import { FunifierPlayerService } from './funifier-player.service';
 import { FunifierDatabaseService } from './funifier-database.service';
 import { TeamProcessorFactory } from './team-processor-factory.service';
 import { UserIdentificationService } from './user-identification.service';
+import { dashboardConfigurationService } from './dashboard-configuration.service';
 import { dashboardCache, playerDataCache, CacheKeys } from './cache.service';
 import { secureLogger } from '../utils/logger';
 import { 
@@ -10,10 +11,15 @@ import {
   TeamType, 
   DashboardData,
   PlayerMetrics,
+  DashboardConfigurationRecord,
   FUNIFIER_CONFIG 
 } from '../types';
 
 export class DashboardService {
+  private configurationCache: DashboardConfigurationRecord | null = null;
+  private configCacheTimestamp: number = 0;
+  private readonly CONFIG_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
   constructor(
     private playerService: FunifierPlayerService,
     private databaseService: FunifierDatabaseService,
@@ -25,8 +31,11 @@ export class DashboardService {
     try {
       secureLogger.log('🚀 Dashboard service called for player:', playerId);
       
-      // Check cache first
-      const cacheKey = CacheKeys.dashboardData(playerId, 'unknown');
+      // Get current configuration first
+      const configuration = await this.getCurrentConfiguration();
+      
+      // Check cache first (include configuration version in cache key)
+      const cacheKey = CacheKeys.dashboardData(playerId, selectedTeamType || 'unknown') + `_config_${configuration.version}`;
       const cachedData = dashboardCache.get<DashboardData>(cacheKey);
       
       if (cachedData) {
@@ -705,5 +714,54 @@ export class DashboardService {
         isBoostActive: secondaryGoal2.isBoostActive
       }
     };
+  }
+
+  /**
+   * Get current dashboard configuration with caching
+   */
+  private async getCurrentConfiguration(): Promise<DashboardConfigurationRecord> {
+    try {
+      // Check cache first
+      if (this.isConfigCacheValid()) {
+        secureLogger.log('📋 Returning cached dashboard configuration');
+        return this.configurationCache!;
+      }
+
+      // Fetch from configuration service
+      const configuration = await dashboardConfigurationService.getCurrentConfiguration();
+      
+      // Update cache
+      this.configurationCache = configuration;
+      this.configCacheTimestamp = Date.now();
+      
+      secureLogger.log('🔧 Dashboard configuration loaded', { version: configuration.version });
+      return configuration;
+    } catch (error) {
+      secureLogger.error('Failed to get dashboard configuration, using defaults:', error);
+      // Fallback to default configuration
+      const defaultConfig = dashboardConfigurationService.getDefaultConfiguration();
+      this.configurationCache = defaultConfig;
+      this.configCacheTimestamp = Date.now();
+      return defaultConfig;
+    }
+  }
+
+  /**
+   * Check if configuration cache is still valid
+   */
+  private isConfigCacheValid(): boolean {
+    return this.configurationCache !== null && 
+           (Date.now() - this.configCacheTimestamp) < this.CONFIG_CACHE_TTL;
+  }
+
+  /**
+   * Clear configuration cache (called when configuration changes)
+   */
+  public clearConfigurationCache(): void {
+    this.configurationCache = null;
+    this.configCacheTimestamp = 0;
+    // Also clear dashboard data cache since it depends on configuration
+    dashboardCache.clear();
+    secureLogger.log('🧹 Dashboard configuration cache cleared');
   }
 }

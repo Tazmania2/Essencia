@@ -5,8 +5,8 @@ import { DashboardConfigurationRecord, TeamType } from '../../types';
 import { dashboardConfigurationService } from '../../services/dashboard-configuration.service';
 import { configurationValidator } from '../../services/configuration-validator.service';
 import { LoadingState, LoadingOverlay, ProgressBar } from '../ui/LoadingSpinner';
-import { useConfigurationLoading } from '../../hooks/useLoadingState';
-import { useNotificationHelpers } from '../ui/NotificationSystem';
+import { useConfigurationLoading } from '../../hooks/useConfigurationLoading';
+import { useNotificationHelpers } from '../../hooks/useNotificationHelpers';
 
 interface ConfigurationPanelProps {
   onConfigurationSaved?: (config: DashboardConfigurationRecord) => void;
@@ -180,24 +180,12 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
             </h3>
             
             {currentConfig && (
-              <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">Configuração Atual</h4>
-                  <div className="text-sm text-gray-600">
-                    <p>Versão: {currentConfig.version}</p>
-                    <p>Criado em: {new Date(currentConfig.createdAt).toLocaleDateString('pt-BR')}</p>
-                    <p>Criado por: {currentConfig.createdBy}</p>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => handleSaveConfiguration(currentConfig)}
-                  disabled={loadingState.isLoading}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loadingState.isLoading ? 'Salvando...' : 'Salvar Configuração'}
-                </button>
-              </div>
+              <ConfigurationForm
+                teamType={selectedTeam}
+                currentConfig={currentConfig}
+                onSave={handleSaveConfiguration}
+                isLoading={loadingState.isLoading}
+              />
             )}
           </div>
 
@@ -232,6 +220,181 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
           </div>
         </div>
       </LoadingState>
+    </div>
+  );
+};
+
+interface ConfigurationFormProps {
+  teamType: TeamType;
+  currentConfig: DashboardConfigurationRecord;
+  onSave: (config: DashboardConfigurationRecord) => Promise<void>;
+  isLoading: boolean;
+}
+
+const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
+  teamType,
+  currentConfig,
+  onSave,
+  isLoading
+}) => {
+  const [formData, setFormData] = useState(currentConfig.configurations[teamType]);
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleGoalChange = (goalType: 'primaryGoal' | 'secondaryGoal1' | 'secondaryGoal2', field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [goalType]: {
+        ...prev[goalType],
+        [field]: value
+      }
+    }));
+  };
+
+  const handleSave = async () => {
+    const updatedConfig: DashboardConfigurationRecord = {
+      ...currentConfig,
+      configurations: {
+        ...currentConfig.configurations,
+        [teamType]: formData
+      }
+    };
+
+    await onSave(updatedConfig);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Basic Info */}
+      <div className="p-4 bg-gray-50 rounded-lg">
+        <h4 className="font-medium text-gray-900 mb-2">Informações Básicas</h4>
+        <div className="text-sm text-gray-600 mb-4">
+          <p>Versão: {currentConfig.version}</p>
+          <p>Criado em: {new Date(currentConfig.createdAt).toLocaleDateString('pt-BR')}</p>
+          <p>Criado por: {currentConfig.createdBy}</p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Nome de Exibição
+          </label>
+          <input
+            type="text"
+            value={formData.displayName}
+            onChange={(e) => handleInputChange('displayName', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isLoading}
+          />
+        </div>
+      </div>
+
+      {/* Primary Goal */}
+      <div className="p-4 bg-blue-50 rounded-lg">
+        <h4 className="font-medium text-blue-900 mb-3">🎯 Meta Principal</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome de Exibição
+            </label>
+            <input
+              type="text"
+              value={formData.primaryGoal.displayName}
+              onChange={(e) => handleGoalChange('primaryGoal', 'displayName', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Challenge ID
+            </label>
+            <input
+              type="text"
+              value={formData.primaryGoal.challengeId}
+              onChange={(e) => handleGoalChange('primaryGoal', 'challengeId', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Goal 1 */}
+      <div className="p-4 bg-green-50 rounded-lg">
+        <h4 className="font-medium text-green-900 mb-3">💰 Meta Secundária 1</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome de Exibição
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal1.displayName}
+              onChange={(e) => handleGoalChange('secondaryGoal1', 'displayName', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled={isLoading}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Challenge ID
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal1.challengeId}
+              onChange={(e) => handleGoalChange('secondaryGoal1', 'challengeId', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Secondary Goal 2 */}
+      <div className="p-4 bg-purple-50 rounded-lg">
+        <h4 className="font-medium text-purple-900 mb-3">📈 Meta Secundária 2</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome de Exibição
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal2.displayName}
+              onChange={(e) => handleGoalChange('secondaryGoal2', 'displayName', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={isLoading}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Challenge ID
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal2.challengeId}
+              onChange={(e) => handleGoalChange('secondaryGoal2', 'challengeId', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleSave}
+          disabled={isLoading}
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {isLoading ? 'Salvando...' : 'Salvar Configuração'}
+        </button>
+      </div>
     </div>
   );
 };
