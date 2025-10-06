@@ -64,9 +64,13 @@ export class DashboardConfigurationService {
         console.warn('Could not determine current version, starting with version 1.0.0');
       }
 
+      // Generate unique ID with timestamp
+      const timestamp = Date.now();
+      const uniqueId = `dashboard_config_${timestamp}`;
+
       // Create new configuration record
       const newConfig: DashboardConfigurationRecord = {
-        _id: 'dashboard_config_v1',
+        _id: uniqueId,
         version: nextVersion,
         createdAt: new Date().toISOString(),
         createdBy: config.createdBy,
@@ -74,7 +78,12 @@ export class DashboardConfigurationService {
       };
 
       // Save to Funifier database using dashboard__c collection
-      await this.funifierDb.saveDashboardConfiguration(newConfig);
+      const savedConfig = await this.funifierDb.saveDashboardConfiguration(newConfig);
+      
+      // Update the config with the actual saved ID if different
+      if (savedConfig && savedConfig._id) {
+        newConfig._id = savedConfig._id;
+      }
       
       // Update cache
       this.updateCache(newConfig);
@@ -96,6 +105,22 @@ export class DashboardConfigurationService {
   async getTeamConfiguration(teamType: TeamType): Promise<DashboardConfig> {
     const currentConfig = await this.getCurrentConfiguration();
     return currentConfig.configurations[teamType];
+  }
+
+  async getAllConfigurations(): Promise<DashboardConfigurationRecord[]> {
+    try {
+      const configs = await this.funifierDb.getAllDashboardConfigurations();
+      return configs.map(config => ({
+        _id: config._id,
+        version: config.version,
+        createdAt: config.createdAt,
+        createdBy: config.createdBy,
+        configurations: config.configurations
+      }));
+    } catch (error) {
+      console.warn('Failed to load all configurations from database:', error);
+      return [];
+    }
   }
 
   clearCache(): void {

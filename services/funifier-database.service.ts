@@ -968,15 +968,20 @@ export class FunifierDatabaseService {
         });
       }
 
+      // Generate unique ID with timestamp to avoid duplicates
+      const timestamp = Date.now();
+      const uniqueId = `dashboard_config_${timestamp}`;
+
       // Use dashboard__c collection for configurations
       const configRecord = {
-        _id: 'dashboard_config_v1', // Fixed ID for singleton configuration
+        _id: uniqueId, // Unique ID to prevent duplicates
         type: 'dashboard_configuration',
         version: config.version || '1.0.0',
         createdAt: new Date().toISOString(),
         createdBy: config.createdBy || 'admin',
         configurations: config.configurations,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        isActive: true // Mark as active configuration
       };
 
       const response = await axios.post(
@@ -998,7 +1003,7 @@ export class FunifierDatabaseService {
   }
 
   /**
-   * Get dashboard configuration from Funifier custom collection
+   * Get dashboard configuration from Funifier custom collection using aggregation
    */
   public async getDashboardConfiguration(): Promise<any | null> {
     try {
@@ -1011,19 +1016,32 @@ export class FunifierDatabaseService {
         });
       }
 
-      const filter = { 
-        _id: 'dashboard_config_v1',
-        type: 'dashboard_configuration'
-      };
+      // Use aggregation pipeline to get the most recent active configuration
+      const pipeline = [
+        {
+          $match: {
+            type: 'dashboard_configuration',
+            isActive: true
+          }
+        },
+        {
+          $sort: {
+            createdAt: -1 // Get the most recent configuration
+          }
+        },
+        {
+          $limit: 1
+        }
+      ];
 
-      const response = await axios.get(
-        `${FUNIFIER_CONFIG.BASE_URL}/database/dashboard__c`,
+      const response = await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/dashboard__c/aggregate?strict=true`,
+        pipeline,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          params: { filter: JSON.stringify(filter) },
           timeout: 15000,
         }
       );
@@ -1036,6 +1054,62 @@ export class FunifierDatabaseService {
         return null;
       }
       throw this.handleDatabaseError(error, 'get dashboard configuration');
+    }
+  }
+
+  /**
+   * Get all dashboard configurations for admin panel using aggregation
+   */
+  public async getAllDashboardConfigurations(): Promise<any[]> {
+    try {
+      const token = await funifierAuthService.getAccessToken();
+      if (!token) {
+        throw new ApiError({
+          type: ErrorType.AUTHENTICATION_ERROR,
+          message: 'No valid authentication token available',
+          timestamp: new Date()
+        });
+      }
+
+      // Use aggregation pipeline to get all configurations sorted by creation date
+      const pipeline = [
+        {
+          $match: {
+            type: 'dashboard_configuration'
+          }
+        },
+        {
+          $sort: {
+            createdAt: -1 // Most recent first
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            version: 1,
+            createdAt: 1,
+            createdBy: 1,
+            isActive: 1,
+            configurations: 1
+          }
+        }
+      ];
+
+      const response = await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/dashboard__c/aggregate?strict=true`,
+        pipeline,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw this.handleDatabaseError(error, 'get all dashboard configurations');
     }
   }
 }
