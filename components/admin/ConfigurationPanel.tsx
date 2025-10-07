@@ -322,12 +322,6 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
     const teamConfig = currentConfig.configurations[teamType];
     if (teamConfig) {
       console.log(`Loading configuration for ${teamType}:`, teamConfig);
-      console.log('Primary goal fields:', {
-        emoji: teamConfig.primaryGoal?.emoji,
-        unit: teamConfig.primaryGoal?.unit,
-        csvField: teamConfig.primaryGoal?.csvField,
-        description: teamConfig.primaryGoal?.description
-      });
       setFormData(teamConfig);
     }
   }, [teamType, currentConfig]);
@@ -402,10 +396,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
 
       {/* Primary Goal */}
       <div className="p-4 bg-blue-50 rounded-lg">
-        <h4 className="font-medium text-blue-900 mb-3">🎯 Meta Principal - TESTE ATUALIZAÇÃO</h4>
-        <div className="mb-4 p-3 bg-red-500 text-white font-bold text-center rounded">
-          🚨 TESTE v2: Se você vê esta mensagem vermelha, o componente está funcionando! {new Date().getTime()}
-        </div>
+        <h4 className="font-medium text-blue-900 mb-3">🎯 Meta Principal</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -497,13 +488,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             rows={2}
           />
         </div>
-        
-        {/* DEBUG: Test field to verify rendering */}
-        <div className="mt-4 p-2 bg-red-100 border border-red-300 rounded">
-          <p className="text-red-800 text-sm font-bold">🔧 DEBUG: Se você vê esta mensagem, os campos adicionais deveriam estar visíveis acima!</p>
-          <p className="text-red-600 text-xs">Emoji atual: &quot;{formData.primaryGoal?.emoji || 'VAZIO'}&quot;</p>
-          <p className="text-red-600 text-xs">Unit atual: &quot;{formData.primaryGoal?.unit || 'VAZIO'}&quot;</p>
-        </div>
+
       </div>
 
       {/* Secondary Goal 1 */}
