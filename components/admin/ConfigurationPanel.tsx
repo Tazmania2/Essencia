@@ -403,6 +403,9 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
       {/* Primary Goal */}
       <div className="p-4 bg-blue-50 rounded-lg">
         <h4 className="font-medium text-blue-900 mb-3">🎯 Meta Principal</h4>
+        <div className="mb-4 p-3 bg-red-500 text-white font-bold text-center rounded">
+          🚨 TESTE v2: Se você vê esta mensagem vermelha, o componente está funcionando! {new Date().getTime()}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
