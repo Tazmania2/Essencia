@@ -396,7 +396,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             type="text"
             value={formData.displayName || ''}
             onChange={(e) => handleInputChange('displayName', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             disabled={isLoading}
           />
         </div>
@@ -460,7 +460,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             <select
               value={formData.primaryGoal?.unit || ''}
               onChange={(e) => handleGoalChange('primaryGoal', 'unit', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
               disabled={isLoading}
             >
               <option value="">Selecione uma unidade...</option>
@@ -480,7 +480,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             <select
               value={formData.primaryGoal?.csvField || ''}
               onChange={(e) => handleGoalChange('primaryGoal', 'csvField', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
               disabled={isLoading}
             >
               <option value="">Selecione um campo...</option>
@@ -505,7 +505,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
           <textarea
             value={formData.primaryGoal?.description || ''}
             onChange={(e) => handleGoalChange('primaryGoal', 'description', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             disabled={isLoading}
             placeholder="Ex: Faturamento total do período"
             rows={2}
@@ -570,7 +570,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             <select
               value={formData.secondaryGoal1?.unit || ''}
               onChange={(e) => handleGoalChange('secondaryGoal1', 'unit', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
               disabled={isLoading}
             >
               <option value="">Selecione uma unidade...</option>
@@ -589,7 +589,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             <select
               value={formData.secondaryGoal1?.csvField || ''}
               onChange={(e) => handleGoalChange('secondaryGoal1', 'csvField', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
               disabled={isLoading}
             >
               <option value="">Selecione um campo...</option>
@@ -674,7 +674,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             <select
               value={formData.secondaryGoal2?.unit || ''}
               onChange={(e) => handleGoalChange('secondaryGoal2', 'unit', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 bg-white"
               disabled={isLoading}
             >
               <option value="">Selecione uma unidade...</option>
@@ -693,7 +693,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             <select
               value={formData.secondaryGoal2?.csvField || ''}
               onChange={(e) => handleGoalChange('secondaryGoal2', 'csvField', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 bg-white"
               disabled={isLoading}
             >
               <option value="">Selecione um campo...</option>

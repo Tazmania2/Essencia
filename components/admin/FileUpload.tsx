@@ -556,7 +556,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             max="100"
             value={cycleNumber}
             onChange={(e) => setCycleNumber(parseInt(e.target.value) || 1)}
-            className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-gray-900 bg-white"
             disabled={disabled}
           />
           <span className="text-sm text-gray-500">
