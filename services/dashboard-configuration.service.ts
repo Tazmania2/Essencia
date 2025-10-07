@@ -27,7 +27,9 @@ export class DashboardConfigurationService {
       }
 
       // Try to get configuration from Funifier database first
+      console.log('🔍 Attempting to load dashboard configuration from database...');
       const storedConfig = await this.funifierDb.getDashboardConfiguration();
+      console.log('📊 Database configuration result:', storedConfig ? 'Found' : 'Not found', storedConfig);
       
       if (storedConfig && storedConfig.configurations) {
         const config: DashboardConfigurationRecord = {
@@ -47,6 +49,7 @@ export class DashboardConfigurationService {
     }
 
     // Return default configuration if none exists in database
+    console.log('⚠️ No configuration found in database, returning default configuration');
     return this.getDefaultConfiguration();
   }
 

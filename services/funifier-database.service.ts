@@ -1034,6 +1034,8 @@ export class FunifierDatabaseService {
         }
       ];
 
+      console.log('🔍 Searching for dashboard configuration with pipeline:', JSON.stringify(pipeline, null, 2));
+
       const response = await axios.post(
         `${FUNIFIER_CONFIG.BASE_URL}/database/dashboard__c/aggregate?strict=true`,
         pipeline,
@@ -1047,6 +1049,10 @@ export class FunifierDatabaseService {
       );
 
       const results = response.data || [];
+      console.log('📊 Database query results:', results.length, 'configurations found');
+      if (results.length > 0) {
+        console.log('✅ Found configuration:', results[0]._id, 'version:', results[0].version);
+      }
       return results.length > 0 ? results[0] : null;
     } catch (error) {
       // If configuration doesn't exist, return null instead of throwing

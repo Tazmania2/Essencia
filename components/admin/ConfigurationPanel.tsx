@@ -322,6 +322,12 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
     const teamConfig = currentConfig.configurations[teamType];
     if (teamConfig) {
       console.log(`Loading configuration for ${teamType}:`, teamConfig);
+      console.log('Primary goal fields:', {
+        emoji: teamConfig.primaryGoal?.emoji,
+        unit: teamConfig.primaryGoal?.unit,
+        csvField: teamConfig.primaryGoal?.csvField,
+        description: teamConfig.primaryGoal?.description
+      });
       setFormData(teamConfig);
     }
   }, [teamType, currentConfig]);
@@ -428,6 +434,73 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             </p>
           </div>
         </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Emoji
+              <span className="text-xs text-gray-500 ml-1">(Ícone da meta)</span>
+            </label>
+            <input
+              type="text"
+              value={formData.primaryGoal?.emoji || ''}
+              onChange={(e) => handleGoalChange('primaryGoal', 'emoji', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+              placeholder="Ex: 📈"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Unidade
+              <span className="text-xs text-gray-500 ml-1">(R$, pontos, marcas)</span>
+            </label>
+            <input
+              type="text"
+              value={formData.primaryGoal?.unit || ''}
+              onChange={(e) => handleGoalChange('primaryGoal', 'unit', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+              placeholder="Ex: R$"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Campo CSV
+              <span className="text-xs text-gray-500 ml-1">(Nome do campo no CSV)</span>
+            </label>
+            <input
+              type="text"
+              value={formData.primaryGoal?.csvField || ''}
+              onChange={(e) => handleGoalChange('primaryGoal', 'csvField', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+              placeholder="Ex: faturamento"
+            />
+          </div>
+        </div>
+        
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Descrição
+            <span className="text-xs text-gray-500 ml-1">(Descrição da meta)</span>
+          </label>
+          <textarea
+            value={formData.primaryGoal?.description || ''}
+            onChange={(e) => handleGoalChange('primaryGoal', 'description', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isLoading}
+            placeholder="Ex: Faturamento total do período"
+            rows={2}
+          />
+        </div>
+        
+        {/* DEBUG: Test field to verify rendering */}
+        <div className="mt-4 p-2 bg-red-100 border border-red-300 rounded">
+          <p className="text-red-800 text-sm font-bold">🔧 DEBUG: Se você vê esta mensagem, os campos adicionais deveriam estar visíveis acima!</p>
+          <p className="text-red-600 text-xs">Emoji atual: "{formData.primaryGoal?.emoji || 'VAZIO'}"</p>
+          <p className="text-red-600 text-xs">Unit atual: "{formData.primaryGoal?.unit || 'VAZIO'}"</p>
+        </div>
       </div>
 
       {/* Secondary Goal 1 */}
@@ -464,6 +537,62 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             </p>
           </div>
         </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Emoji
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal1?.emoji || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal1', 'emoji', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled={isLoading}
+              placeholder="Ex: 💰"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Unidade
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal1?.unit || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal1', 'unit', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled={isLoading}
+              placeholder="Ex: R$"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Campo CSV
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal1?.csvField || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal1', 'csvField', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled={isLoading}
+              placeholder="Ex: reais_por_ativo"
+            />
+          </div>
+        </div>
+        
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Descrição
+          </label>
+          <textarea
+            value={formData.secondaryGoal1?.description || ''}
+            onChange={(e) => handleGoalChange('secondaryGoal1', 'description', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            disabled={isLoading}
+            placeholder="Ex: Valor em reais por ativo"
+            rows={2}
+          />
+        </div>
       </div>
 
       {/* Secondary Goal 2 */}
@@ -485,6 +614,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Challenge ID
+              <span className="text-xs text-gray-500 ml-1">(ID do desafio no Funifier)</span>
             </label>
             <input
               type="text"
@@ -492,8 +622,68 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
               onChange={(e) => handleGoalChange('secondaryGoal2', 'challengeId', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               disabled={isLoading}
+              placeholder="Ex: E6Gahd4"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              ID usado para rastrear progresso desta meta secundária
+            </p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Emoji
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal2?.emoji || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal2', 'emoji', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={isLoading}
+              placeholder="Ex: 🏪"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Unidade
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal2?.unit || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal2', 'unit', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={isLoading}
+              placeholder="Ex: marcas"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Campo CSV
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal2?.csvField || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal2', 'csvField', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={isLoading}
+              placeholder="Ex: multimarcas_por_ativo"
+            />
+          </div>
+        </div>
+        
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Descrição
+          </label>
+          <textarea
+            value={formData.secondaryGoal2?.description || ''}
+            onChange={(e) => handleGoalChange('secondaryGoal2', 'description', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            disabled={isLoading}
+            placeholder="Ex: Número de multimarcas por ativo"
+            rows={2}
+          />
         </div>
       </div>
 
@@ -520,7 +710,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             <strong>UPA:</strong> E62x2PW (ER)
           </div>
         </div>
-        <p className="text-xs text-blue-700 mt-2">
+        <p className="text-xs mt-2" style={{color: '#1d4ed8'}}>
           💡 Estes são os Challenge IDs reais do Funifier. Use-os para garantir que o progresso das metas seja rastreado corretamente.
         </p>
       </div>

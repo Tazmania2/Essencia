@@ -33,6 +33,11 @@ export class DashboardService {
       
       // Get current configuration first
       const configuration = await this.getCurrentConfiguration();
+      secureLogger.log('🔧 Dashboard using configuration:', {
+        id: configuration._id,
+        version: configuration.version,
+        isDefault: configuration._id === 'default_config'
+      });
       
       // Check cache first (include configuration version in cache key)
       const cacheKey = CacheKeys.dashboardData(playerId, selectedTeamType || 'unknown') + `_config_${configuration.version}`;
