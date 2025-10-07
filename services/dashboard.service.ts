@@ -317,10 +317,27 @@ export class DashboardService {
     // Get the configured CSV field for this goal
     const configuredCsvField = configuration && teamType ? this.getConfiguredCsvField(configuration, teamType, goalName) : null;
     
+    secureLogger.log('🔍 Getting goal data from sources:', {
+      goalName,
+      configuredCsvField,
+      hasCsvData: !!csvData,
+      csvDataKeys: csvData ? Object.keys(csvData) : [],
+      teamType
+    });
+    
     // Try to get data from CSV first (most detailed)
     if (csvData && configuredCsvField) {
       if (csvData[configuredCsvField]) {
+        secureLogger.log('✅ Found CSV data for configured field:', {
+          field: configuredCsvField,
+          data: csvData[configuredCsvField]
+        });
         return csvData[configuredCsvField];
+      } else {
+        secureLogger.warn('❌ Configured CSV field not found in data:', {
+          field: configuredCsvField,
+          availableFields: Object.keys(csvData)
+        });
       }
     }
 
@@ -328,6 +345,11 @@ export class DashboardService {
     if (csvData) {
       const goalKey = this.getGoalKeyFromName(goalName);
       if (csvData[goalKey]) {
+        secureLogger.log('📋 Using hardcoded mapping fallback:', {
+          goalName,
+          goalKey,
+          data: csvData[goalKey]
+        });
         return csvData[goalKey];
       }
     }
@@ -335,13 +357,19 @@ export class DashboardService {
     // Fallback to enhanced record
     if (enhancedRecord) {
       const goalKey = configuredCsvField || this.getGoalKeyFromName(goalName);
-      return {
+      const result = {
         target: enhancedRecord[`${goalKey}Meta`],
         current: enhancedRecord[`${goalKey}Atual`],
         percentage: enhancedRecord[`${goalKey}Percentual`]
       };
+      secureLogger.log('📊 Using enhanced record fallback:', {
+        goalKey,
+        result
+      });
+      return result;
     }
 
+    secureLogger.warn('⚠️ No data source found for goal:', goalName);
     return null;
   }
 
@@ -474,26 +502,31 @@ export class DashboardService {
     try {
       const teamConfig = configuration.configurations[teamType];
       
+      // Convert display name to internal name for matching
+      const internalName = this.getInternalNameFromDisplayName(goalName);
+      
       // Check primary goal
-      if (teamConfig?.primaryGoal?.name === goalName) {
-        return teamConfig.primaryGoal.unit || this.getGoalUnit(goalName as any);
+      if (teamConfig?.primaryGoal?.name === internalName || teamConfig?.primaryGoal?.displayName === goalName) {
+        return teamConfig.primaryGoal.unit || this.getGoalUnit(internalName as any);
       }
       
       // Check secondary goal 1
-      if (teamConfig?.secondaryGoal1?.name === goalName) {
-        return teamConfig.secondaryGoal1.unit || this.getGoalUnit(goalName as any);
+      if (teamConfig?.secondaryGoal1?.name === internalName || teamConfig?.secondaryGoal1?.displayName === goalName) {
+        return teamConfig.secondaryGoal1.unit || this.getGoalUnit(internalName as any);
       }
       
       // Check secondary goal 2
-      if (teamConfig?.secondaryGoal2?.name === goalName) {
-        return teamConfig.secondaryGoal2.unit || this.getGoalUnit(goalName as any);
+      if (teamConfig?.secondaryGoal2?.name === internalName || teamConfig?.secondaryGoal2?.displayName === goalName) {
+        return teamConfig.secondaryGoal2.unit || this.getGoalUnit(internalName as any);
       }
       
       // Fallback to hardcoded units
-      return this.getGoalUnit(goalName as any);
+      const fallbackInternalName = this.getInternalNameFromDisplayName(goalName);
+      return this.getGoalUnit(fallbackInternalName as any);
     } catch (error) {
       secureLogger.warn('Failed to get configured goal unit:', error);
-      return this.getGoalUnit(goalName as any);
+      const fallbackInternalName = this.getInternalNameFromDisplayName(goalName);
+      return this.getGoalUnit(fallbackInternalName as any);
     }
   }
 
@@ -504,26 +537,61 @@ export class DashboardService {
     try {
       const teamConfig = configuration.configurations[teamType];
       
+      // Convert display name to internal name for matching
+      const internalName = this.getInternalNameFromDisplayName(goalName);
+      
+      secureLogger.log('🔧 Getting configured CSV field:', {
+        goalName,
+        internalName,
+        teamType,
+        primaryGoal: teamConfig?.primaryGoal?.name,
+        secondaryGoal1: teamConfig?.secondaryGoal1?.name,
+        secondaryGoal2: teamConfig?.secondaryGoal2?.name
+      });
+      
       // Check primary goal
-      if (teamConfig?.primaryGoal?.name === goalName) {
-        return teamConfig.primaryGoal.csvField || null;
+      if (teamConfig?.primaryGoal?.name === internalName || teamConfig?.primaryGoal?.displayName === goalName) {
+        const csvField = teamConfig.primaryGoal.csvField || null;
+        secureLogger.log('✅ Found CSV field for primary goal:', { csvField });
+        return csvField;
       }
       
       // Check secondary goal 1
-      if (teamConfig?.secondaryGoal1?.name === goalName) {
-        return teamConfig.secondaryGoal1.csvField || null;
+      if (teamConfig?.secondaryGoal1?.name === internalName || teamConfig?.secondaryGoal1?.displayName === goalName) {
+        const csvField = teamConfig.secondaryGoal1.csvField || null;
+        secureLogger.log('✅ Found CSV field for secondary goal 1:', { csvField });
+        return csvField;
       }
       
       // Check secondary goal 2
-      if (teamConfig?.secondaryGoal2?.name === goalName) {
-        return teamConfig.secondaryGoal2.csvField || null;
+      if (teamConfig?.secondaryGoal2?.name === internalName || teamConfig?.secondaryGoal2?.displayName === goalName) {
+        const csvField = teamConfig.secondaryGoal2.csvField || null;
+        secureLogger.log('✅ Found CSV field for secondary goal 2:', { csvField });
+        return csvField;
       }
       
+      secureLogger.warn('❌ No CSV field found for goal:', { goalName, internalName });
       return null;
     } catch (error) {
       secureLogger.warn('Failed to get configured CSV field:', error);
       return null;
     }
+  }
+
+  /**
+   * Convert display name to internal name for configuration matching
+   */
+  private getInternalNameFromDisplayName(displayName: string): string {
+    const nameMap: Record<string, string> = {
+      'Faturamento': 'faturamento',
+      'Reais por Ativo': 'reaisPorAtivo',
+      'Multimarcas por Ativo': 'multimarcasPorAtivo',
+      'Atividade': 'atividade',
+      'Conversões': 'conversoes',
+      'UPA': 'upa'
+    };
+    
+    return nameMap[displayName] || displayName.toLowerCase();
   }
 
   // Method to check if points are unlocked based on catalog items
