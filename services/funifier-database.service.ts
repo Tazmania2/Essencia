@@ -310,8 +310,22 @@ export class FunifierDatabaseService {
       return null;
     }
 
+    console.log('🔍 Raw database record fields:', {
+      playerId: reportRecord.playerId,
+      hasAtividadeMeta: reportRecord.atividadeMeta !== undefined,
+      hasAtividadeAtual: reportRecord.atividadeAtual !== undefined,
+      hasAtividadePercentual: reportRecord.atividadePercentual !== undefined,
+      atividadeValues: {
+        meta: reportRecord.atividadeMeta,
+        atual: reportRecord.atividadeAtual,
+        percentual: reportRecord.atividadePercentual
+      },
+      allFields: Object.keys(reportRecord).filter(key => key.includes('atividade'))
+    });
+
     try {
       // Convert the enhanced report record to CSV goal data format
+      // This creates a standardized CSV-like structure from database records
       const csvGoalData: CSVGoalData = {
         playerId: reportRecord.playerId,
         cycleDay: reportRecord.diaDociclo || 0,
@@ -337,6 +351,13 @@ export class FunifierDatabaseService {
           percentage: reportRecord.atividadePercentual || 0
         }
       };
+
+      console.log('🔍 Database field mapping check:', {
+        'reportRecord.atividadeMeta': reportRecord.atividadeMeta,
+        'reportRecord.atividadeAtual': reportRecord.atividadeAtual,
+        'reportRecord.atividadePercentual': reportRecord.atividadePercentual,
+        'csvGoalData.atividade': csvGoalData.atividade
+      });
 
       // Add optional new metrics if present
       if (reportRecord.conversoesMeta !== undefined && reportRecord.conversoesAtual !== undefined && reportRecord.conversoesPercentual !== undefined) {
@@ -364,6 +385,17 @@ export class FunifierDatabaseService {
           reaisPorAtivo: csvGoalData.reaisPorAtivo.percentage,
           multimarcasPorAtivo: csvGoalData.multimarcasPorAtivo.percentage,
           atividade: csvGoalData.atividade.percentage
+        }
+      });
+      
+      console.log('🔍 Detailed atividade data:', {
+        target: csvGoalData.atividade.target,
+        current: csvGoalData.atividade.current,
+        percentage: csvGoalData.atividade.percentage,
+        fromDatabase: {
+          atividadeMeta: reportRecord.atividadeMeta,
+          atividadeAtual: reportRecord.atividadeAtual,
+          atividadePercentual: reportRecord.atividadePercentual
         }
       });
 
@@ -952,6 +984,171 @@ export class FunifierDatabaseService {
       },
       timestamp: new Date()
     });
+  }
+
+  /**
+   * Save dashboard configuration to Funifier custom collection
+   */
+  public async saveDashboardConfiguration(config: any): Promise<any> {
+    try {
+      const token = await funifierAuthService.getAccessToken();
+      if (!token) {
+        throw new ApiError({
+          type: ErrorType.AUTHENTICATION_ERROR,
+          message: 'No valid authentication token available',
+          timestamp: new Date()
+        });
+      }
+
+      // Generate unique ID with timestamp to avoid duplicates
+      const timestamp = Date.now();
+      const uniqueId = `dashboard_config_${timestamp}`;
+
+      // Use dashboard__c collection for configurations
+      const configRecord = {
+        _id: uniqueId, // Unique ID to prevent duplicates
+        type: 'dashboard_configuration',
+        version: config.version || '1.0.0',
+        createdAt: new Date().toISOString(),
+        createdBy: config.createdBy || 'admin',
+        configurations: config.configurations,
+        updatedAt: new Date().toISOString(),
+        isActive: true // Mark as active configuration
+      };
+
+      const response = await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/dashboard__c`,
+        configRecord,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 15000,
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      throw this.handleDatabaseError(error, 'save dashboard configuration');
+    }
+  }
+
+  /**
+   * Get dashboard configuration from Funifier custom collection using aggregation
+   */
+  public async getDashboardConfiguration(): Promise<any | null> {
+    try {
+      const token = await funifierAuthService.getAccessToken();
+      if (!token) {
+        throw new ApiError({
+          type: ErrorType.AUTHENTICATION_ERROR,
+          message: 'No valid authentication token available',
+          timestamp: new Date()
+        });
+      }
+
+      // Use aggregation pipeline to get the most recent active configuration
+      const pipeline = [
+        {
+          $match: {
+            type: 'dashboard_configuration',
+            isActive: true
+          }
+        },
+        {
+          $sort: {
+            createdAt: -1 // Get the most recent configuration
+          }
+        },
+        {
+          $limit: 1
+        }
+      ];
+
+      console.log('🔍 Searching for dashboard configuration with pipeline:', JSON.stringify(pipeline, null, 2));
+
+      const response = await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/dashboard__c/aggregate?strict=true`,
+        pipeline,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 15000,
+        }
+      );
+
+      const results = response.data || [];
+      console.log('📊 Database query results:', results.length, 'configurations found');
+      if (results.length > 0) {
+        console.log('✅ Found configuration:', results[0]._id, 'version:', results[0].version);
+      }
+      return results.length > 0 ? results[0] : null;
+    } catch (error) {
+      // If configuration doesn't exist, return null instead of throwing
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw this.handleDatabaseError(error, 'get dashboard configuration');
+    }
+  }
+
+  /**
+   * Get all dashboard configurations for admin panel using aggregation
+   */
+  public async getAllDashboardConfigurations(): Promise<any[]> {
+    try {
+      const token = await funifierAuthService.getAccessToken();
+      if (!token) {
+        throw new ApiError({
+          type: ErrorType.AUTHENTICATION_ERROR,
+          message: 'No valid authentication token available',
+          timestamp: new Date()
+        });
+      }
+
+      // Use aggregation pipeline to get all configurations sorted by creation date
+      const pipeline = [
+        {
+          $match: {
+            type: 'dashboard_configuration'
+          }
+        },
+        {
+          $sort: {
+            createdAt: -1 // Most recent first
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            version: 1,
+            createdAt: 1,
+            createdBy: 1,
+            isActive: 1,
+            configurations: 1
+          }
+        }
+      ];
+
+      const response = await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/dashboard__c/aggregate?strict=true`,
+        pipeline,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw this.handleDatabaseError(error, 'get all dashboard configurations');
+    }
   }
 }
 

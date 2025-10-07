@@ -5,8 +5,8 @@ import { DashboardConfigurationRecord, TeamType } from '../../types';
 import { dashboardConfigurationService } from '../../services/dashboard-configuration.service';
 import { configurationValidator } from '../../services/configuration-validator.service';
 import { LoadingState, LoadingOverlay, ProgressBar } from '../ui/LoadingSpinner';
-import { useConfigurationLoading } from '../../hooks/useLoadingState';
-import { useNotificationHelpers } from '../ui/NotificationSystem';
+import { useConfigurationLoading } from '../../hooks/useConfigurationLoading';
+import { useNotificationHelpers } from '../../hooks/useNotificationHelpers';
 
 interface ConfigurationPanelProps {
   onConfigurationSaved?: (config: DashboardConfigurationRecord) => void;
@@ -17,7 +17,9 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 }) => {
   const [currentConfig, setCurrentConfig] = useState<DashboardConfigurationRecord | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<TeamType>(TeamType.CARTEIRA_I);
-  const [saveProgress, setSaveProgress] = useState(0);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [pendingTeamSwitch, setPendingTeamSwitch] = useState<TeamType | null>(null);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   
   const { loadingState, executeWithLoading, setProgress } = useConfigurationLoading();
   const { 
@@ -28,7 +30,21 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
   useEffect(() => {
     loadConfiguration();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Warn user before leaving page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'Você tem alterações não salvas. Tem certeza que deseja sair?';
+        return 'Você tem alterações não salvas. Tem certeza que deseja sair?';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   const loadConfiguration = async () => {
     const result = await executeWithLoading(
@@ -42,6 +58,34 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
     if (result) {
       setCurrentConfig(result);
     }
+  };
+
+  const handleTeamSwitch = (newTeam: TeamType) => {
+    if (hasUnsavedChanges && newTeam !== selectedTeam) {
+      setPendingTeamSwitch(newTeam);
+      setShowUnsavedWarning(true);
+    } else {
+      setSelectedTeam(newTeam);
+      setHasUnsavedChanges(false);
+    }
+  };
+
+  const confirmTeamSwitch = () => {
+    if (pendingTeamSwitch) {
+      setSelectedTeam(pendingTeamSwitch);
+      setHasUnsavedChanges(false);
+      setPendingTeamSwitch(null);
+    }
+    setShowUnsavedWarning(false);
+  };
+
+  const cancelTeamSwitch = () => {
+    setPendingTeamSwitch(null);
+    setShowUnsavedWarning(false);
+  };
+
+  const handleFormChange = () => {
+    setHasUnsavedChanges(true);
   };
 
   const handleSaveConfiguration = async (newConfig: DashboardConfigurationRecord) => {
@@ -91,13 +135,9 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
 
     if (result) {
       setCurrentConfig(result);
+      setHasUnsavedChanges(false); // Reset unsaved changes flag
       onConfigurationSaved?.(result);
       notifyConfigurationSaved();
-      
-      // Reset progress after a short delay
-      setTimeout(() => {
-        setSaveProgress(0);
-      }, 2000);
     }
   };
 
@@ -144,7 +184,7 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
             {teamOptions.map((option) => (
               <button
                 key={option.value}
-                onClick={() => setSelectedTeam(option.value)}
+                onClick={() => handleTeamSwitch(option.value)}
                 disabled={loadingState.isLoading}
                 className={`p-3 rounded-lg text-sm font-medium transition-colors ${
                   selectedTeam === option.value
@@ -180,24 +220,15 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
             </h3>
             
             {currentConfig && (
-              <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">Configuração Atual</h4>
-                  <div className="text-sm text-gray-600">
-                    <p>Versão: {currentConfig.version}</p>
-                    <p>Criado em: {new Date(currentConfig.createdAt).toLocaleDateString('pt-BR')}</p>
-                    <p>Criado por: {currentConfig.createdBy}</p>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => handleSaveConfiguration(currentConfig)}
-                  disabled={loadingState.isLoading}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loadingState.isLoading ? 'Salvando...' : 'Salvar Configuração'}
-                </button>
-              </div>
+              <ConfigurationForm
+                key={selectedTeam} // Force re-render when team changes
+                teamType={selectedTeam}
+                currentConfig={currentConfig}
+                onSave={handleSaveConfiguration}
+                onChange={handleFormChange}
+                isLoading={loadingState.isLoading}
+                hasUnsavedChanges={hasUnsavedChanges}
+              />
             )}
           </div>
 
@@ -232,6 +263,515 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
           </div>
         </div>
       </LoadingState>
+
+      {/* Unsaved Changes Warning Modal */}
+      {showUnsavedWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <div className="flex items-center mb-4">
+              <svg className="w-6 h-6 text-amber-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <h3 className="text-lg font-semibold text-gray-900">Alterações não salvas</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Você tem alterações não salvas na configuração atual. Se continuar, essas alterações serão perdidas.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelTeamSwitch}
+                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmTeamSwitch}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Descartar alterações
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface ConfigurationFormProps {
+  teamType: TeamType;
+  currentConfig: DashboardConfigurationRecord;
+  onSave: (config: DashboardConfigurationRecord) => Promise<void>;
+  onChange: () => void;
+  isLoading: boolean;
+  hasUnsavedChanges: boolean;
+}
+
+const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
+  teamType,
+  currentConfig,
+  onSave,
+  onChange,
+  isLoading,
+  hasUnsavedChanges
+}) => {
+  const [formData, setFormData] = useState(currentConfig.configurations[teamType]);
+
+  // Reset form data when team type changes
+  useEffect(() => {
+    const teamConfig = currentConfig.configurations[teamType];
+    if (teamConfig) {
+      console.log(`Loading configuration for ${teamType}:`, teamConfig);
+      console.log('Primary goal values:', {
+        displayName: teamConfig.primaryGoal?.displayName,
+        challengeId: teamConfig.primaryGoal?.challengeId,
+        emoji: teamConfig.primaryGoal?.emoji,
+        unit: teamConfig.primaryGoal?.unit,
+        csvField: teamConfig.primaryGoal?.csvField,
+        description: teamConfig.primaryGoal?.description
+      });
+      setFormData(teamConfig);
+    }
+  }, [teamType, currentConfig]);
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    onChange(); // Notify parent of changes
+  };
+
+  const handleGoalChange = (goalType: 'primaryGoal' | 'secondaryGoal1' | 'secondaryGoal2', field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [goalType]: {
+        ...prev[goalType],
+        [field]: value
+      }
+    }));
+    onChange(); // Notify parent of changes
+  };
+
+  const handleSave = async () => {
+    const updatedConfig: DashboardConfigurationRecord = {
+      ...currentConfig,
+      configurations: {
+        ...currentConfig.configurations,
+        [teamType]: formData
+      }
+    };
+
+    await onSave(updatedConfig);
+  };
+
+  // Safety check - if no form data, show loading
+  if (!formData) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+          <p className="text-gray-600">Carregando configuração da {teamType}...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Basic Info */}
+      <div className="p-4 bg-gray-50 rounded-lg">
+        <h4 className="font-medium text-gray-900 mb-2">Informações Básicas</h4>
+        <div className="text-sm text-gray-600 mb-4">
+          <p>Versão: {currentConfig.version}</p>
+          <p>Criado em: {new Date(currentConfig.createdAt).toLocaleDateString('pt-BR')}</p>
+          <p>Criado por: {currentConfig.createdBy}</p>
+          <p><strong>Editando: {teamType}</strong></p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Nome de Exibição
+          </label>
+          <input
+            type="text"
+            value={formData.displayName || ''}
+            onChange={(e) => handleInputChange('displayName', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+            disabled={isLoading}
+          />
+        </div>
+      </div>
+
+      {/* Primary Goal */}
+      <div className="p-4 bg-blue-50 rounded-lg">
+        <h4 className="font-medium text-blue-900 mb-3">🎯 Meta Principal</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome de Exibição
+            </label>
+            <input
+              type="text"
+              value={formData.primaryGoal?.displayName || ''}
+              onChange={(e) => handleGoalChange('primaryGoal', 'displayName', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Challenge ID
+              <span className="text-xs text-gray-500 ml-1">(ID do desafio no Funifier para rastrear progresso)</span>
+            </label>
+            <input
+              type="text"
+              value={formData.primaryGoal?.challengeId || ''}
+              onChange={(e) => handleGoalChange('primaryGoal', 'challengeId', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+              placeholder="Ex: E6FQIjs"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Este ID é usado para buscar o progresso da meta no Funifier. Formato: E6 + 5 caracteres
+            </p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Emoji
+              <span className="text-xs text-gray-500 ml-1">(Ícone da meta)</span>
+            </label>
+            <input
+              type="text"
+              value={formData.primaryGoal?.emoji || ''}
+              onChange={(e) => handleGoalChange('primaryGoal', 'emoji', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={isLoading}
+              placeholder="Ex: 📈"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Unidade
+              <span className="text-xs text-gray-500 ml-1">(Formato dos valores)</span>
+            </label>
+            <select
+              value={formData.primaryGoal?.unit || ''}
+              onChange={(e) => handleGoalChange('primaryGoal', 'unit', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+              disabled={isLoading}
+            >
+              <option value="">Selecione uma unidade...</option>
+              <option value="R$">R$ (Valores monetários)</option>
+              <option value="pontos">pontos (Pontuação)</option>
+              <option value="marcas">marcas (Quantidade de marcas)</option>
+              <option value="conversões">conversões (Número de conversões)</option>
+              <option value="%">% (Percentual)</option>
+              <option value="unidades">unidades (Quantidade genérica)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Campo CSV
+              <span className="text-xs text-gray-500 ml-1">(Categoria de dados do CSV)</span>
+            </label>
+            <select
+              value={formData.primaryGoal?.csvField || ''}
+              onChange={(e) => handleGoalChange('primaryGoal', 'csvField', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+              disabled={isLoading}
+            >
+              <option value="">Selecione um campo...</option>
+              <option value="faturamento">Faturamento (Meta, Atual, %)</option>
+              <option value="reaisPorAtivo">Reais por Ativo (Meta, Atual, %)</option>
+              <option value="multimarcasPorAtivo">Multimarcas por Ativo (Meta, Atual, %)</option>
+              <option value="atividade">Atividade (Meta, Atual, %)</option>
+              <option value="conversoes">Conversões (Meta, Atual, %)</option>
+              <option value="upa">UPA (Meta, Atual, %)</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Cada campo inclui 3 valores: Meta, Atual e Percentual
+            </p>
+          </div>
+        </div>
+        
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Descrição
+            <span className="text-xs text-gray-500 ml-1">(Descrição da meta)</span>
+          </label>
+          <textarea
+            value={formData.primaryGoal?.description || ''}
+            onChange={(e) => handleGoalChange('primaryGoal', 'description', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+            disabled={isLoading}
+            placeholder="Ex: Faturamento total do período"
+            rows={2}
+          />
+        </div>
+
+      </div>
+
+      {/* Secondary Goal 1 */}
+      <div className="p-4 bg-green-50 rounded-lg">
+        <h4 className="font-medium text-green-900 mb-3">💰 Meta Secundária 1</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome de Exibição
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal1?.displayName || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal1', 'displayName', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled={isLoading}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Challenge ID
+              <span className="text-xs text-gray-500 ml-1">(ID do desafio no Funifier)</span>
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal1?.challengeId || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal1', 'challengeId', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled={isLoading}
+              placeholder="Ex: E6Gm8RI"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              ID usado para rastrear progresso desta meta secundária
+            </p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Emoji
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal1?.emoji || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal1', 'emoji', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled={isLoading}
+              placeholder="Ex: 💰"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Unidade
+            </label>
+            <select
+              value={formData.secondaryGoal1?.unit || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal1', 'unit', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
+              disabled={isLoading}
+            >
+              <option value="">Selecione uma unidade...</option>
+              <option value="R$">R$ (Valores monetários)</option>
+              <option value="pontos">pontos (Pontuação)</option>
+              <option value="marcas">marcas (Quantidade de marcas)</option>
+              <option value="conversões">conversões (Número de conversões)</option>
+              <option value="%">% (Percentual)</option>
+              <option value="unidades">unidades (Quantidade genérica)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Campo CSV
+            </label>
+            <select
+              value={formData.secondaryGoal1?.csvField || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal1', 'csvField', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 bg-white"
+              disabled={isLoading}
+            >
+              <option value="">Selecione um campo...</option>
+              <option value="faturamento">Faturamento (Meta, Atual, %)</option>
+              <option value="reaisPorAtivo">Reais por Ativo (Meta, Atual, %)</option>
+              <option value="multimarcasPorAtivo">Multimarcas por Ativo (Meta, Atual, %)</option>
+              <option value="atividade">Atividade (Meta, Atual, %)</option>
+              <option value="conversoes">Conversões (Meta, Atual, %)</option>
+              <option value="upa">UPA (Meta, Atual, %)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Descrição
+          </label>
+          <textarea
+            value={formData.secondaryGoal1?.description || ''}
+            onChange={(e) => handleGoalChange('secondaryGoal1', 'description', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            disabled={isLoading}
+            placeholder="Ex: Valor em reais por ativo"
+            rows={2}
+          />
+        </div>
+      </div>
+
+      {/* Secondary Goal 2 */}
+      <div className="p-4 bg-purple-50 rounded-lg">
+        <h4 className="font-medium text-purple-900 mb-3">📈 Meta Secundária 2</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome de Exibição
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal2?.displayName || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal2', 'displayName', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={isLoading}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Challenge ID
+              <span className="text-xs text-gray-500 ml-1">(ID do desafio no Funifier)</span>
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal2?.challengeId || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal2', 'challengeId', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={isLoading}
+              placeholder="Ex: E6Gahd4"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              ID usado para rastrear progresso desta meta secundária
+            </p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Emoji
+            </label>
+            <input
+              type="text"
+              value={formData.secondaryGoal2?.emoji || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal2', 'emoji', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={isLoading}
+              placeholder="Ex: 🏪"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Unidade
+            </label>
+            <select
+              value={formData.secondaryGoal2?.unit || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal2', 'unit', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 bg-white"
+              disabled={isLoading}
+            >
+              <option value="">Selecione uma unidade...</option>
+              <option value="R$">R$ (Valores monetários)</option>
+              <option value="pontos">pontos (Pontuação)</option>
+              <option value="marcas">marcas (Quantidade de marcas)</option>
+              <option value="conversões">conversões (Número de conversões)</option>
+              <option value="%">% (Percentual)</option>
+              <option value="unidades">unidades (Quantidade genérica)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Campo CSV
+            </label>
+            <select
+              value={formData.secondaryGoal2?.csvField || ''}
+              onChange={(e) => handleGoalChange('secondaryGoal2', 'csvField', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 bg-white"
+              disabled={isLoading}
+            >
+              <option value="">Selecione um campo...</option>
+              <option value="faturamento">Faturamento (Meta, Atual, %)</option>
+              <option value="reaisPorAtivo">Reais por Ativo (Meta, Atual, %)</option>
+              <option value="multimarcasPorAtivo">Multimarcas por Ativo (Meta, Atual, %)</option>
+              <option value="atividade">Atividade (Meta, Atual, %)</option>
+              <option value="conversoes">Conversões (Meta, Atual, %)</option>
+              <option value="upa">UPA (Meta, Atual, %)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Descrição
+          </label>
+          <textarea
+            value={formData.secondaryGoal2?.description || ''}
+            onChange={(e) => handleGoalChange('secondaryGoal2', 'description', e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            disabled={isLoading}
+            placeholder="Ex: Número de multimarcas por ativo"
+            rows={2}
+          />
+        </div>
+      </div>
+
+      {/* Challenge ID Reference */}
+      <div className="p-4 bg-blue-50 rounded-lg">
+        <h4 className="font-medium text-blue-900 mb-3">📋 Referência de Challenge IDs</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <div>
+            <strong>Atividade:</strong> E6FQIjs (Carteira I)<br/>
+            <strong>Atividade:</strong> E6Gv58l (Carteira II)
+          </div>
+          <div>
+            <strong>Reais por Ativo:</strong> E6Gm8RI (Geral)<br/>
+            <strong>Reais por Ativo:</strong> E6MTIIK (Carteira II)
+          </div>
+          <div>
+            <strong>Faturamento:</strong> E6GglPq (Carteira 0/I)<br/>
+            <strong>Faturamento:</strong> E6Gahd4 (Carteira III/IV/ER)
+          </div>
+          <div>
+            <strong>Multimarcas:</strong> E6MWJKs (Carteira II)<br/>
+            <strong>Multimarcas:</strong> E6MMH5v (Carteira III/IV)<br/>
+            <strong>Conversões:</strong> E6GglPq (Carteira 0)<br/>
+            <strong>UPA:</strong> E62x2PW (ER)
+          </div>
+        </div>
+        <p className="text-xs mt-2" style={{color: '#1d4ed8'}}>
+          💡 Estes são os Challenge IDs reais do Funifier. Use-os para garantir que o progresso das metas seja rastreado corretamente.
+        </p>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end items-center space-x-3">
+        {hasUnsavedChanges && (
+          <span className="text-sm text-amber-600 flex items-center">
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            Alterações não salvas
+          </span>
+        )}
+        <button
+          onClick={handleSave}
+          disabled={isLoading}
+          className={`px-6 py-2 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+            hasUnsavedChanges 
+              ? 'bg-amber-600 hover:bg-amber-700' 
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+        >
+          {isLoading ? 'Salvando...' : hasUnsavedChanges ? 'Salvar Alterações' : 'Salvar Configuração'}
+        </button>
+      </div>
     </div>
   );
 };

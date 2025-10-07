@@ -339,6 +339,12 @@ export interface GoalConfig {
   actionId: string;
   calculationType: 'funifier_api' | 'local_processing';
   boost?: BoostConfig;
+  // Display configuration
+  emoji?: string;
+  unit?: string;
+  targetValue?: number;
+  csvField?: string; // Field name in CSV data
+  description?: string;
 }
 
 export interface BoostConfig {

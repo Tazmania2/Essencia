@@ -77,7 +77,7 @@ describe('useFreshDashboardData', () => {
     });
     
     // Mock DashboardService
-    (DashboardService.extractDirectDashboardData as jest.Mock).mockReturnValue(mockDashboardData);
+    (DashboardService.extractDirectDashboardData as jest.Mock).mockResolvedValue(mockDashboardData);
   });
 
   it('fetches fresh data when no cache exists', async () => {
@@ -153,7 +153,7 @@ describe('useFreshDashboardData', () => {
       totalPoints: 2000
     };
     
-    (DashboardService.extractDirectDashboardData as jest.Mock).mockReturnValue(updatedDashboardData);
+    (DashboardService.extractDirectDashboardData as jest.Mock).mockResolvedValue(updatedDashboardData);
     
     await act(async () => {
       await result.current.refreshData();

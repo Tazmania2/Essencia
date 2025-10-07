@@ -278,7 +278,7 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
    */
   protected validateTeamType(reportData?: EssenciaReportRecord): void {
     if (reportData?.team && reportData.team !== this.teamType) {
-      console.warn(`Team type mismatch: processor=${this.teamType}, data=${reportData.team}`);
+      console.info(`ℹ️ Team context: viewing ${this.teamType} dashboard with ${reportData.team} report data (this is normal for cross-team viewing)`);
     }
   }
 }

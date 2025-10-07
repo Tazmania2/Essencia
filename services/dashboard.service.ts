@@ -2,6 +2,7 @@ import { FunifierPlayerService } from './funifier-player.service';
 import { FunifierDatabaseService } from './funifier-database.service';
 import { TeamProcessorFactory } from './team-processor-factory.service';
 import { UserIdentificationService } from './user-identification.service';
+import { dashboardConfigurationService } from './dashboard-configuration.service';
 import { dashboardCache, playerDataCache, CacheKeys } from './cache.service';
 import { secureLogger } from '../utils/logger';
 import { 
@@ -10,10 +11,15 @@ import {
   TeamType, 
   DashboardData,
   PlayerMetrics,
+  DashboardConfigurationRecord,
   FUNIFIER_CONFIG 
 } from '../types';
 
 export class DashboardService {
+  private configurationCache: DashboardConfigurationRecord | null = null;
+  private configCacheTimestamp: number = 0;
+  private readonly CONFIG_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
   constructor(
     private playerService: FunifierPlayerService,
     private databaseService: FunifierDatabaseService,
@@ -25,8 +31,16 @@ export class DashboardService {
     try {
       secureLogger.log('🚀 Dashboard service called for player:', playerId);
       
-      // Check cache first
-      const cacheKey = CacheKeys.dashboardData(playerId, 'unknown');
+      // Get current configuration first
+      const configuration = await this.getCurrentConfiguration();
+      secureLogger.log('🔧 Dashboard using configuration:', {
+        id: configuration._id,
+        version: configuration.version,
+        isDefault: configuration._id === 'default_config'
+      });
+      
+      // Check cache first (include configuration version in cache key)
+      const cacheKey = CacheKeys.dashboardData(playerId, selectedTeamType || 'unknown') + `_config_${configuration.version}`;
       const cachedData = dashboardCache.get<DashboardData>(cacheKey);
       
       if (cachedData) {
@@ -85,7 +99,7 @@ export class DashboardService {
       const playerMetrics = processor.processPlayerData(playerStatus, enhancedReportData);
       
       // Convert to dashboard format with enhanced data
-      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, reportData, reportRecord, csvData);
+      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, configuration, reportData, reportRecord, csvData);
       
       // Cache the result with team-specific key
       const teamSpecificCacheKey = CacheKeys.dashboardData(playerId, teamType);
@@ -175,7 +189,8 @@ export class DashboardService {
   private convertTodashboardData(
     playerId: string,
     metrics: PlayerMetrics, 
-    teamType: TeamType, 
+    teamType: TeamType,
+    configuration: any,
     reportData?: EssenciaReportRecord,
     enhancedRecord?: any,
     csvData?: any
@@ -192,7 +207,9 @@ export class DashboardService {
       try {
         if (!csvData) return {};
         
-        const goalKey = this.getGoalKeyFromName(goalName);
+        // Use configured CSV field first, fallback to hardcoded mapping
+        const configuredCsvField = this.getConfiguredCsvField(configuration, teamType, goalName);
+        const goalKey = configuredCsvField || this.getGoalKeyFromName(goalName);
         const goalData = csvData[goalKey];
         
         if (!goalData) return {};
@@ -203,10 +220,23 @@ export class DashboardService {
           return {};
         }
         
+        // Calculate percentage from CSV data
+        const percentage = goalData.target > 0 ? (goalData.current / goalData.target) * 100 : 0;
+        const roundedPercentage = Math.round(percentage * 100) / 100; // Round to 2 decimal places
+        
+        secureLogger.log('📊 Calculated percentage from CSV data:', {
+          goalName,
+          configuredCsvField,
+          target: goalData.target,
+          current: goalData.current,
+          percentage: roundedPercentage.toFixed(2)
+        });
+        
         return {
           target: goalData.target,
           current: goalData.current,
-          unit: this.getGoalUnit(goalKey),
+          percentage: Math.min(roundedPercentage, 999), // Cap at 999% to prevent UI issues
+          unit: this.getConfiguredGoalUnit(configuration, teamType, goalName),
           daysRemaining: daysRemaining
         };
       } catch (error) {
@@ -214,6 +244,11 @@ export class DashboardService {
         return {};
       }
     };
+
+    // Cache enhanced goal data to avoid multiple calculations
+    const primaryEnhancedData = getEnhancedGoalData(metrics.primaryGoal.name);
+    const secondary1EnhancedData = getEnhancedGoalData(metrics.secondaryGoal1.name);
+    const secondary2EnhancedData = getEnhancedGoalData(metrics.secondaryGoal2.name);
 
     return {
       playerId: playerId,
@@ -224,36 +259,38 @@ export class DashboardService {
       totalCycleDays: totalCycleDays,
       isDataFromCollection: !!reportData || !!enhancedRecord, // True if we have any database data
       primaryGoal: {
-        name: metrics.primaryGoal.name,
-        percentage: metrics.primaryGoal.percentage,
-        description: this.generateGoalDescription(metrics.primaryGoal),
+        name: this.getConfiguredDisplayName(configuration, teamType, 'primaryGoal') || metrics.primaryGoal.name,
+        percentage: primaryEnhancedData.percentage ?? metrics.primaryGoal.percentage,
+        description: this.generateGoalDescription({ percentage: primaryEnhancedData.percentage ?? metrics.primaryGoal.percentage }),
         emoji: goalEmojis.primary,
-        ...getEnhancedGoalData(metrics.primaryGoal.name)
+        ...primaryEnhancedData
       },
       secondaryGoal1: {
-        name: metrics.secondaryGoal1.name,
-        percentage: metrics.secondaryGoal1.percentage,
-        description: this.generateGoalDescription(metrics.secondaryGoal1),
+        name: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal1') || metrics.secondaryGoal1.name,
+        percentage: secondary1EnhancedData.percentage ?? metrics.secondaryGoal1.percentage,
+        description: this.generateGoalDescription({ percentage: secondary1EnhancedData.percentage ?? metrics.secondaryGoal1.percentage }),
         emoji: goalEmojis.secondary1,
         hasBoost: true,
         isBoostActive: metrics.secondaryGoal1.boostActive || false,
-        ...getEnhancedGoalData(metrics.secondaryGoal1.name)
+        ...secondary1EnhancedData
       },
       secondaryGoal2: {
-        name: metrics.secondaryGoal2.name,
-        percentage: metrics.secondaryGoal2.percentage,
-        description: this.generateGoalDescription(metrics.secondaryGoal2),
+        name: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal2') || metrics.secondaryGoal2.name,
+        percentage: secondary2EnhancedData.percentage ?? metrics.secondaryGoal2.percentage,
+        description: this.generateGoalDescription({ percentage: secondary2EnhancedData.percentage ?? metrics.secondaryGoal2.percentage }),
         emoji: goalEmojis.secondary2,
         hasBoost: true,
         isBoostActive: metrics.secondaryGoal2.boostActive || false,
-        ...getEnhancedGoalData(metrics.secondaryGoal2.name)
+        ...secondary2EnhancedData
       },
-      goalDetails: this.generateGoalDetails(metrics, enhancedRecord, csvData)
+      goalDetails: this.generateGoalDetails(metrics, configuration, teamType, enhancedRecord, csvData)
     };
   }
 
   private generateGoalDetails(
-    metrics: PlayerMetrics, 
+    metrics: PlayerMetrics,
+    configuration: any,
+    teamType: TeamType,
     enhancedRecord?: any, 
     csvData?: any
   ): Array<{
@@ -264,29 +301,43 @@ export class DashboardService {
   }> {
     const details = [];
 
+    // Helper function to get enhanced goal data with percentage calculation
+    const getEnhancedGoalDataWithPercentage = (goalName: string) => {
+      const goalData = this.getGoalDataFromSources(goalName, enhancedRecord, csvData, configuration, teamType);
+      if (goalData && goalData.target && goalData.current) {
+        const percentage = goalData.target > 0 ? (goalData.current / goalData.target) * 100 : 0;
+        const roundedPercentage = Math.round(percentage * 100) / 100; // Round to 2 decimal places
+        return { ...goalData, percentage: Math.min(roundedPercentage, 999) };
+      }
+      return goalData;
+    };
+
     // Primary Goal Details
-    const primaryGoalData = this.getGoalDataFromSources(metrics.primaryGoal.name, enhancedRecord, csvData);
+    const primaryGoalData = getEnhancedGoalDataWithPercentage(metrics.primaryGoal.name);
+    const primaryPercentage = primaryGoalData?.percentage ?? metrics.primaryGoal.percentage;
     details.push({
-      title: metrics.primaryGoal.name,
-      items: this.formatGoalItems(metrics.primaryGoal.name, primaryGoalData, metrics.primaryGoal.percentage),
+      title: this.getConfiguredDisplayName(configuration, teamType, 'primaryGoal') || metrics.primaryGoal.name,
+      items: this.formatGoalItems(metrics.primaryGoal.name, primaryGoalData, primaryPercentage, configuration, teamType),
       bgColor: 'bg-boticario-light',
       textColor: 'text-boticario-dark'
     });
 
     // Secondary Goal 1 Details
-    const secondary1Data = this.getGoalDataFromSources(metrics.secondaryGoal1.name, enhancedRecord, csvData);
+    const secondary1Data = getEnhancedGoalDataWithPercentage(metrics.secondaryGoal1.name);
+    const secondary1Percentage = secondary1Data?.percentage ?? metrics.secondaryGoal1.percentage;
     details.push({
-      title: metrics.secondaryGoal1.name,
-      items: this.formatGoalItems(metrics.secondaryGoal1.name, secondary1Data, metrics.secondaryGoal1.percentage),
+      title: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal1') || metrics.secondaryGoal1.name,
+      items: this.formatGoalItems(metrics.secondaryGoal1.name, secondary1Data, secondary1Percentage, configuration, teamType),
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-800'
     });
 
     // Secondary Goal 2 Details
-    const secondary2Data = this.getGoalDataFromSources(metrics.secondaryGoal2.name, enhancedRecord, csvData);
+    const secondary2Data = getEnhancedGoalDataWithPercentage(metrics.secondaryGoal2.name);
+    const secondary2Percentage = secondary2Data?.percentage ?? metrics.secondaryGoal2.percentage;
     details.push({
-      title: metrics.secondaryGoal2.name,
-      items: this.formatGoalItems(metrics.secondaryGoal2.name, secondary2Data, metrics.secondaryGoal2.percentage),
+      title: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal2') || metrics.secondaryGoal2.name,
+      items: this.formatGoalItems(metrics.secondaryGoal2.name, secondary2Data, secondary2Percentage, configuration, teamType),
       bgColor: 'bg-pink-50',
       textColor: 'text-pink-800'
     });
@@ -294,40 +345,82 @@ export class DashboardService {
     return details;
   }
 
-  private getGoalDataFromSources(goalName: string, enhancedRecord?: any, csvData?: any): any {
+  private getGoalDataFromSources(goalName: string, enhancedRecord?: any, csvData?: any, configuration?: any, teamType?: TeamType): any {
+    // Get the configured CSV field for this goal
+    const configuredCsvField = configuration && teamType ? this.getConfiguredCsvField(configuration, teamType, goalName) : null;
+    
+    secureLogger.log('🔍 Getting goal data from sources:', {
+      goalName,
+      configuredCsvField,
+      hasCsvData: !!csvData,
+      csvDataKeys: csvData ? Object.keys(csvData) : [],
+      teamType
+    });
+    
     // Try to get data from CSV first (most detailed)
+    if (csvData && configuredCsvField) {
+      if (csvData[configuredCsvField]) {
+        secureLogger.log('✅ Found CSV data for configured field:', {
+          field: configuredCsvField,
+          data: csvData[configuredCsvField]
+        });
+        return csvData[configuredCsvField];
+      } else {
+        secureLogger.warn('❌ Configured CSV field not found in data:', {
+          field: configuredCsvField,
+          availableFields: Object.keys(csvData)
+        });
+      }
+    }
+
+    // Fallback to hardcoded mapping if no configuration
     if (csvData) {
       const goalKey = this.getGoalKeyFromName(goalName);
       if (csvData[goalKey]) {
+        secureLogger.log('📋 Using hardcoded mapping fallback:', {
+          goalName,
+          goalKey,
+          data: csvData[goalKey]
+        });
         return csvData[goalKey];
       }
     }
 
     // Fallback to enhanced record
     if (enhancedRecord) {
-      const goalKey = this.getGoalKeyFromName(goalName);
-      return {
+      const goalKey = configuredCsvField || this.getGoalKeyFromName(goalName);
+      const result = {
         target: enhancedRecord[`${goalKey}Meta`],
         current: enhancedRecord[`${goalKey}Atual`],
         percentage: enhancedRecord[`${goalKey}Percentual`]
       };
+      secureLogger.log('📊 Using enhanced record fallback:', {
+        goalKey,
+        result
+      });
+      return result;
     }
 
+    secureLogger.warn('⚠️ No data source found for goal:', goalName);
     return null;
   }
 
-  private formatGoalItems(goalName: string, goalData: any, percentage: number): string[] {
+  private formatGoalItems(goalName: string, goalData: any, percentage: number, configuration?: any, teamType?: TeamType): string[] {
     const items = [];
 
     if (goalData?.target !== undefined) {
-      const unit = this.getGoalUnit(this.getGoalKeyFromName(goalName));
+      const unit = configuration && teamType ? 
+        this.getConfiguredGoalUnit(configuration, teamType, goalName) : 
+        this.getGoalUnit(this.getGoalKeyFromName(goalName));
       items.push(`META: ${this.formatValue(goalData.target, unit)}`);
     } else {
       items.push(`META: Não disponível`);
     }
 
     if (goalData?.current !== undefined) {
-      const unit = this.getGoalUnit(this.getGoalKeyFromName(goalName));
+      const unit = configuration && teamType ? 
+        this.getConfiguredGoalUnit(configuration, teamType, goalName) : 
+        this.getGoalUnit(this.getGoalKeyFromName(goalName));
       items.push(`ATUAL: ${this.formatValue(goalData.current, unit)}`);
     } else {
       items.push(`ATUAL: Não disponível`);
@@ -337,7 +430,9 @@ export class DashboardService {
 
     if (goalData?.target && goalData?.current) {
       const remaining = Math.max(0, goalData.target - goalData.current);
-      const unit = this.getGoalUnit(this.getGoalKeyFromName(goalName));
+      const unit = configuration && teamType ? 
+        this.getConfiguredGoalUnit(configuration, teamType, goalName) : 
+        this.getGoalUnit(this.getGoalKeyFromName(goalName));
       items.push(`FALTAM: ${this.formatValue(remaining, unit)}`);
     }
 
@@ -396,17 +491,21 @@ export class DashboardService {
 
   private generateGoalDescription(goal: any): string {
     const percentage = goal.percentage;
+    const roundedPercentage = Math.round(percentage * 100) / 100; // Round to 2 decimal places
+    const displayPercentage = roundedPercentage % 1 === 0 ? Math.round(roundedPercentage) : roundedPercentage;
     
     if (percentage >= 100) {
-      return `Meta atingida! ${percentage}% concluído - Parabéns! 🎉`;
+      return `Meta atingida! ${displayPercentage}% concluído - Parabéns! 🎉`;
     } else if (percentage >= 75) {
-      return `Quase lá! ${percentage}% concluído - Faltam apenas ${100 - percentage}%`;
+      const remaining = Math.round((100 - percentage) * 100) / 100;
+      const displayRemaining = remaining % 1 === 0 ? Math.round(remaining) : remaining;
+      return `Quase lá! ${displayPercentage}% concluído - Faltam apenas ${displayRemaining}%`;
     } else if (percentage >= 50) {
-      return `Bom progresso! ${percentage}% concluído - Continue assim!`;
+      return `Bom progresso! ${displayPercentage}% concluído - Continue assim!`;
     } else if (percentage >= 25) {
-      return `${percentage}% concluído - Vamos acelerar o ritmo!`;
+      return `${displayPercentage}% concluído - Vamos acelerar o ritmo!`;
     } else {
-      return `${percentage}% concluído - Vamos começar forte!`;
+      return `${displayPercentage}% concluído - Vamos começar forte!`;
     }
   }
 
@@ -430,6 +529,105 @@ export class DashboardService {
     };
 
     return units[goalType] || '';
+  }
+
+  /**
+   * Get configured unit for a goal from configuration
+   */
+  private getConfiguredGoalUnit(configuration: any, teamType: TeamType, goalName: string): string {
+    try {
+      const teamConfig = configuration.configurations[teamType];
+      
+      // Convert display name to internal name for matching
+      const internalName = this.getInternalNameFromDisplayName(goalName);
+      
+      // Check primary goal
+      if (teamConfig?.primaryGoal?.name === internalName || teamConfig?.primaryGoal?.displayName === goalName) {
+        return teamConfig.primaryGoal.unit || this.getGoalUnit(internalName as any);
+      }
+      
+      // Check secondary goal 1
+      if (teamConfig?.secondaryGoal1?.name === internalName || teamConfig?.secondaryGoal1?.displayName === goalName) {
+        return teamConfig.secondaryGoal1.unit || this.getGoalUnit(internalName as any);
+      }
+      
+      // Check secondary goal 2
+      if (teamConfig?.secondaryGoal2?.name === internalName || teamConfig?.secondaryGoal2?.displayName === goalName) {
+        return teamConfig.secondaryGoal2.unit || this.getGoalUnit(internalName as any);
+      }
+      
+      // Fallback to hardcoded units
+      const fallbackInternalName = this.getInternalNameFromDisplayName(goalName);
+      return this.getGoalUnit(fallbackInternalName as any);
+    } catch (error) {
+      secureLogger.warn('Failed to get configured goal unit:', error);
+      const fallbackInternalName = this.getInternalNameFromDisplayName(goalName);
+      return this.getGoalUnit(fallbackInternalName as any);
+    }
+  }
+
+  /**
+   * Get configured CSV field for a goal from configuration
+   */
+  private getConfiguredCsvField(configuration: any, teamType: TeamType, goalName: string): string | null {
+    try {
+      const teamConfig = configuration.configurations[teamType];
+      
+      // Convert display name to internal name for matching
+      const internalName = this.getInternalNameFromDisplayName(goalName);
+      
+      secureLogger.log('🔧 Getting configured CSV field:', {
+        goalName,
+        internalName,
+        teamType,
+        primaryGoal: teamConfig?.primaryGoal?.name,
+        secondaryGoal1: teamConfig?.secondaryGoal1?.name,
+        secondaryGoal2: teamConfig?.secondaryGoal2?.name
+      });
+      
+      // Check primary goal
+      if (teamConfig?.primaryGoal?.name === internalName || teamConfig?.primaryGoal?.displayName === goalName) {
+        const csvField = teamConfig.primaryGoal.csvField || null;
+        secureLogger.log('✅ Found CSV field for primary goal:', { csvField });
+        return csvField;
+      }
+      
+      // Check secondary goal 1
+      if (teamConfig?.secondaryGoal1?.name === internalName || teamConfig?.secondaryGoal1?.displayName === goalName) {
+        const csvField = teamConfig.secondaryGoal1.csvField || null;
+        secureLogger.log('✅ Found CSV field for secondary goal 1:', { csvField });
+        return csvField;
+      }
+      
+      // Check secondary goal 2
+      if (teamConfig?.secondaryGoal2?.name === internalName || teamConfig?.secondaryGoal2?.displayName === goalName) {
+        const csvField = teamConfig.secondaryGoal2.csvField || null;
+        secureLogger.log('✅ Found CSV field for secondary goal 2:', { csvField });
+        return csvField;
+      }
+      
+      secureLogger.warn('❌ No CSV field found for goal:', { goalName, internalName });
+      return null;
+    } catch (error) {
+      secureLogger.warn('Failed to get configured CSV field:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Convert display name to internal name for configuration matching
+   */
+  private getInternalNameFromDisplayName(displayName: string): string {
+    const nameMap: Record<string, string> = {
+      'Faturamento': 'faturamento',
+      'Reais por Ativo': 'reaisPorAtivo',
+      'Multimarcas por Ativo': 'multimarcasPorAtivo',
+      'Atividade': 'atividade',
+      'Conversões': 'conversoes',
+      'UPA': 'upa'
+    };
+    
+    return nameMap[displayName] || displayName.toLowerCase();
   }
 
   // Method to check if points are unlocked based on catalog items
@@ -458,6 +656,12 @@ export class DashboardService {
    */
   async processPlayerDataToDashboard(playerId: string, playerStatus: FunifierPlayerStatus, teamType: TeamType): Promise<DashboardData> {
     try {
+      // Get current configuration
+      const configuration = await this.getCurrentConfiguration();
+      
+      // Get enhanced data from database (for missing info and goal details)
+      const { reportRecord, csvData } = await this.getEnhancedReportData(playerStatus._id);
+      
       // Get report data from custom collection (optional)
       const reportData = await this.getLatestReportData(playerStatus._id);
       
@@ -465,8 +669,8 @@ export class DashboardService {
       const processor = this.teamProcessorFactory.getProcessor(teamType);
       const playerMetrics = processor.processPlayerData(playerStatus, reportData);
       
-      // Convert to dashboard format
-      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, reportData);
+      // Convert to dashboard format with enhanced data
+      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, configuration, reportData, reportRecord, csvData);
       
       return dashboardData;
     } catch (error) {
@@ -482,7 +686,7 @@ export class DashboardService {
    * IMPORTANT: When players reach 100% and have boosts active, Funifier stops tracking
    * progress in challenge_progress. In this case, we should fetch from collection data.
    */
-  static extractDirectDashboardData(playerId: string, playerStatus: FunifierPlayerStatus): DashboardData {
+  static async extractDirectDashboardData(playerId: string, playerStatus: FunifierPlayerStatus): Promise<DashboardData> {
     // Extract basic player info
     const playerName = playerStatus.name;
     const totalPoints = playerStatus.total_points;
@@ -519,47 +723,30 @@ export class DashboardService {
         break;
     }
 
-    // Team-specific challenge IDs for goal tracking
-    let challengeIds: { atividade?: string; reaisPorAtivo: string; faturamento?: string; multimarcas?: string; conversoes?: string; upa?: string };
+    // Get challenge IDs from configuration (with fallback to hardcoded values)
+    const configuration = await dashboardConfigurationService.getCurrentConfiguration();
+    const teamConfig = configuration.configurations[teamType];
     
-    switch (teamType) {
-      case TeamType.CARTEIRA_0:
-        challengeIds = {
-          conversoes: 'E6GglPq',     // Carteira 0 - Conversões (reusing challenge ID)
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
-          faturamento: 'E6GglPq'     // Carteira I - Bater Faturamento (Meta)
-        };
-        break;
-      case TeamType.CARTEIRA_I:
-        challengeIds = {
-          atividade: 'E6FQIjs',      // Carteira I - Bater Meta Atividade %
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
-          faturamento: 'E6GglPq'     // Carteira I - Bater Faturamento (Meta)
-        };
-        break;
-      case TeamType.CARTEIRA_II:
-        challengeIds = {
-          reaisPorAtivo: 'E6MTIIK',  // Carteira II - Subir Reais por Ativo (PRIMARY GOAL)
-          atividade: 'E6Gv58l',      // Carteira II - Subir Atividade (SECONDARY GOAL 1)
-          multimarcas: 'E6MWJKs'     // Carteira II - Subir Multimarcas por Ativo (SECONDARY GOAL 2)
-        };
-        break;
-      case TeamType.CARTEIRA_III:
-      case TeamType.CARTEIRA_IV:
-        challengeIds = {
-          faturamento: 'E6Gahd4',    // Carteira III & IV - Subir Faturamento (Pre-Meta)
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo
-          multimarcas: 'E6MMH5v'     // Carteira III & IV - Subir Multimarcas por Ativo
-        };
-        break;
-      case TeamType.ER:
-        challengeIds = {
-          faturamento: 'E6Gahd4',    // Carteira III & IV - Subir Faturamento (Pre-Meta) (reused)
-          reaisPorAtivo: 'E6Gm8RI',  // Carteira I, III & IV - Subir Reais por Ativo (reused)
-          upa: 'E62x2PW'             // ER - UPA metric
-        };
-        break;
-    }
+    const challengeIds = {
+      atividade: teamConfig.primaryGoal.name === 'atividade' ? teamConfig.primaryGoal.challengeId :
+                teamConfig.secondaryGoal1.name === 'atividade' ? teamConfig.secondaryGoal1.challengeId :
+                teamConfig.secondaryGoal2.name === 'atividade' ? teamConfig.secondaryGoal2.challengeId : undefined,
+      reaisPorAtivo: teamConfig.primaryGoal.name === 'reaisPorAtivo' ? teamConfig.primaryGoal.challengeId :
+                    teamConfig.secondaryGoal1.name === 'reaisPorAtivo' ? teamConfig.secondaryGoal1.challengeId :
+                    teamConfig.secondaryGoal2.name === 'reaisPorAtivo' ? teamConfig.secondaryGoal2.challengeId : 'E6Gm8RI',
+      faturamento: teamConfig.primaryGoal.name === 'faturamento' ? teamConfig.primaryGoal.challengeId :
+                  teamConfig.secondaryGoal1.name === 'faturamento' ? teamConfig.secondaryGoal1.challengeId :
+                  teamConfig.secondaryGoal2.name === 'faturamento' ? teamConfig.secondaryGoal2.challengeId : undefined,
+      multimarcas: teamConfig.primaryGoal.name === 'multimarcasPorAtivo' ? teamConfig.primaryGoal.challengeId :
+                  teamConfig.secondaryGoal1.name === 'multimarcasPorAtivo' ? teamConfig.secondaryGoal1.challengeId :
+                  teamConfig.secondaryGoal2.name === 'multimarcasPorAtivo' ? teamConfig.secondaryGoal2.challengeId : undefined,
+      conversoes: teamConfig.primaryGoal.name === 'conversoes' ? teamConfig.primaryGoal.challengeId :
+                 teamConfig.secondaryGoal1.name === 'conversoes' ? teamConfig.secondaryGoal1.challengeId :
+                 teamConfig.secondaryGoal2.name === 'conversoes' ? teamConfig.secondaryGoal2.challengeId : undefined,
+      upa: teamConfig.primaryGoal.name === 'upa' ? teamConfig.primaryGoal.challengeId :
+          teamConfig.secondaryGoal1.name === 'upa' ? teamConfig.secondaryGoal1.challengeId :
+          teamConfig.secondaryGoal2.name === 'upa' ? teamConfig.secondaryGoal2.challengeId : undefined
+    };
 
     // Extract goal progress from challenge_progress using team-specific challenge IDs
     const getGoalProgress = (challengeId: string): number => {
@@ -625,38 +812,33 @@ export class DashboardService {
     }
 
     // Set goals based on team type
-    let primaryGoal: { name: string; percentage: number; emoji: string };
-    let secondaryGoal1: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
-    let secondaryGoal2: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
+    // Get team configuration from dashboard configuration service
+    const goalConfig = configuration.configurations[teamType];
     
-    switch (teamType) {
-      case TeamType.CARTEIRA_0:
-        primaryGoal = { name: 'Conversões', percentage: conversoesProgress, emoji: '🔄' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈', isBoostActive: boost2Active };
-        break;
-      case TeamType.CARTEIRA_I:
-        primaryGoal = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈', isBoostActive: boost2Active };
-        break;
-      case TeamType.CARTEIRA_II:
-        primaryGoal = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰' };
-        secondaryGoal1 = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: multimarcasProgress, emoji: '🏪', isBoostActive: boost2Active };
-        break;
-      case TeamType.CARTEIRA_III:
-      case TeamType.CARTEIRA_IV:
-        primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: multimarcasProgress, emoji: '🏪', isBoostActive: boost2Active };
-        break;
-      case TeamType.ER:
-        primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'UPA', percentage: upaProgress, emoji: '📊', isBoostActive: boost2Active };
-        break;
-    }
+    // Map progress values to goal names
+    const progressMap = {
+      'atividade': atividadeProgress,
+      'reaisPorAtivo': reaisProgress,
+      'faturamento': faturamentoProgress,
+      'multimarcasPorAtivo': multimarcasProgress,
+      'conversoes': conversoesProgress,
+      'upa': upaProgress
+    };
+
+    // Create goals using configuration data
+    const createGoalFromConfig = (goalConfig: any, hasBoost: boolean = false) => ({
+      name: goalConfig.displayName || goalConfig.name,
+      percentage: progressMap[goalConfig.name as keyof typeof progressMap] || 0,
+      emoji: goalConfig.emoji || '📊',
+      isBoostActive: hasBoost && (goalConfig.boost ? true : false),
+      unit: goalConfig.unit || '',
+      target: goalConfig.targetValue,
+      description: goalConfig.description || ''
+    });
+
+    const primaryGoal = createGoalFromConfig(goalConfig.primaryGoal);
+    const secondaryGoal1 = createGoalFromConfig(goalConfig.secondaryGoal1, boost1Active);
+    const secondaryGoal2 = createGoalFromConfig(goalConfig.secondaryGoal2, boost2Active);
 
     const generateDescription = (percentage: number, isBoostActive: boolean): string => {
       if (isBoostActive && percentage >= 100) {
@@ -705,5 +887,67 @@ export class DashboardService {
         isBoostActive: secondaryGoal2.isBoostActive
       }
     };
+  }
+
+  /**
+   * Get current dashboard configuration with caching
+   */
+  private async getCurrentConfiguration(): Promise<DashboardConfigurationRecord> {
+    try {
+      // Check cache first
+      if (this.isConfigCacheValid()) {
+        secureLogger.log('📋 Returning cached dashboard configuration');
+        return this.configurationCache!;
+      }
+
+      // Fetch from configuration service
+      const configuration = await dashboardConfigurationService.getCurrentConfiguration();
+      
+      // Update cache
+      this.configurationCache = configuration;
+      this.configCacheTimestamp = Date.now();
+      
+      secureLogger.log('🔧 Dashboard configuration loaded', { version: configuration.version });
+      return configuration;
+    } catch (error) {
+      secureLogger.error('Failed to get dashboard configuration, using defaults:', error);
+      // Fallback to default configuration
+      const defaultConfig = dashboardConfigurationService.getDefaultConfiguration();
+      this.configurationCache = defaultConfig;
+      this.configCacheTimestamp = Date.now();
+      return defaultConfig;
+    }
+  }
+
+  /**
+   * Check if configuration cache is still valid
+   */
+  private isConfigCacheValid(): boolean {
+    return this.configurationCache !== null && 
+           (Date.now() - this.configCacheTimestamp) < this.CONFIG_CACHE_TTL;
+  }
+
+  /**
+   * Get configured display name for a goal
+   */
+  private getConfiguredDisplayName(configuration: any, teamType: TeamType, goalType: 'primaryGoal' | 'secondaryGoal1' | 'secondaryGoal2'): string | null {
+    try {
+      const teamConfig = configuration.configurations[teamType];
+      return teamConfig?.[goalType]?.displayName || null;
+    } catch (error) {
+      secureLogger.warn('Failed to get configured display name:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Clear configuration cache (called when configuration changes)
+   */
+  public clearConfigurationCache(): void {
+    this.configurationCache = null;
+    this.configCacheTimestamp = 0;
+    // Also clear dashboard data cache since it depends on configuration
+    dashboardCache.clear();
+    secureLogger.log('🧹 Dashboard configuration cache cleared');
   }
 }
