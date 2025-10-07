@@ -491,17 +491,21 @@ export class DashboardService {
 
   private generateGoalDescription(goal: any): string {
     const percentage = goal.percentage;
+    const roundedPercentage = Math.round(percentage * 100) / 100; // Round to 2 decimal places
+    const displayPercentage = roundedPercentage % 1 === 0 ? Math.round(roundedPercentage) : roundedPercentage;
     
     if (percentage >= 100) {
-      return `Meta atingida! ${percentage}% concluído - Parabéns! 🎉`;
+      return `Meta atingida! ${displayPercentage}% concluído - Parabéns! 🎉`;
     } else if (percentage >= 75) {
-      return `Quase lá! ${percentage}% concluído - Faltam apenas ${100 - percentage}%`;
+      const remaining = Math.round((100 - percentage) * 100) / 100;
+      const displayRemaining = remaining % 1 === 0 ? Math.round(remaining) : remaining;
+      return `Quase lá! ${displayPercentage}% concluído - Faltam apenas ${displayRemaining}%`;
     } else if (percentage >= 50) {
-      return `Bom progresso! ${percentage}% concluído - Continue assim!`;
+      return `Bom progresso! ${displayPercentage}% concluído - Continue assim!`;
     } else if (percentage >= 25) {
-      return `${percentage}% concluído - Vamos acelerar o ritmo!`;
+      return `${displayPercentage}% concluído - Vamos acelerar o ritmo!`;
     } else {
-      return `${percentage}% concluído - Vamos começar forte!`;
+      return `${displayPercentage}% concluído - Vamos começar forte!`;
     }
   }
 
