@@ -222,19 +222,20 @@ export class DashboardService {
         
         // Calculate percentage from CSV data
         const percentage = goalData.target > 0 ? (goalData.current / goalData.target) * 100 : 0;
+        const roundedPercentage = Math.round(percentage * 100) / 100; // Round to 2 decimal places
         
         secureLogger.log('📊 Calculated percentage from CSV data:', {
           goalName,
           configuredCsvField,
           target: goalData.target,
           current: goalData.current,
-          percentage: percentage.toFixed(2)
+          percentage: roundedPercentage.toFixed(2)
         });
         
         return {
           target: goalData.target,
           current: goalData.current,
-          percentage: Math.min(percentage, 999), // Cap at 999% to prevent UI issues
+          percentage: Math.min(roundedPercentage, 999), // Cap at 999% to prevent UI issues
           unit: this.getConfiguredGoalUnit(configuration, teamType, goalName),
           daysRemaining: daysRemaining
         };
@@ -305,7 +306,8 @@ export class DashboardService {
       const goalData = this.getGoalDataFromSources(goalName, enhancedRecord, csvData, configuration, teamType);
       if (goalData && goalData.target && goalData.current) {
         const percentage = goalData.target > 0 ? (goalData.current / goalData.target) * 100 : 0;
-        return { ...goalData, percentage: Math.min(percentage, 999) };
+        const roundedPercentage = Math.round(percentage * 100) / 100; // Round to 2 decimal places
+        return { ...goalData, percentage: Math.min(roundedPercentage, 999) };
       }
       return goalData;
     };
