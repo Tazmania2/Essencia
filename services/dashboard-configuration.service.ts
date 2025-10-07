@@ -231,6 +231,10 @@ export class DashboardConfigurationService {
             challengeId: 'E6GglPq', // Real Funifier Challenge ID for Faturamento
             actionId: 'action_faturamento',
             calculationType: 'funifier_api',
+            emoji: '📈',
+            unit: 'R$',
+            csvField: 'faturamento',
+            description: 'Faturamento total',
             boost: {
               catalogItemId: 'E6K79Mt',
               name: 'Boost Faturamento',
@@ -297,7 +301,11 @@ export class DashboardConfigurationService {
             metric: 'faturamento',
             challengeId: 'E6Gahd4', // Real Funifier Challenge ID for Carteira III/IV Faturamento
             actionId: 'action_faturamento',
-            calculationType: 'funifier_api'
+            calculationType: 'funifier_api',
+            emoji: '📈',
+            unit: 'R$',
+            csvField: 'faturamento',
+            description: 'Faturamento total'
           },
           secondaryGoal1: { 
             name: 'reaisPorAtivo',

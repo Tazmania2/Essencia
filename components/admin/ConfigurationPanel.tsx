@@ -322,6 +322,14 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
     const teamConfig = currentConfig.configurations[teamType];
     if (teamConfig) {
       console.log(`Loading configuration for ${teamType}:`, teamConfig);
+      console.log('Primary goal values:', {
+        displayName: teamConfig.primaryGoal?.displayName,
+        challengeId: teamConfig.primaryGoal?.challengeId,
+        emoji: teamConfig.primaryGoal?.emoji,
+        unit: teamConfig.primaryGoal?.unit,
+        csvField: teamConfig.primaryGoal?.csvField,
+        description: teamConfig.primaryGoal?.description
+      });
       setFormData(teamConfig);
     }
   }, [teamType, currentConfig]);
@@ -447,30 +455,45 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Unidade
-              <span className="text-xs text-gray-500 ml-1">(R$, pontos, marcas)</span>
+              <span className="text-xs text-gray-500 ml-1">(Formato dos valores)</span>
             </label>
-            <input
-              type="text"
+            <select
               value={formData.primaryGoal?.unit || ''}
               onChange={(e) => handleGoalChange('primaryGoal', 'unit', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
-              placeholder="Ex: R$"
-            />
+            >
+              <option value="">Selecione uma unidade...</option>
+              <option value="R$">R$ (Valores monetários)</option>
+              <option value="pontos">pontos (Pontuação)</option>
+              <option value="marcas">marcas (Quantidade de marcas)</option>
+              <option value="conversões">conversões (Número de conversões)</option>
+              <option value="%">% (Percentual)</option>
+              <option value="unidades">unidades (Quantidade genérica)</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Campo CSV
-              <span className="text-xs text-gray-500 ml-1">(Nome do campo no CSV)</span>
+              <span className="text-xs text-gray-500 ml-1">(Categoria de dados do CSV)</span>
             </label>
-            <input
-              type="text"
+            <select
               value={formData.primaryGoal?.csvField || ''}
               onChange={(e) => handleGoalChange('primaryGoal', 'csvField', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
-              placeholder="Ex: faturamento"
-            />
+            >
+              <option value="">Selecione um campo...</option>
+              <option value="faturamento">Faturamento (Meta, Atual, %)</option>
+              <option value="reaisPorAtivo">Reais por Ativo (Meta, Atual, %)</option>
+              <option value="multimarcasPorAtivo">Multimarcas por Ativo (Meta, Atual, %)</option>
+              <option value="atividade">Atividade (Meta, Atual, %)</option>
+              <option value="conversoes">Conversões (Meta, Atual, %)</option>
+              <option value="upa">UPA (Meta, Atual, %)</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Cada campo inclui 3 valores: Meta, Atual e Percentual
+            </p>
           </div>
         </div>
         
@@ -544,27 +567,39 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Unidade
             </label>
-            <input
-              type="text"
+            <select
               value={formData.secondaryGoal1?.unit || ''}
               onChange={(e) => handleGoalChange('secondaryGoal1', 'unit', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               disabled={isLoading}
-              placeholder="Ex: R$"
-            />
+            >
+              <option value="">Selecione uma unidade...</option>
+              <option value="R$">R$ (Valores monetários)</option>
+              <option value="pontos">pontos (Pontuação)</option>
+              <option value="marcas">marcas (Quantidade de marcas)</option>
+              <option value="conversões">conversões (Número de conversões)</option>
+              <option value="%">% (Percentual)</option>
+              <option value="unidades">unidades (Quantidade genérica)</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Campo CSV
             </label>
-            <input
-              type="text"
+            <select
               value={formData.secondaryGoal1?.csvField || ''}
               onChange={(e) => handleGoalChange('secondaryGoal1', 'csvField', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               disabled={isLoading}
-              placeholder="Ex: reais_por_ativo"
-            />
+            >
+              <option value="">Selecione um campo...</option>
+              <option value="faturamento">Faturamento (Meta, Atual, %)</option>
+              <option value="reaisPorAtivo">Reais por Ativo (Meta, Atual, %)</option>
+              <option value="multimarcasPorAtivo">Multimarcas por Ativo (Meta, Atual, %)</option>
+              <option value="atividade">Atividade (Meta, Atual, %)</option>
+              <option value="conversoes">Conversões (Meta, Atual, %)</option>
+              <option value="upa">UPA (Meta, Atual, %)</option>
+            </select>
           </div>
         </div>
         
@@ -636,27 +671,39 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Unidade
             </label>
-            <input
-              type="text"
+            <select
               value={formData.secondaryGoal2?.unit || ''}
               onChange={(e) => handleGoalChange('secondaryGoal2', 'unit', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               disabled={isLoading}
-              placeholder="Ex: marcas"
-            />
+            >
+              <option value="">Selecione uma unidade...</option>
+              <option value="R$">R$ (Valores monetários)</option>
+              <option value="pontos">pontos (Pontuação)</option>
+              <option value="marcas">marcas (Quantidade de marcas)</option>
+              <option value="conversões">conversões (Número de conversões)</option>
+              <option value="%">% (Percentual)</option>
+              <option value="unidades">unidades (Quantidade genérica)</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Campo CSV
             </label>
-            <input
-              type="text"
+            <select
               value={formData.secondaryGoal2?.csvField || ''}
               onChange={(e) => handleGoalChange('secondaryGoal2', 'csvField', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               disabled={isLoading}
-              placeholder="Ex: multimarcas_por_ativo"
-            />
+            >
+              <option value="">Selecione um campo...</option>
+              <option value="faturamento">Faturamento (Meta, Atual, %)</option>
+              <option value="reaisPorAtivo">Reais por Ativo (Meta, Atual, %)</option>
+              <option value="multimarcasPorAtivo">Multimarcas por Ativo (Meta, Atual, %)</option>
+              <option value="atividade">Atividade (Meta, Atual, %)</option>
+              <option value="conversoes">Conversões (Meta, Atual, %)</option>
+              <option value="upa">UPA (Meta, Atual, %)</option>
+            </select>
           </div>
         </div>
         
