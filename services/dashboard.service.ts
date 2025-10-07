@@ -207,7 +207,9 @@ export class DashboardService {
       try {
         if (!csvData) return {};
         
-        const goalKey = this.getGoalKeyFromName(goalName);
+        // Use configured CSV field first, fallback to hardcoded mapping
+        const configuredCsvField = this.getConfiguredCsvField(configuration, teamType, goalName);
+        const goalKey = configuredCsvField || this.getGoalKeyFromName(goalName);
         const goalData = csvData[goalKey];
         
         if (!goalData) return {};
