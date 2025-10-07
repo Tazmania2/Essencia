@@ -220,9 +220,21 @@ export class DashboardService {
           return {};
         }
         
+        // Calculate percentage from CSV data
+        const percentage = goalData.target > 0 ? (goalData.current / goalData.target) * 100 : 0;
+        
+        secureLogger.log('📊 Calculated percentage from CSV data:', {
+          goalName,
+          configuredCsvField,
+          target: goalData.target,
+          current: goalData.current,
+          percentage: percentage.toFixed(2)
+        });
+        
         return {
           target: goalData.target,
           current: goalData.current,
+          percentage: Math.min(percentage, 999), // Cap at 999% to prevent UI issues
           unit: this.getConfiguredGoalUnit(configuration, teamType, goalName),
           daysRemaining: daysRemaining
         };
@@ -231,6 +243,11 @@ export class DashboardService {
         return {};
       }
     };
+
+    // Cache enhanced goal data to avoid multiple calculations
+    const primaryEnhancedData = getEnhancedGoalData(metrics.primaryGoal.name);
+    const secondary1EnhancedData = getEnhancedGoalData(metrics.secondaryGoal1.name);
+    const secondary2EnhancedData = getEnhancedGoalData(metrics.secondaryGoal2.name);
 
     return {
       playerId: playerId,
@@ -242,28 +259,28 @@ export class DashboardService {
       isDataFromCollection: !!reportData || !!enhancedRecord, // True if we have any database data
       primaryGoal: {
         name: this.getConfiguredDisplayName(configuration, teamType, 'primaryGoal') || metrics.primaryGoal.name,
-        percentage: metrics.primaryGoal.percentage,
-        description: this.generateGoalDescription(metrics.primaryGoal),
+        percentage: primaryEnhancedData.percentage ?? metrics.primaryGoal.percentage,
+        description: this.generateGoalDescription({ percentage: primaryEnhancedData.percentage ?? metrics.primaryGoal.percentage }),
         emoji: goalEmojis.primary,
-        ...getEnhancedGoalData(metrics.primaryGoal.name)
+        ...primaryEnhancedData
       },
       secondaryGoal1: {
         name: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal1') || metrics.secondaryGoal1.name,
-        percentage: metrics.secondaryGoal1.percentage,
-        description: this.generateGoalDescription(metrics.secondaryGoal1),
+        percentage: secondary1EnhancedData.percentage ?? metrics.secondaryGoal1.percentage,
+        description: this.generateGoalDescription({ percentage: secondary1EnhancedData.percentage ?? metrics.secondaryGoal1.percentage }),
         emoji: goalEmojis.secondary1,
         hasBoost: true,
         isBoostActive: metrics.secondaryGoal1.boostActive || false,
-        ...getEnhancedGoalData(metrics.secondaryGoal1.name)
+        ...secondary1EnhancedData
       },
       secondaryGoal2: {
         name: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal2') || metrics.secondaryGoal2.name,
-        percentage: metrics.secondaryGoal2.percentage,
-        description: this.generateGoalDescription(metrics.secondaryGoal2),
+        percentage: secondary2EnhancedData.percentage ?? metrics.secondaryGoal2.percentage,
+        description: this.generateGoalDescription({ percentage: secondary2EnhancedData.percentage ?? metrics.secondaryGoal2.percentage }),
         emoji: goalEmojis.secondary2,
         hasBoost: true,
         isBoostActive: metrics.secondaryGoal2.boostActive || false,
-        ...getEnhancedGoalData(metrics.secondaryGoal2.name)
+        ...secondary2EnhancedData
       },
       goalDetails: this.generateGoalDetails(metrics, configuration, teamType, enhancedRecord, csvData)
     };
@@ -283,29 +300,42 @@ export class DashboardService {
   }> {
     const details = [];
 
+    // Helper function to get enhanced goal data with percentage calculation
+    const getEnhancedGoalDataWithPercentage = (goalName: string) => {
+      const goalData = this.getGoalDataFromSources(goalName, enhancedRecord, csvData, configuration, teamType);
+      if (goalData && goalData.target && goalData.current) {
+        const percentage = goalData.target > 0 ? (goalData.current / goalData.target) * 100 : 0;
+        return { ...goalData, percentage: Math.min(percentage, 999) };
+      }
+      return goalData;
+    };
+
     // Primary Goal Details
-    const primaryGoalData = this.getGoalDataFromSources(metrics.primaryGoal.name, enhancedRecord, csvData, configuration, teamType);
+    const primaryGoalData = getEnhancedGoalDataWithPercentage(metrics.primaryGoal.name);
+    const primaryPercentage = primaryGoalData?.percentage ?? metrics.primaryGoal.percentage;
     details.push({
       title: this.getConfiguredDisplayName(configuration, teamType, 'primaryGoal') || metrics.primaryGoal.name,
-      items: this.formatGoalItems(metrics.primaryGoal.name, primaryGoalData, metrics.primaryGoal.percentage, configuration, teamType),
+      items: this.formatGoalItems(metrics.primaryGoal.name, primaryGoalData, primaryPercentage, configuration, teamType),
       bgColor: 'bg-boticario-light',
       textColor: 'text-boticario-dark'
     });
 
     // Secondary Goal 1 Details
-    const secondary1Data = this.getGoalDataFromSources(metrics.secondaryGoal1.name, enhancedRecord, csvData, configuration, teamType);
+    const secondary1Data = getEnhancedGoalDataWithPercentage(metrics.secondaryGoal1.name);
+    const secondary1Percentage = secondary1Data?.percentage ?? metrics.secondaryGoal1.percentage;
     details.push({
       title: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal1') || metrics.secondaryGoal1.name,
-      items: this.formatGoalItems(metrics.secondaryGoal1.name, secondary1Data, metrics.secondaryGoal1.percentage, configuration, teamType),
+      items: this.formatGoalItems(metrics.secondaryGoal1.name, secondary1Data, secondary1Percentage, configuration, teamType),
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-800'
     });
 
     // Secondary Goal 2 Details
-    const secondary2Data = this.getGoalDataFromSources(metrics.secondaryGoal2.name, enhancedRecord, csvData, configuration, teamType);
+    const secondary2Data = getEnhancedGoalDataWithPercentage(metrics.secondaryGoal2.name);
+    const secondary2Percentage = secondary2Data?.percentage ?? metrics.secondaryGoal2.percentage;
     details.push({
       title: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal2') || metrics.secondaryGoal2.name,
-      items: this.formatGoalItems(metrics.secondaryGoal2.name, secondary2Data, metrics.secondaryGoal2.percentage, configuration, teamType),
+      items: this.formatGoalItems(metrics.secondaryGoal2.name, secondary2Data, secondary2Percentage, configuration, teamType),
       bgColor: 'bg-pink-50',
       textColor: 'text-pink-800'
     });
@@ -623,6 +653,9 @@ export class DashboardService {
       // Get current configuration
       const configuration = await this.getCurrentConfiguration();
       
+      // Get enhanced data from database (for missing info and goal details)
+      const { reportRecord, csvData } = await this.getEnhancedReportData(playerStatus._id);
+      
       // Get report data from custom collection (optional)
       const reportData = await this.getLatestReportData(playerStatus._id);
       
@@ -630,8 +663,8 @@ export class DashboardService {
       const processor = this.teamProcessorFactory.getProcessor(teamType);
       const playerMetrics = processor.processPlayerData(playerStatus, reportData);
       
-      // Convert to dashboard format
-      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, configuration, reportData);
+      // Convert to dashboard format with enhanced data
+      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, configuration, reportData, reportRecord, csvData);
       
       return dashboardData;
     } catch (error) {
