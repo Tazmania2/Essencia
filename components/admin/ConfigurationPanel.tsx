@@ -497,6 +497,34 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
         </div>
       </div>
 
+      {/* Challenge ID Reference */}
+      <div className="p-4 bg-blue-50 rounded-lg">
+        <h4 className="font-medium text-blue-900 mb-3">📋 Referência de Challenge IDs</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <div>
+            <strong>Atividade:</strong> E6FQIjs (Carteira I)<br/>
+            <strong>Atividade:</strong> E6Gv58l (Carteira II)
+          </div>
+          <div>
+            <strong>Reais por Ativo:</strong> E6Gm8RI (Geral)<br/>
+            <strong>Reais por Ativo:</strong> E6MTIIK (Carteira II)
+          </div>
+          <div>
+            <strong>Faturamento:</strong> E6GglPq (Carteira 0/I)<br/>
+            <strong>Faturamento:</strong> E6Gahd4 (Carteira III/IV/ER)
+          </div>
+          <div>
+            <strong>Multimarcas:</strong> E6MWJKs (Carteira II)<br/>
+            <strong>Multimarcas:</strong> E6MMH5v (Carteira III/IV)<br/>
+            <strong>Conversões:</strong> E6GglPq (Carteira 0)<br/>
+            <strong>UPA:</strong> E62x2PW (ER)
+          </div>
+        </div>
+        <p className="text-xs text-blue-700 mt-2">
+          💡 Estes são os Challenge IDs reais do Funifier. Use-os para garantir que o progresso das metas seja rastreado corretamente.
+        </p>
+      </div>
+
       {/* Save Button */}
       <div className="flex justify-end items-center space-x-3">
         {hasUnsavedChanges && (

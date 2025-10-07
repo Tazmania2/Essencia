@@ -57,7 +57,7 @@ export const GoalCard: React.FC<GoalCardProps> = ({
       }).format(value);
     }
     
-    if (title.includes('Multimarcas')) {
+    if (unit === 'marcas') {
       return value.toFixed(1);
     }
     

@@ -617,38 +617,33 @@ export class DashboardService {
     }
 
     // Set goals based on team type
-    let primaryGoal: { name: string; percentage: number; emoji: string };
-    let secondaryGoal1: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
-    let secondaryGoal2: { name: string; percentage: number; emoji: string; isBoostActive: boolean };
+    // Get team configuration from dashboard configuration service
+    const goalConfig = configuration.configurations[teamType];
     
-    switch (teamType) {
-      case TeamType.CARTEIRA_0:
-        primaryGoal = { name: 'Conversões', percentage: conversoesProgress, emoji: '🔄' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈', isBoostActive: boost2Active };
-        break;
-      case TeamType.CARTEIRA_I:
-        primaryGoal = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈', isBoostActive: boost2Active };
-        break;
-      case TeamType.CARTEIRA_II:
-        primaryGoal = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰' };
-        secondaryGoal1 = { name: 'Atividade', percentage: atividadeProgress, emoji: '🎯', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: multimarcasProgress, emoji: '🏪', isBoostActive: boost2Active };
-        break;
-      case TeamType.CARTEIRA_III:
-      case TeamType.CARTEIRA_IV:
-        primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'Multimarcas por Ativo', percentage: multimarcasProgress, emoji: '🏪', isBoostActive: boost2Active };
-        break;
-      case TeamType.ER:
-        primaryGoal = { name: 'Faturamento', percentage: faturamentoProgress, emoji: '📈' };
-        secondaryGoal1 = { name: 'Reais por Ativo', percentage: reaisProgress, emoji: '💰', isBoostActive: boost1Active };
-        secondaryGoal2 = { name: 'UPA', percentage: upaProgress, emoji: '📊', isBoostActive: boost2Active };
-        break;
-    }
+    // Map progress values to goal names
+    const progressMap = {
+      'atividade': atividadeProgress,
+      'reaisPorAtivo': reaisProgress,
+      'faturamento': faturamentoProgress,
+      'multimarcasPorAtivo': multimarcasProgress,
+      'conversoes': conversoesProgress,
+      'upa': upaProgress
+    };
+
+    // Create goals using configuration data
+    const createGoalFromConfig = (goalConfig: any, hasBoost: boolean = false) => ({
+      name: goalConfig.displayName || goalConfig.name,
+      percentage: progressMap[goalConfig.name as keyof typeof progressMap] || 0,
+      emoji: goalConfig.emoji || '📊',
+      isBoostActive: hasBoost && (goalConfig.boost ? true : false),
+      unit: goalConfig.unit || '',
+      target: goalConfig.targetValue,
+      description: goalConfig.description || ''
+    });
+
+    const primaryGoal = createGoalFromConfig(goalConfig.primaryGoal);
+    const secondaryGoal1 = createGoalFromConfig(goalConfig.secondaryGoal1, boost1Active);
+    const secondaryGoal2 = createGoalFromConfig(goalConfig.secondaryGoal2, boost2Active);
 
     const generateDescription = (percentage: number, isBoostActive: boolean): string => {
       if (isBoostActive && percentage >= 100) {

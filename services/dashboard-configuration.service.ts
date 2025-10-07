@@ -144,7 +144,11 @@ export class DashboardConfigurationService {
             metric: 'conversoes',
             challengeId: 'E6GglPq', // Real Funifier Challenge ID for Conversões
             actionId: 'action_conversoes',
-            calculationType: 'funifier_api'
+            calculationType: 'funifier_api',
+            emoji: '🎯',
+            unit: 'conversões',
+            csvField: 'conversoes',
+            description: 'Número de conversões realizadas'
           },
           secondaryGoal1: { 
             name: 'reaisPorAtivo',
@@ -153,6 +157,10 @@ export class DashboardConfigurationService {
             challengeId: 'E6Gm8RI', // Real Funifier Challenge ID for Reais por Ativo
             actionId: 'action_reais_ativo',
             calculationType: 'funifier_api',
+            emoji: '💰',
+            unit: 'R$',
+            csvField: 'reais_por_ativo',
+            description: 'Valor em reais por ativo',
             boost: {
               catalogItemId: 'E6F0WGc',
               name: 'Boost RPA',
@@ -166,6 +174,10 @@ export class DashboardConfigurationService {
             challengeId: 'E6GglPq', // Real Funifier Challenge ID for Faturamento
             actionId: 'action_faturamento',
             calculationType: 'funifier_api',
+            emoji: '📈',
+            unit: 'R$',
+            csvField: 'faturamento',
+            description: 'Faturamento total',
             boost: {
               catalogItemId: 'E6K79Mt',
               name: 'Boost Faturamento',
@@ -186,7 +198,11 @@ export class DashboardConfigurationService {
             metric: 'atividade',
             challengeId: 'E6FQIjs', // Real Funifier Challenge ID for Atividade
             actionId: 'action_atividade',
-            calculationType: 'funifier_api'
+            calculationType: 'funifier_api',
+            emoji: '🎯',
+            unit: 'pontos',
+            csvField: 'atividade',
+            description: 'Pontuação de atividade'
           },
           secondaryGoal1: { 
             name: 'reaisPorAtivo',
@@ -195,6 +211,10 @@ export class DashboardConfigurationService {
             challengeId: 'E6Gm8RI', // Real Funifier Challenge ID for Reais por Ativo
             actionId: 'action_reais_ativo',
             calculationType: 'funifier_api',
+            emoji: '💰',
+            unit: 'R$',
+            csvField: 'reais_por_ativo',
+            description: 'Valor em reais por ativo',
             boost: {
               catalogItemId: 'E6F0WGc',
               name: 'Boost RPA',
