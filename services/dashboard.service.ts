@@ -282,7 +282,7 @@ export class DashboardService {
     const details = [];
 
     // Primary Goal Details
-    const primaryGoalData = this.getGoalDataFromSources(metrics.primaryGoal.name, enhancedRecord, csvData);
+    const primaryGoalData = this.getGoalDataFromSources(metrics.primaryGoal.name, enhancedRecord, csvData, configuration, teamType);
     details.push({
       title: this.getConfiguredDisplayName(configuration, teamType, 'primaryGoal') || metrics.primaryGoal.name,
       items: this.formatGoalItems(metrics.primaryGoal.name, primaryGoalData, metrics.primaryGoal.percentage, configuration, teamType),
@@ -291,7 +291,7 @@ export class DashboardService {
     });
 
     // Secondary Goal 1 Details
-    const secondary1Data = this.getGoalDataFromSources(metrics.secondaryGoal1.name, enhancedRecord, csvData);
+    const secondary1Data = this.getGoalDataFromSources(metrics.secondaryGoal1.name, enhancedRecord, csvData, configuration, teamType);
     details.push({
       title: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal1') || metrics.secondaryGoal1.name,
       items: this.formatGoalItems(metrics.secondaryGoal1.name, secondary1Data, metrics.secondaryGoal1.percentage, configuration, teamType),
@@ -300,7 +300,7 @@ export class DashboardService {
     });
 
     // Secondary Goal 2 Details
-    const secondary2Data = this.getGoalDataFromSources(metrics.secondaryGoal2.name, enhancedRecord, csvData);
+    const secondary2Data = this.getGoalDataFromSources(metrics.secondaryGoal2.name, enhancedRecord, csvData, configuration, teamType);
     details.push({
       title: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal2') || metrics.secondaryGoal2.name,
       items: this.formatGoalItems(metrics.secondaryGoal2.name, secondary2Data, metrics.secondaryGoal2.percentage, configuration, teamType),
@@ -311,8 +311,18 @@ export class DashboardService {
     return details;
   }
 
-  private getGoalDataFromSources(goalName: string, enhancedRecord?: any, csvData?: any): any {
+  private getGoalDataFromSources(goalName: string, enhancedRecord?: any, csvData?: any, configuration?: any, teamType?: TeamType): any {
+    // Get the configured CSV field for this goal
+    const configuredCsvField = configuration && teamType ? this.getConfiguredCsvField(configuration, teamType, goalName) : null;
+    
     // Try to get data from CSV first (most detailed)
+    if (csvData && configuredCsvField) {
+      if (csvData[configuredCsvField]) {
+        return csvData[configuredCsvField];
+      }
+    }
+
+    // Fallback to hardcoded mapping if no configuration
     if (csvData) {
       const goalKey = this.getGoalKeyFromName(goalName);
       if (csvData[goalKey]) {
@@ -322,7 +332,7 @@ export class DashboardService {
 
     // Fallback to enhanced record
     if (enhancedRecord) {
-      const goalKey = this.getGoalKeyFromName(goalName);
+      const goalKey = configuredCsvField || this.getGoalKeyFromName(goalName);
       return {
         target: enhancedRecord[`${goalKey}Meta`],
         current: enhancedRecord[`${goalKey}Atual`],
@@ -482,6 +492,35 @@ export class DashboardService {
     } catch (error) {
       secureLogger.warn('Failed to get configured goal unit:', error);
       return this.getGoalUnit(goalName as any);
+    }
+  }
+
+  /**
+   * Get configured CSV field for a goal from configuration
+   */
+  private getConfiguredCsvField(configuration: any, teamType: TeamType, goalName: string): string | null {
+    try {
+      const teamConfig = configuration.configurations[teamType];
+      
+      // Check primary goal
+      if (teamConfig?.primaryGoal?.name === goalName) {
+        return teamConfig.primaryGoal.csvField || null;
+      }
+      
+      // Check secondary goal 1
+      if (teamConfig?.secondaryGoal1?.name === goalName) {
+        return teamConfig.secondaryGoal1.csvField || null;
+      }
+      
+      // Check secondary goal 2
+      if (teamConfig?.secondaryGoal2?.name === goalName) {
+        return teamConfig.secondaryGoal2.csvField || null;
+      }
+      
+      return null;
+    } catch (error) {
+      secureLogger.warn('Failed to get configured CSV field:', error);
+      return null;
     }
   }
 

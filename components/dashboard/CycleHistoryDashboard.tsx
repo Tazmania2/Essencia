@@ -287,19 +287,19 @@ const CycleHistoryCard: React.FC<CycleHistoryCardProps> = ({ cycle, isExpanded, 
                       <div className="text-purple-600 font-semibold">
                         {point.metrics.primaryGoal?.toFixed(1) || '0.0'}%
                       </div>
-                      <div className="text-gray-500">Atividade</div>
+                      <div className="text-gray-500">Meta 1</div>
                     </div>
                     <div className="text-center">
                       <div className="text-green-600 font-semibold">
                         {point.metrics.secondaryGoal1?.toFixed(1) || '0.0'}%
                       </div>
-                      <div className="text-gray-500">R$/Ativo</div>
+                      <div className="text-gray-500">Meta 2</div>
                     </div>
                     <div className="text-center">
                       <div className="text-blue-600 font-semibold">
                         {point.metrics.secondaryGoal2?.toFixed(1) || '0.0'}%
                       </div>
-                      <div className="text-gray-500">Faturamento</div>
+                      <div className="text-gray-500">Meta 3</div>
                     </div>
                   </div>
                 </div>
