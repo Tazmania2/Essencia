@@ -366,6 +366,17 @@ export class FunifierDatabaseService {
           atividade: csvGoalData.atividade.percentage
         }
       });
+      
+      console.log('🔍 Detailed atividade data:', {
+        target: csvGoalData.atividade.target,
+        current: csvGoalData.atividade.current,
+        percentage: csvGoalData.atividade.percentage,
+        fromDatabase: {
+          atividadeMeta: reportRecord.atividadeMeta,
+          atividadeAtual: reportRecord.atividadeAtual,
+          atividadePercentual: reportRecord.atividadePercentual
+        }
+      });
 
       return csvGoalData;
     } catch (error) {
