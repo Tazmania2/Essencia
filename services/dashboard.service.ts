@@ -99,7 +99,7 @@ export class DashboardService {
       const playerMetrics = processor.processPlayerData(playerStatus, enhancedReportData);
       
       // Convert to dashboard format with enhanced data
-      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, reportData, reportRecord, csvData);
+      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, configuration, reportData, reportRecord, csvData);
       
       // Cache the result with team-specific key
       const teamSpecificCacheKey = CacheKeys.dashboardData(playerId, teamType);
@@ -189,7 +189,8 @@ export class DashboardService {
   private convertTodashboardData(
     playerId: string,
     metrics: PlayerMetrics, 
-    teamType: TeamType, 
+    teamType: TeamType,
+    configuration: any,
     reportData?: EssenciaReportRecord,
     enhancedRecord?: any,
     csvData?: any
@@ -238,14 +239,14 @@ export class DashboardService {
       totalCycleDays: totalCycleDays,
       isDataFromCollection: !!reportData || !!enhancedRecord, // True if we have any database data
       primaryGoal: {
-        name: metrics.primaryGoal.name,
+        name: this.getConfiguredDisplayName(configuration, teamType, 'primaryGoal') || metrics.primaryGoal.name,
         percentage: metrics.primaryGoal.percentage,
         description: this.generateGoalDescription(metrics.primaryGoal),
         emoji: goalEmojis.primary,
         ...getEnhancedGoalData(metrics.primaryGoal.name)
       },
       secondaryGoal1: {
-        name: metrics.secondaryGoal1.name,
+        name: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal1') || metrics.secondaryGoal1.name,
         percentage: metrics.secondaryGoal1.percentage,
         description: this.generateGoalDescription(metrics.secondaryGoal1),
         emoji: goalEmojis.secondary1,
@@ -254,7 +255,7 @@ export class DashboardService {
         ...getEnhancedGoalData(metrics.secondaryGoal1.name)
       },
       secondaryGoal2: {
-        name: metrics.secondaryGoal2.name,
+        name: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal2') || metrics.secondaryGoal2.name,
         percentage: metrics.secondaryGoal2.percentage,
         description: this.generateGoalDescription(metrics.secondaryGoal2),
         emoji: goalEmojis.secondary2,
@@ -472,6 +473,9 @@ export class DashboardService {
    */
   async processPlayerDataToDashboard(playerId: string, playerStatus: FunifierPlayerStatus, teamType: TeamType): Promise<DashboardData> {
     try {
+      // Get current configuration
+      const configuration = await this.getCurrentConfiguration();
+      
       // Get report data from custom collection (optional)
       const reportData = await this.getLatestReportData(playerStatus._id);
       
@@ -480,7 +484,7 @@ export class DashboardService {
       const playerMetrics = processor.processPlayerData(playerStatus, reportData);
       
       // Convert to dashboard format
-      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, reportData);
+      const dashboardData = this.convertTodashboardData(playerId, playerMetrics, teamType, configuration, reportData);
       
       return dashboardData;
     } catch (error) {
@@ -735,6 +739,19 @@ export class DashboardService {
   private isConfigCacheValid(): boolean {
     return this.configurationCache !== null && 
            (Date.now() - this.configCacheTimestamp) < this.CONFIG_CACHE_TTL;
+  }
+
+  /**
+   * Get configured display name for a goal
+   */
+  private getConfiguredDisplayName(configuration: any, teamType: TeamType, goalType: 'primaryGoal' | 'secondaryGoal1' | 'secondaryGoal2'): string | null {
+    try {
+      const teamConfig = configuration.configurations[teamType];
+      return teamConfig?.[goalType]?.displayName || null;
+    } catch (error) {
+      secureLogger.warn('Failed to get configured display name:', error);
+      return null;
+    }
   }
 
   /**
