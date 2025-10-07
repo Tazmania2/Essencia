@@ -32,17 +32,22 @@ export class DashboardConfigurationService {
       console.log('📊 Database configuration result:', storedConfig ? 'Found' : 'Not found', storedConfig);
       
       if (storedConfig && storedConfig.configurations) {
-        const config: DashboardConfigurationRecord = {
-          _id: storedConfig._id || 'dashboard_config_v1',
-          version: storedConfig.version,
-          createdAt: storedConfig.createdAt,
-          createdBy: storedConfig.createdBy,
-          configurations: storedConfig.configurations
-        };
-        
-        // Update cache
-        this.updateCache(config);
-        return config;
+        // Validate that the stored configuration has all required fields
+        if (this.isConfigurationComplete(storedConfig.configurations)) {
+          const config: DashboardConfigurationRecord = {
+            _id: storedConfig._id || 'dashboard_config_v1',
+            version: storedConfig.version,
+            createdAt: storedConfig.createdAt,
+            createdBy: storedConfig.createdBy,
+            configurations: storedConfig.configurations
+          };
+          
+          // Update cache
+          this.updateCache(config);
+          return config;
+        } else {
+          console.warn('⚠️ Stored configuration is incomplete, falling back to defaults');
+        }
       }
     } catch (error) {
       console.warn('Failed to load configuration from database, using defaults:', error);
@@ -129,6 +134,7 @@ export class DashboardConfigurationService {
   clearCache(): void {
     this.configCache = null;
     this.cacheTimestamp = 0;
+    console.log('🧹 Configuration cache cleared');
   }
 
   public getDefaultConfiguration(): DashboardConfigurationRecord {
@@ -434,6 +440,67 @@ export class DashboardConfigurationService {
   private updateCache(config: DashboardConfigurationRecord): void {
     this.configCache = config;
     this.cacheTimestamp = Date.now();
+  }
+
+  /**
+   * Validate that a configuration has all required fields
+   */
+  private isConfigurationComplete(configurations: any): boolean {
+    try {
+      // Check if configurations object exists
+      if (!configurations || typeof configurations !== 'object') {
+        return false;
+      }
+
+      // Required fields for each goal
+      const requiredGoalFields = ['name', 'displayName', 'metric', 'challengeId', 'actionId', 'calculationType', 'emoji', 'unit', 'csvField', 'description'];
+
+      // Check each team configuration
+      for (const teamType of Object.keys(configurations)) {
+        const teamConfig = configurations[teamType];
+        
+        if (!teamConfig || typeof teamConfig !== 'object') {
+          console.warn(`Invalid team configuration for ${teamType}`);
+          return false;
+        }
+
+        // Check required team fields
+        if (!teamConfig.teamType || !teamConfig.displayName || !teamConfig.primaryGoal || !teamConfig.secondaryGoal1 || !teamConfig.secondaryGoal2) {
+          console.warn(`Missing required team fields for ${teamType}`);
+          return false;
+        }
+
+        // Check primary goal
+        for (const field of requiredGoalFields) {
+          if (!teamConfig.primaryGoal[field]) {
+            console.warn(`Missing ${field} in primaryGoal for ${teamType}`);
+            return false;
+          }
+        }
+
+        // Check secondary goal 1
+        for (const field of requiredGoalFields) {
+          if (!teamConfig.secondaryGoal1[field]) {
+            console.warn(`Missing ${field} in secondaryGoal1 for ${teamType}`);
+            return false;
+          }
+        }
+
+        // Check secondary goal 2
+        for (const field of requiredGoalFields) {
+          if (!teamConfig.secondaryGoal2[field]) {
+            console.warn(`Missing ${field} in secondaryGoal2 for ${teamType}`);
+            return false;
+          }
+        }
+      }
+
+      console.log('✅ Configuration validation passed');
+      return true;
+    } catch (error) {
+      console.error('Error validating configuration:', error);
+      return false;
+    }
   }
 }
 
