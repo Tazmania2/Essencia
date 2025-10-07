@@ -221,7 +221,7 @@ export class DashboardService {
         return {
           target: goalData.target,
           current: goalData.current,
-          unit: this.getGoalUnit(goalKey),
+          unit: this.getConfiguredGoalUnit(configuration, teamType, goalName),
           daysRemaining: daysRemaining
         };
       } catch (error) {
@@ -285,7 +285,7 @@ export class DashboardService {
     const primaryGoalData = this.getGoalDataFromSources(metrics.primaryGoal.name, enhancedRecord, csvData);
     details.push({
       title: this.getConfiguredDisplayName(configuration, teamType, 'primaryGoal') || metrics.primaryGoal.name,
-      items: this.formatGoalItems(metrics.primaryGoal.name, primaryGoalData, metrics.primaryGoal.percentage),
+      items: this.formatGoalItems(metrics.primaryGoal.name, primaryGoalData, metrics.primaryGoal.percentage, configuration, teamType),
       bgColor: 'bg-boticario-light',
       textColor: 'text-boticario-dark'
     });
@@ -294,7 +294,7 @@ export class DashboardService {
     const secondary1Data = this.getGoalDataFromSources(metrics.secondaryGoal1.name, enhancedRecord, csvData);
     details.push({
       title: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal1') || metrics.secondaryGoal1.name,
-      items: this.formatGoalItems(metrics.secondaryGoal1.name, secondary1Data, metrics.secondaryGoal1.percentage),
+      items: this.formatGoalItems(metrics.secondaryGoal1.name, secondary1Data, metrics.secondaryGoal1.percentage, configuration, teamType),
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-800'
     });
@@ -303,7 +303,7 @@ export class DashboardService {
     const secondary2Data = this.getGoalDataFromSources(metrics.secondaryGoal2.name, enhancedRecord, csvData);
     details.push({
       title: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal2') || metrics.secondaryGoal2.name,
-      items: this.formatGoalItems(metrics.secondaryGoal2.name, secondary2Data, metrics.secondaryGoal2.percentage),
+      items: this.formatGoalItems(metrics.secondaryGoal2.name, secondary2Data, metrics.secondaryGoal2.percentage, configuration, teamType),
       bgColor: 'bg-pink-50',
       textColor: 'text-pink-800'
     });
@@ -333,18 +333,22 @@ export class DashboardService {
     return null;
   }
 
-  private formatGoalItems(goalName: string, goalData: any, percentage: number): string[] {
+  private formatGoalItems(goalName: string, goalData: any, percentage: number, configuration?: any, teamType?: TeamType): string[] {
     const items = [];
 
     if (goalData?.target !== undefined) {
-      const unit = this.getGoalUnit(this.getGoalKeyFromName(goalName));
+      const unit = configuration && teamType ? 
+        this.getConfiguredGoalUnit(configuration, teamType, goalName) : 
+        this.getGoalUnit(this.getGoalKeyFromName(goalName));
       items.push(`META: ${this.formatValue(goalData.target, unit)}`);
     } else {
       items.push(`META: Não disponível`);
     }
 
     if (goalData?.current !== undefined) {
-      const unit = this.getGoalUnit(this.getGoalKeyFromName(goalName));
+      const unit = configuration && teamType ? 
+        this.getConfiguredGoalUnit(configuration, teamType, goalName) : 
+        this.getGoalUnit(this.getGoalKeyFromName(goalName));
       items.push(`ATUAL: ${this.formatValue(goalData.current, unit)}`);
     } else {
       items.push(`ATUAL: Não disponível`);
@@ -354,7 +358,9 @@ export class DashboardService {
 
     if (goalData?.target && goalData?.current) {
       const remaining = Math.max(0, goalData.target - goalData.current);
-      const unit = this.getGoalUnit(this.getGoalKeyFromName(goalName));
+      const unit = configuration && teamType ? 
+        this.getConfiguredGoalUnit(configuration, teamType, goalName) : 
+        this.getGoalUnit(this.getGoalKeyFromName(goalName));
       items.push(`FALTAM: ${this.formatValue(remaining, unit)}`);
     }
 
@@ -447,6 +453,36 @@ export class DashboardService {
     };
 
     return units[goalType] || '';
+  }
+
+  /**
+   * Get configured unit for a goal from configuration
+   */
+  private getConfiguredGoalUnit(configuration: any, teamType: TeamType, goalName: string): string {
+    try {
+      const teamConfig = configuration.configurations[teamType];
+      
+      // Check primary goal
+      if (teamConfig?.primaryGoal?.name === goalName) {
+        return teamConfig.primaryGoal.unit || this.getGoalUnit(goalName as any);
+      }
+      
+      // Check secondary goal 1
+      if (teamConfig?.secondaryGoal1?.name === goalName) {
+        return teamConfig.secondaryGoal1.unit || this.getGoalUnit(goalName as any);
+      }
+      
+      // Check secondary goal 2
+      if (teamConfig?.secondaryGoal2?.name === goalName) {
+        return teamConfig.secondaryGoal2.unit || this.getGoalUnit(goalName as any);
+      }
+      
+      // Fallback to hardcoded units
+      return this.getGoalUnit(goalName as any);
+    } catch (error) {
+      secureLogger.warn('Failed to get configured goal unit:', error);
+      return this.getGoalUnit(goalName as any);
+    }
   }
 
   // Method to check if points are unlocked based on catalog items
