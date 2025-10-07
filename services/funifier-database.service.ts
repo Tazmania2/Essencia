@@ -310,8 +310,22 @@ export class FunifierDatabaseService {
       return null;
     }
 
+    console.log('🔍 Raw database record fields:', {
+      playerId: reportRecord.playerId,
+      hasAtividadeMeta: reportRecord.atividadeMeta !== undefined,
+      hasAtividadeAtual: reportRecord.atividadeAtual !== undefined,
+      hasAtividadePercentual: reportRecord.atividadePercentual !== undefined,
+      atividadeValues: {
+        meta: reportRecord.atividadeMeta,
+        atual: reportRecord.atividadeAtual,
+        percentual: reportRecord.atividadePercentual
+      },
+      allFields: Object.keys(reportRecord).filter(key => key.includes('atividade'))
+    });
+
     try {
       // Convert the enhanced report record to CSV goal data format
+      // This creates a standardized CSV-like structure from database records
       const csvGoalData: CSVGoalData = {
         playerId: reportRecord.playerId,
         cycleDay: reportRecord.diaDociclo || 0,
@@ -337,6 +351,13 @@ export class FunifierDatabaseService {
           percentage: reportRecord.atividadePercentual || 0
         }
       };
+
+      console.log('🔍 Database field mapping check:', {
+        'reportRecord.atividadeMeta': reportRecord.atividadeMeta,
+        'reportRecord.atividadeAtual': reportRecord.atividadeAtual,
+        'reportRecord.atividadePercentual': reportRecord.atividadePercentual,
+        'csvGoalData.atividade': csvGoalData.atividade
+      });
 
       // Add optional new metrics if present
       if (reportRecord.conversoesMeta !== undefined && reportRecord.conversoesAtual !== undefined && reportRecord.conversoesPercentual !== undefined) {
