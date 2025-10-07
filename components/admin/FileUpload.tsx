@@ -244,7 +244,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     } finally {
       setIsUploading(false);
     }
-  }, [validateFile, onFileUpload, onFileProcessed]);
+  }, [validateFile, onFileUpload, onFileProcessed, notifyError, notifySuccess]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();

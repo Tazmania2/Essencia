@@ -42,7 +42,7 @@ export const CycleDetailsView: React.FC<CycleDetailsViewProps> = ({
     };
 
     loadProgressTimeline();
-  }, [playerId, cycle.cycleNumber, executeWithLoading]);
+  }, [playerId, cycle.cycleNumber, executeWithLoading, cycle.progressTimeline]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {

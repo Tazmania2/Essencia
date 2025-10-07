@@ -54,7 +54,7 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [playerId]); // ✅ Removed executeWithLoading from dependencies to prevent re-renders
+  }, [playerId, executeWithLoading, notifyHistoryLoaded, notifyNoHistoryData]);
 
   const handleCycleToggle = (cycleNumber: number) => {
     setExpandedCycle(expandedCycle === cycleNumber ? null : cycleNumber);
