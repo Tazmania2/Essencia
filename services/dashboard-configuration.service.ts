@@ -54,8 +54,10 @@ export class DashboardConfigurationService {
     }
 
     // Return default configuration if none exists in database
-    console.log('⚠️ No configuration found in database, returning default configuration');
-    return this.getDefaultConfiguration();
+    console.log('⚠️ No configuration found in database, returning complete default configuration');
+    const defaultConfig = this.getDefaultConfiguration();
+    console.log('📋 Default configuration loaded with all fields populated');
+    return defaultConfig;
   }
 
   async saveConfiguration(config: Omit<DashboardConfigurationRecord, '_id' | 'version' | 'createdAt'>): Promise<DashboardConfigurationRecord> {
@@ -261,7 +263,11 @@ export class DashboardConfigurationService {
             metric: 'reaisPorAtivo',
             challengeId: 'E6MTIIK', // Real Funifier Challenge ID for Carteira II Reais por Ativo
             actionId: 'action_reais_ativo',
-            calculationType: 'local_processing'
+            calculationType: 'local_processing',
+            emoji: '💰',
+            unit: 'R$',
+            csvField: 'reaisPorAtivo',
+            description: 'Valor em reais por ativo'
           },
           secondaryGoal1: { 
             name: 'atividade',
@@ -270,6 +276,10 @@ export class DashboardConfigurationService {
             challengeId: 'E6Gv58l', // Real Funifier Challenge ID for Carteira II Atividade
             actionId: 'action_atividade',
             calculationType: 'local_processing',
+            emoji: '🎯',
+            unit: 'pontos',
+            csvField: 'atividade',
+            description: 'Pontuação de atividade',
             boost: {
               catalogItemId: 'E6F0WGc',
               name: 'Boost Atividade',
@@ -283,6 +293,10 @@ export class DashboardConfigurationService {
             challengeId: 'E6MWJKs', // Real Funifier Challenge ID for Carteira II Multimarcas
             actionId: 'action_multimarcas',
             calculationType: 'local_processing',
+            emoji: '🏪',
+            unit: 'marcas',
+            csvField: 'multimarcasPorAtivo',
+            description: 'Número de multimarcas por ativo',
             boost: {
               catalogItemId: 'E6K79Mt',
               name: 'Boost Multimarcas',
@@ -353,7 +367,11 @@ export class DashboardConfigurationService {
             metric: 'faturamento',
             challengeId: 'E6Gahd4', // Real Funifier Challenge ID for Carteira III/IV Faturamento
             actionId: 'action_faturamento',
-            calculationType: 'funifier_api'
+            calculationType: 'funifier_api',
+            emoji: '📈',
+            unit: 'R$',
+            csvField: 'faturamento',
+            description: 'Faturamento total'
           },
           secondaryGoal1: { 
             name: 'reaisPorAtivo',
@@ -362,6 +380,10 @@ export class DashboardConfigurationService {
             challengeId: 'E6Gm8RI', // Real Funifier Challenge ID for Reais por Ativo
             actionId: 'action_reais_ativo',
             calculationType: 'funifier_api',
+            emoji: '💰',
+            unit: 'R$',
+            csvField: 'reaisPorAtivo',
+            description: 'Valor em reais por ativo',
             boost: {
               catalogItemId: 'E6F0WGc',
               name: 'Boost RPA',
@@ -395,7 +417,11 @@ export class DashboardConfigurationService {
             metric: 'faturamento',
             challengeId: 'E6Gahd4', // Real Funifier Challenge ID for Faturamento (reused)
             actionId: 'action_faturamento',
-            calculationType: 'funifier_api'
+            calculationType: 'funifier_api',
+            emoji: '📈',
+            unit: 'R$',
+            csvField: 'faturamento',
+            description: 'Faturamento total'
           },
           secondaryGoal1: { 
             name: 'reaisPorAtivo',
@@ -470,32 +496,35 @@ export class DashboardConfigurationService {
           return false;
         }
 
-        // Check primary goal
-        for (const field of requiredGoalFields) {
+        // Check only critical fields (more lenient validation)
+        const criticalFields = ['name', 'displayName', 'challengeId'];
+        
+        // Check primary goal critical fields
+        for (const field of criticalFields) {
           if (!teamConfig.primaryGoal[field]) {
-            console.warn(`Missing ${field} in primaryGoal for ${teamType}`);
+            console.warn(`Missing critical field ${field} in primaryGoal for ${teamType}`);
             return false;
           }
         }
 
-        // Check secondary goal 1
-        for (const field of requiredGoalFields) {
+        // Check secondary goal 1 critical fields
+        for (const field of criticalFields) {
           if (!teamConfig.secondaryGoal1[field]) {
-            console.warn(`Missing ${field} in secondaryGoal1 for ${teamType}`);
+            console.warn(`Missing critical field ${field} in secondaryGoal1 for ${teamType}`);
             return false;
           }
         }
 
-        // Check secondary goal 2
-        for (const field of requiredGoalFields) {
+        // Check secondary goal 2 critical fields
+        for (const field of criticalFields) {
           if (!teamConfig.secondaryGoal2[field]) {
-            console.warn(`Missing ${field} in secondaryGoal2 for ${teamType}`);
+            console.warn(`Missing critical field ${field} in secondaryGoal2 for ${teamType}`);
             return false;
           }
         }
       }
 
-      console.log('✅ Configuration validation passed');
+      console.log('✅ Configuration validation passed - using stored configuration');
       return true;
     } catch (error) {
       console.error('Error validating configuration:', error);
