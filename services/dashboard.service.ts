@@ -263,12 +263,14 @@ export class DashboardService {
         isBoostActive: metrics.secondaryGoal2.boostActive || false,
         ...getEnhancedGoalData(metrics.secondaryGoal2.name)
       },
-      goalDetails: this.generateGoalDetails(metrics, enhancedRecord, csvData)
+      goalDetails: this.generateGoalDetails(metrics, configuration, teamType, enhancedRecord, csvData)
     };
   }
 
   private generateGoalDetails(
-    metrics: PlayerMetrics, 
+    metrics: PlayerMetrics,
+    configuration: any,
+    teamType: TeamType,
     enhancedRecord?: any, 
     csvData?: any
   ): Array<{
@@ -282,7 +284,7 @@ export class DashboardService {
     // Primary Goal Details
     const primaryGoalData = this.getGoalDataFromSources(metrics.primaryGoal.name, enhancedRecord, csvData);
     details.push({
-      title: metrics.primaryGoal.name,
+      title: this.getConfiguredDisplayName(configuration, teamType, 'primaryGoal') || metrics.primaryGoal.name,
       items: this.formatGoalItems(metrics.primaryGoal.name, primaryGoalData, metrics.primaryGoal.percentage),
       bgColor: 'bg-boticario-light',
       textColor: 'text-boticario-dark'
@@ -291,7 +293,7 @@ export class DashboardService {
     // Secondary Goal 1 Details
     const secondary1Data = this.getGoalDataFromSources(metrics.secondaryGoal1.name, enhancedRecord, csvData);
     details.push({
-      title: metrics.secondaryGoal1.name,
+      title: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal1') || metrics.secondaryGoal1.name,
       items: this.formatGoalItems(metrics.secondaryGoal1.name, secondary1Data, metrics.secondaryGoal1.percentage),
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-800'
@@ -300,7 +302,7 @@ export class DashboardService {
     // Secondary Goal 2 Details
     const secondary2Data = this.getGoalDataFromSources(metrics.secondaryGoal2.name, enhancedRecord, csvData);
     details.push({
-      title: metrics.secondaryGoal2.name,
+      title: this.getConfiguredDisplayName(configuration, teamType, 'secondaryGoal2') || metrics.secondaryGoal2.name,
       items: this.formatGoalItems(metrics.secondaryGoal2.name, secondary2Data, metrics.secondaryGoal2.percentage),
       bgColor: 'bg-pink-50',
       textColor: 'text-pink-800'
