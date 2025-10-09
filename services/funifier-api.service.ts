@@ -23,6 +23,11 @@ export interface FunifierPlayer {
 export interface FunifierPlayerStatus {
   _id: string;
   name: string;
+  image?: {
+    small?: { url: string };
+    medium?: { url: string };
+    original?: { url: string };
+  };
   total_challenges: number;
   challenges: Record<string, number>;
   total_points: number;
@@ -250,6 +255,24 @@ export class FunifierApiService {
       );
     } catch (error) {
       throw errorHandlerService.handleFunifierError(error, `update_player_image:${playerId}`);
+    }
+  }
+
+  /**
+   * Update player status
+   */
+  public async updatePlayerStatus(playerId: string, statusData: Partial<FunifierPlayerStatus>): Promise<void> {
+    try {
+      await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/player/${playerId}/status`,
+        statusData,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, `update_player_status:${playerId}`);
     }
   }
 

@@ -84,7 +84,7 @@ function AdminPlayersContent() {
               lastActivity: new Date(player.updated),
               isAdmin: teamInfo.isAdmin,
               reportCount: playerReportList.length,
-              hasImage: !!(player.image?.original?.url),
+              hasImage: !!(status.image?.original?.url || player.image?.original?.url),
               catalogItemsCount: status.total_catalog_items || 0
             };
           } catch (err) {
@@ -128,6 +128,59 @@ function AdminPlayersContent() {
   const availableTeams = Array.from(
     new Set(players.flatMap(player => player.teamNames))
   ).filter(team => team !== 'Unknown');
+
+  // Handler functions
+  const handleDeletePlayer = async (playerId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este jogador? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    try {
+      await funifierApiService.deletePlayer(playerId);
+      await loadPlayersData();
+    } catch (error) {
+      console.error('Error deleting player:', error);
+      setError('Erro ao excluir jogador');
+    }
+  };
+
+  const handleExportPlayer = async (player: PlayerWithData) => {
+    try {
+      // Get complete player data
+      const [playerStatus, reportData] = await Promise.all([
+        funifierApiService.getPlayerStatus(player._id),
+        funifierDatabaseService.getCollectionData()
+      ]);
+
+      // Filter reports for this player
+      const playerReports = reportData.filter(report => report.playerId === player._id);
+
+      // Create export data
+      const exportData = {
+        player: {
+          ...player,
+          status: playerStatus
+        },
+        reports: playerReports,
+        exportDate: new Date().toISOString(),
+        totalReports: playerReports.length
+      };
+
+      // Create and download JSON file
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `player_${player._id}_${new Date().toISOString().split('T')[0]}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+    } catch (error) {
+      console.error('Error exporting player data:', error);
+      setError('Erro ao exportar dados do jogador');
+    }
+  };
 
   if (loading) {
     return (
@@ -355,7 +408,7 @@ function AdminPlayersContent() {
                             {player.hasImage ? (
                               <Image 
                                 className="h-10 w-10 rounded-full" 
-                                src={player.image?.small?.url || player.image?.original?.url || '/default-avatar.png'} 
+                                src={player.status?.image?.small?.url || player.status?.image?.original?.url || player.image?.small?.url || player.image?.original?.url || '/default-avatar.png'} 
                                 alt={player.name}
                                 width={40}
                                 height={40}
@@ -474,59 +527,6 @@ function AdminPlayersContent() {
       </div>
     </AdminLayout>
   );
-
-  // Handler functions
-  const handleDeletePlayer = async (playerId: string) => {
-    if (!confirm('Tem certeza que deseja excluir este jogador? Esta ação não pode ser desfeita.')) {
-      return;
-    }
-
-    try {
-      await funifierApiService.deletePlayer(playerId);
-      await loadPlayersData();
-    } catch (error) {
-      console.error('Error deleting player:', error);
-      setError('Erro ao excluir jogador');
-    }
-  };
-
-  const handleExportPlayer = async (player: PlayerWithData) => {
-    try {
-      // Get complete player data
-      const [playerStatus, reportData] = await Promise.all([
-        funifierApiService.getPlayerStatus(player._id),
-        funifierDatabaseService.getCollectionData()
-      ]);
-
-      // Filter reports for this player
-      const playerReports = reportData.filter(report => report.playerId === player._id);
-
-      // Create export data
-      const exportData = {
-        player: {
-          ...player,
-          status: playerStatus
-        },
-        reports: playerReports,
-        exportDate: new Date().toISOString(),
-        totalReports: playerReports.length
-      };
-
-      // Create and download JSON file
-      const dataStr = JSON.stringify(exportData, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-      
-      const exportFileDefaultName = `player_${player._id}_${new Date().toISOString().split('T')[0]}.json`;
-      
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-    } catch (error) {
-      console.error('Error exporting player data:', error);
-      setError('Erro ao exportar dados do jogador');
-    }
-  };
 }
 
 // Modal Components
@@ -648,9 +648,9 @@ interface EditPlayerModalProps {
 
 function EditPlayerModal({ player, onClose, onSuccess }: EditPlayerModalProps) {
   const [formData, setFormData] = useState({
-    name: player.name,
+    name: player.status?.name || player.name,
     email: player.email || '',
-    imageUrl: player.image?.original?.url || '',
+    imageUrl: player.status?.image?.original?.url || player.image?.original?.url || '',
     teams: player.status?.teams || [],
   });
   const [availableTeams, setAvailableTeams] = useState<any[]>([]);
@@ -736,6 +736,13 @@ function EditPlayerModal({ player, onClose, onSuccess }: EditPlayerModalProps) {
         }
       }
 
+      // Update player status with new name if changed
+      if (formData.name !== (player.status?.name || player.name)) {
+        await funifierApiService.updatePlayerStatus(player._id, {
+          name: formData.name
+        });
+      }
+
       onSuccess();
     } catch (err) {
       console.error('Error updating player:', err);
@@ -808,7 +815,7 @@ function EditPlayerModal({ player, onClose, onSuccess }: EditPlayerModalProps) {
                 ) : (
                   <div className="w-15 h-15 rounded-full bg-gray-300 flex items-center justify-center">
                     <span className="text-lg font-medium text-gray-700">
-                      {player.name.charAt(0).toUpperCase()}
+                      {(player.status?.name || player.name).charAt(0).toUpperCase()}
                     </span>
                   </div>
                 )}
