@@ -3,16 +3,19 @@
 import { AdminRoute } from '../../../components/auth/ProtectedRoute';
 import { AdminLayout } from '../../../components/admin/AdminLayout';
 import { useState, useEffect } from 'react';
-import { funifierAdminService, FunifierPlayer } from '../../../services/funifier-admin.service';
+import { funifierApiService, FunifierPlayer, FunifierPlayerStatus } from '../../../services/funifier-api.service';
 import { funifierDatabaseService } from '../../../services/funifier-database.service';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
 
 interface PlayerWithData extends FunifierPlayer {
+  status?: FunifierPlayerStatus;
   teamNames: string[];
   totalPoints: number;
   lastActivity: Date;
   isAdmin: boolean;
   reportCount: number;
+  hasImage: boolean;
+  catalogItemsCount: number;
 }
 
 export default function AdminPlayers() {
@@ -46,7 +49,7 @@ function AdminPlayersContent() {
 
       // Get all players and report data
       const [allPlayers, reportData] = await Promise.all([
-        funifierAdminService.getAllPlayers(),
+        funifierApiService.getAllPlayers({ max_results: 500, orderby: 'name' }),
         funifierDatabaseService.getCollectionData()
       ]);
 
@@ -64,17 +67,20 @@ function AdminPlayersContent() {
         allPlayers.map(async (player) => {
           try {
             // Get player status for team and points info
-            const status = await funifierAdminService.getPlayerStatus(player._id);
-            const teamInfo = funifierAdminService.getPlayerTeamInfo(status);
+            const status = await funifierApiService.getPlayerStatus(player._id);
+            const teamInfo = funifierApiService.getPlayerTeamInfo(status);
             const playerReportList = playerReports[player._id] || [];
 
             return {
               ...player,
+              status,
               teamNames: teamInfo.teamNames,
               totalPoints: status.total_points || 0,
               lastActivity: new Date(player.updated),
               isAdmin: teamInfo.isAdmin,
-              reportCount: playerReportList.length
+              reportCount: playerReportList.length,
+              hasImage: !!(player.image?.original?.url),
+              catalogItemsCount: status.total_catalog_items || 0
             };
           } catch (err) {
             // If we can't get status for a player, return basic info
@@ -85,7 +91,9 @@ function AdminPlayersContent() {
               totalPoints: 0,
               lastActivity: new Date(player.updated),
               isAdmin: false,
-              reportCount: playerReports[player._id]?.length || 0
+              reportCount: playerReports[player._id]?.length || 0,
+              hasImage: !!(player.image?.original?.url),
+              catalogItemsCount: 0
             };
           }
         })
@@ -227,6 +235,12 @@ function AdminPlayersContent() {
                       Pontos
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Desafios
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Itens
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Relatórios
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -241,12 +255,29 @@ function AdminPlayersContent() {
                   {filteredPlayers.map((player) => (
                     <tr key={player._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{player.name}</div>
-                          <div className="text-sm text-gray-500">{player._id}</div>
-                          {player.email && (
-                            <div className="text-xs text-gray-400">{player.email}</div>
-                          )}
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            {player.hasImage ? (
+                              <img 
+                                className="h-10 w-10 rounded-full" 
+                                src={player.image?.small?.url || player.image?.original?.url} 
+                                alt={player.name}
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                <span className="text-sm font-medium text-gray-700">
+                                  {player.name.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{player.name}</div>
+                            <div className="text-sm text-gray-500">{player._id}</div>
+                            {player.email && (
+                              <div className="text-xs text-gray-400">{player.email}</div>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -265,8 +296,30 @@ function AdminPlayersContent() {
                           ))}
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {player.totalPoints.toLocaleString('pt-BR')}
+                        </div>
+                        {player.status?.point_categories && Object.keys(player.status.point_categories).length > 0 && (
+                          <div className="text-xs text-gray-500">
+                            {Object.entries(player.status.point_categories).map(([category, points]) => (
+                              <div key={category}>
+                                {category}: {points}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {player.totalPoints.toLocaleString('pt-BR')}
+                        <div>{player.status?.total_challenges || 0}</div>
+                        {player.status?.challenge_progress && player.status.challenge_progress.length > 0 && (
+                          <div className="text-xs text-gray-500">
+                            {player.status.challenge_progress.length} em progresso
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {player.catalogItemsCount}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {player.reportCount}
