@@ -113,7 +113,7 @@ export class FunifierApiService {
   public async createPlayer(playerData: Partial<FunifierPlayer>): Promise<FunifierPlayer> {
     try {
       const response = await axios.post<FunifierPlayer>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/player`,
+        `${FUNIFIER_CONFIG.BASE_URL}/player`,
         playerData,
         {
           headers: this.getBasicAuthHeader(),
@@ -138,7 +138,7 @@ export class FunifierApiService {
   }): Promise<FunifierPlayer[]> {
     try {
       const response = await axios.get<FunifierPlayer[]>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/player`,
+        `${FUNIFIER_CONFIG.BASE_URL}/player`,
         {
           headers: this.getBasicAuthHeader(),
           params,
@@ -158,7 +158,7 @@ export class FunifierApiService {
   public async getPlayerById(playerId: string): Promise<FunifierPlayer> {
     try {
       const response = await axios.get<FunifierPlayer>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/player/${playerId}`,
+        `${FUNIFIER_CONFIG.BASE_URL}/player/${playerId}`,
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -177,7 +177,7 @@ export class FunifierApiService {
   public async getPlayerStatus(playerId: string): Promise<FunifierPlayerStatus> {
     try {
       const response = await axios.get<FunifierPlayerStatus>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/player/${playerId}/status`,
+        `${FUNIFIER_CONFIG.BASE_URL}/player/${playerId}/status`,
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -201,7 +201,7 @@ export class FunifierApiService {
   }): Promise<FunifierPlayerStatus[]> {
     try {
       const response = await axios.get<FunifierPlayerStatus[]>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/player/status`,
+        `${FUNIFIER_CONFIG.BASE_URL}/player/status`,
         {
           headers: this.getBasicAuthHeader(),
           params,
@@ -221,7 +221,7 @@ export class FunifierApiService {
   public async deletePlayer(playerId: string): Promise<void> {
     try {
       await axios.delete(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/player/${playerId}`,
+        `${FUNIFIER_CONFIG.BASE_URL}/player/${playerId}`,
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -238,7 +238,7 @@ export class FunifierApiService {
   public async updatePlayerImage(playerId: string, imageUrl: string): Promise<void> {
     try {
       await axios.post(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/player/${playerId}/image`,
+        `${FUNIFIER_CONFIG.BASE_URL}/player/${playerId}/image`,
         { url: imageUrl },
         {
           headers: {
@@ -266,7 +266,7 @@ export class FunifierApiService {
   }): Promise<FunifierTeam[]> {
     try {
       const response = await axios.get<FunifierTeam[]>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/team`,
+        `${FUNIFIER_CONFIG.BASE_URL}/team`,
         {
           headers: this.getBasicAuthHeader(),
           params,
@@ -286,7 +286,7 @@ export class FunifierApiService {
   public async getTeamById(teamId: string): Promise<FunifierTeam> {
     try {
       const response = await axios.get<FunifierTeam>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/team/${teamId}`,
+        `${FUNIFIER_CONFIG.BASE_URL}/team/${teamId}`,
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -305,7 +305,7 @@ export class FunifierApiService {
   public async getTeamMembers(teamId: string): Promise<string[]> {
     try {
       const response = await axios.get<string[]>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/team/${teamId}/member`,
+        `${FUNIFIER_CONFIG.BASE_URL}/team/${teamId}/member`,
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -324,7 +324,7 @@ export class FunifierApiService {
   public async addPlayerToTeam(teamId: string, playerId: string): Promise<void> {
     try {
       await axios.post(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/team/${teamId}/member/add/${playerId}`,
+        `${FUNIFIER_CONFIG.BASE_URL}/team/${teamId}/member/add/${playerId}`,
         {},
         {
           headers: this.getBasicAuthHeader(),
@@ -342,7 +342,7 @@ export class FunifierApiService {
   public async removePlayerFromTeam(teamId: string, playerId: string): Promise<void> {
     try {
       await axios.post(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/team/${teamId}/member/remove/${playerId}`,
+        `${FUNIFIER_CONFIG.BASE_URL}/team/${teamId}/member/remove/${playerId}`,
         {},
         {
           headers: this.getBasicAuthHeader(),
@@ -367,7 +367,7 @@ export class FunifierApiService {
   }): Promise<FunifierScheduler[]> {
     try {
       const response = await axios.get<FunifierScheduler[]>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/scheduler`,
+        `${FUNIFIER_CONFIG.BASE_URL}/scheduler`,
         {
           headers: this.getBasicAuthHeader(),
           params,
@@ -387,7 +387,7 @@ export class FunifierApiService {
   public async getSchedulerById(schedulerId: string): Promise<FunifierScheduler> {
     try {
       const response = await axios.get<FunifierScheduler>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/scheduler/${schedulerId}`,
+        `${FUNIFIER_CONFIG.BASE_URL}/scheduler/${schedulerId}`,
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -406,7 +406,7 @@ export class FunifierApiService {
   public async executeScheduler(schedulerId: string): Promise<SchedulerExecutionResult> {
     try {
       const response = await axios.post<any>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/scheduler/execute/${schedulerId}`,
+        `${FUNIFIER_CONFIG.BASE_URL}/scheduler/execute/${schedulerId}`,
         {},
         {
           headers: this.getBasicAuthHeader(),
@@ -445,7 +445,7 @@ export class FunifierApiService {
   }): Promise<any[]> {
     try {
       const response = await axios.get<any[]>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/scheduler/log`,
+        `${FUNIFIER_CONFIG.BASE_URL}/scheduler/log`,
         {
           headers: this.getBasicAuthHeader(),
           params: {
