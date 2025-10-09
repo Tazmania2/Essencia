@@ -4,7 +4,7 @@ import { AdminRoute } from '../../components/auth/ProtectedRoute';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState, useEffect } from 'react';
-import { funifierAdminService } from '../../services/funifier-admin.service';
+import { funifierApiService } from '../../services/funifier-api.service';
 import { funifierDatabaseService } from '../../services/funifier-database.service';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import Link from 'next/link';
@@ -45,7 +45,7 @@ function AdminContent() {
 
       // Get players and reports data
       const [players, reportData] = await Promise.all([
-        funifierAdminService.getAllPlayers(),
+        funifierApiService.getAllPlayers({ max_results: 1000 }),
         funifierDatabaseService.getCollectionData()
       ]);
 
