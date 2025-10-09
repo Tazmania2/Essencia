@@ -3,6 +3,7 @@
 import { AdminRoute } from '../../../components/auth/ProtectedRoute';
 import { AdminLayout } from '../../../components/admin/AdminLayout';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { funifierApiService, FunifierPlayer, FunifierPlayerStatus } from '../../../services/funifier-api.service';
 import { funifierDatabaseService } from '../../../services/funifier-database.service';
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner';
@@ -258,10 +259,12 @@ function AdminPlayersContent() {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
                             {player.hasImage ? (
-                              <img 
+                              <Image 
                                 className="h-10 w-10 rounded-full" 
-                                src={player.image?.small?.url || player.image?.original?.url} 
+                                src={player.image?.small?.url || player.image?.original?.url || '/default-avatar.png'} 
                                 alt={player.name}
+                                width={40}
+                                height={40}
                               />
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
