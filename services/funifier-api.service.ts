@@ -428,9 +428,8 @@ export class FunifierApiService {
    */
   public async executeScheduler(schedulerId: string): Promise<SchedulerExecutionResult> {
     try {
-      const response = await axios.post<any>(
+      const response = await axios.get<any>(
         `${FUNIFIER_CONFIG.BASE_URL}/scheduler/execute/${schedulerId}`,
-        {},
         {
           headers: this.getBasicAuthHeader(),
           timeout: 60000, // 1 minute timeout for scheduler execution
