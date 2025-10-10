@@ -12,6 +12,7 @@ export const CycleChangePanel: React.FC<CycleChangePanelProps> = ({ onClose }) =
   const [progress, setProgress] = useState<CycleChangeProgress | null>(null);
   const [selectedStepLogs, setSelectedStepLogs] = useState<any[] | null>(null);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   useEffect(() => {
     // Get current progress on mount
@@ -25,6 +26,23 @@ export const CycleChangePanel: React.FC<CycleChangePanelProps> = ({ onClose }) =
 
     return unsubscribe;
   }, []);
+
+  // Update timer for running steps
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (progress && progress.isRunning) {
+      interval = setInterval(() => {
+        setCurrentTime(Date.now());
+      }, 1000); // Update every second
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [progress?.isRunning]);
 
   const handleInitialize = () => {
     const initialProgress = cycleChangeService.initializeCycleChange();
@@ -68,7 +86,7 @@ export const CycleChangePanel: React.FC<CycleChangePanelProps> = ({ onClose }) =
     switch (status) {
       case 'completed':
         return (
-          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center border-2 border-green-500">
             <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -76,13 +94,15 @@ export const CycleChangePanel: React.FC<CycleChangePanelProps> = ({ onClose }) =
         );
       case 'running':
         return (
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <LoadingSpinner size="sm" />
+          <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center border-2 border-yellow-500 animate-pulse">
+            <div className="w-4 h-4 bg-yellow-500 rounded-full animate-spin">
+              <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
+            </div>
           </div>
         );
       case 'failed':
         return (
-          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center border-2 border-red-500">
             <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -90,7 +110,7 @@ export const CycleChangePanel: React.FC<CycleChangePanelProps> = ({ onClose }) =
         );
       default:
         return (
-          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border-2 border-gray-300">
             <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
           </div>
         );
@@ -123,6 +143,44 @@ export const CycleChangePanel: React.FC<CycleChangePanelProps> = ({ onClose }) =
       return `${minutes}m ${seconds % 60}s`;
     } else {
       return `${seconds}s`;
+    }
+  };
+
+  const calculateProgressPercentage = (progress: CycleChangeProgress): number => {
+    if (!progress || progress.totalSteps === 0) return 0;
+    
+    const completedSteps = progress.steps.filter(step => step.status === 'completed').length;
+    const currentStep = progress.steps[progress.currentStep];
+    
+    // Base progress from completed steps
+    let progressPercentage = (completedSteps / progress.totalSteps) * 100;
+    
+    // Add partial progress for current running step
+    if (currentStep && currentStep.status === 'running') {
+      // Each step has multiple phases: execution + validation
+      // We can estimate progress within the current step
+      const stepProgress = currentStep.result ? 50 : 25; // 25% for starting, 50% for execution done
+      const stepContribution = (1 / progress.totalSteps) * 100;
+      progressPercentage += (stepProgress / 100) * stepContribution;
+    }
+    
+    return Math.min(progressPercentage, 100);
+  };
+
+  const getProgressBarColor = (progress: CycleChangeProgress): string => {
+    if (!progress) return 'bg-gray-300';
+    
+    switch (progress.overallStatus) {
+      case 'completed':
+        return 'bg-green-500';
+      case 'failed':
+        return 'bg-red-500';
+      case 'cancelled':
+        return 'bg-yellow-500';
+      case 'running':
+        return 'bg-blue-500';
+      default:
+        return 'bg-gray-300';
     }
   };
 
@@ -166,14 +224,24 @@ export const CycleChangePanel: React.FC<CycleChangePanelProps> = ({ onClose }) =
               {progress.overallStatus === 'cancelled' && 'Cancelado'}
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+          <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
             <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(progress.currentStep / progress.totalSteps) * 100}%` }}
+              className={`h-3 rounded-full transition-all duration-500 ease-in-out ${getProgressBarColor(progress)}`}
+              style={{ width: `${calculateProgressPercentage(progress)}%` }}
             ></div>
           </div>
           <div className="flex justify-between text-xs text-gray-500">
-            <span>Etapa {progress.currentStep + 1} de {progress.totalSteps}</span>
+            <span>
+              {progress.overallStatus === 'running' 
+                ? `Executando Etapa ${progress.currentStep + 1} de ${progress.totalSteps}` 
+                : `Etapa ${Math.min(progress.currentStep + 1, progress.totalSteps)} de ${progress.totalSteps}`
+              }
+              {progress.overallStatus === 'running' && (
+                <span className="ml-2 text-blue-600 font-medium">
+                  ({Math.round(calculateProgressPercentage(progress))}%)
+                </span>
+              )}
+            </span>
             {progress.startTime && (
               <span>
                 Iniciado: {progress.startTime.toLocaleTimeString('pt-BR')}
@@ -228,28 +296,57 @@ export const CycleChangePanel: React.FC<CycleChangePanelProps> = ({ onClose }) =
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Etapas do Processo</h3>
           
-          {progress.steps.map((step, index) => (
-            <div key={step.id} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex items-start space-x-4">
-                {getStepStatusIcon(step.status)}
-                
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-gray-900">{step.name}</h4>
-                    <div className="flex items-center space-x-2">
-                      {step.startTime && step.endTime && (
-                        <span className="text-xs text-gray-500">
-                          {formatDuration(step.endTime.getTime() - step.startTime.getTime())}
-                        </span>
-                      )}
-                      <button
-                        onClick={() => handleViewLogs(index)}
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                      >
-                        Ver Logs
-                      </button>
+          {progress.steps.map((step, index) => {
+            const isCurrentStep = index === progress.currentStep;
+            const stepBorderColor = step.status === 'completed' ? 'border-green-200 bg-green-50' :
+                                   step.status === 'running' ? 'border-yellow-200 bg-yellow-50' :
+                                   step.status === 'failed' ? 'border-red-200 bg-red-50' :
+                                   'border-gray-200 bg-white';
+            
+            return (
+              <div key={step.id} className={`border rounded-lg p-4 transition-all duration-300 ${stepBorderColor} ${isCurrentStep && step.status === 'running' ? 'ring-2 ring-yellow-300' : ''}`}>
+                <div className="flex items-start space-x-4">
+                  {getStepStatusIcon(step.status)}
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <h4 className="text-sm font-medium text-gray-900">{step.name}</h4>
+                        {step.status === 'running' && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 animate-pulse">
+                            Em Execução
+                          </span>
+                        )}
+                        {step.status === 'completed' && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Concluído
+                          </span>
+                        )}
+                        {step.status === 'failed' && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            Falhou
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {step.startTime && step.endTime && (
+                          <span className="text-xs text-gray-500">
+                            {formatDuration(step.endTime.getTime() - step.startTime.getTime())}
+                          </span>
+                        )}
+                        {step.status === 'running' && step.startTime && (
+                          <span className="text-xs text-blue-600 font-medium animate-pulse">
+                            {formatDuration(currentTime - step.startTime.getTime())} decorridos
+                          </span>
+                        )}
+                        <button
+                          onClick={() => handleViewLogs(index)}
+                          className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                        >
+                          Ver Logs
+                        </button>
+                      </div>
                     </div>
-                  </div>
                   
                   <p className="text-sm text-gray-600 mt-1">{step.description}</p>
                   
@@ -271,7 +368,8 @@ export const CycleChangePanel: React.FC<CycleChangePanelProps> = ({ onClose }) =
                 </div>
               </div>
             </div>
-          ))}
+          )
+          })}
         </div>
       )}
 

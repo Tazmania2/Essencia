@@ -803,15 +803,31 @@ export class FunifierApiService {
               // Final check using achievements - look for recent item quantity changes
               try {
                 const achievements = await this.getPlayerAchievements(player._id, '0'); // type 0 for items
-                const recentItemChanges = achievements.filter(achievement => 
+                
+                // Get all items that should be 0 (excluding E6F0MJ3)
+                const itemsToBeZero = Object.keys(freshCatalogItems).filter(itemId => 
+                  itemId !== 'E6F0MJ3' && freshCatalogItems[itemId] !== 0
+                );
+
+                // Check for recent achievements setting these items to 0
+                const recentItemClears = achievements.filter(achievement => 
                   achievement.item && 
-                  achievement.item !== 'E6F0MJ3' && // Not the Bloqueado item
+                  itemsToBeZero.includes(achievement.item) &&
                   achievement.value === 0 && // Set to 0
                   Date.now() - achievement.time < 300000 // Within last 5 minutes
                 );
 
-                if (recentItemChanges.length > 0) {
-                  // Recent item quantity changes found, player should be cleared
+                // Check for E6F0MJ3 being set to 1 (if it's not already 1)
+                const needsBloqueadoFix = freshCatalogItems['E6F0MJ3'] !== 1;
+                const recentBloqueadoSet = needsBloqueadoFix ? achievements.filter(achievement => 
+                  achievement.item === 'E6F0MJ3' && 
+                  achievement.value === 1 && // Set to 1
+                  Date.now() - achievement.time < 300000 // Within last 5 minutes
+                ) : [{ item: 'E6F0MJ3' }]; // Fake entry if already correct
+
+                // If we have recent achievements for all problematic items, player should be cleared
+                if (recentItemClears.length >= itemsToBeZero.length && recentBloqueadoSet.length > 0) {
+                  // Recent item changes found for all problematic items, player should be cleared
                   continue;
                 }
               } catch (achievementError) {
