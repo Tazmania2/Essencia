@@ -484,6 +484,36 @@ export class FunifierApiService {
     }
   }
 
+  /**
+   * Get player achievements using aggregation
+   */
+  public async getPlayerAchievements(playerId: string, achievementType?: string): Promise<any[]> {
+    try {
+      const pipeline: any[] = [
+        { "$match": { "player": playerId } },
+        { "$sort": { "time": -1 } }
+      ];
+
+      // Add specific achievement type filter if provided
+      if (achievementType) {
+        pipeline.splice(1, 0, { "$match": { "type": parseInt(achievementType) } });
+      }
+
+      const response = await axios.post<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/achievement/aggregate`,
+        pipeline,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, `get_player_achievements:${playerId}`);
+    }
+  }
+
   // ==================== UTILITY METHODS ====================
 
   /**
@@ -545,7 +575,38 @@ export class FunifierApiService {
         );
 
         if (hasPoints) {
-          playersWithPoints.push(player._id);
+          // Double-check with fresh player status
+          try {
+            const freshStatus = await this.getPlayerStatus(player._id);
+            const freshPointCategories = freshStatus.point_categories || {};
+            const stillHasPoints = Object.keys(freshPointCategories).some(category => 
+              category === 'points' && freshPointCategories[category] > 0
+            );
+
+            if (stillHasPoints) {
+              // Final check using achievements
+              try {
+                const achievements = await this.getPlayerAchievements(player._id, '0'); // type 0 for points
+                const recentPointAchievements = achievements.filter(achievement => 
+                  achievement.item === 'points' && 
+                  achievement.value > 0 &&
+                  Date.now() - achievement.time < 300000 // Within last 5 minutes
+                );
+
+                if (recentPointAchievements.length === 0) {
+                  // No recent point achievements, player should be cleared
+                  continue;
+                }
+              } catch (achievementError) {
+                console.warn(`Could not check achievements for player ${player._id}:`, achievementError);
+              }
+
+              playersWithPoints.push(player._id);
+            }
+          } catch (statusError) {
+            console.warn(`Could not get fresh status for player ${player._id}:`, statusError);
+            playersWithPoints.push(player._id);
+          }
         }
       }
 
@@ -578,7 +639,38 @@ export class FunifierApiService {
         );
 
         if (hasLockedPoints) {
-          playersWithLockedPoints.push(player._id);
+          // Double-check with fresh player status
+          try {
+            const freshStatus = await this.getPlayerStatus(player._id);
+            const freshPointCategories = freshStatus.point_categories || {};
+            const stillHasLockedPoints = Object.keys(freshPointCategories).some(category => 
+              category === 'locked_points' && freshPointCategories[category] > 0
+            );
+
+            if (stillHasLockedPoints) {
+              // Final check using achievements
+              try {
+                const achievements = await this.getPlayerAchievements(player._id, '0'); // type 0 for points
+                const recentLockedPointAchievements = achievements.filter(achievement => 
+                  achievement.item === 'locked_points' && 
+                  achievement.value > 0 &&
+                  Date.now() - achievement.time < 300000 // Within last 5 minutes
+                );
+
+                if (recentLockedPointAchievements.length === 0) {
+                  // No recent locked point achievements, player should be cleared
+                  continue;
+                }
+              } catch (achievementError) {
+                console.warn(`Could not check achievements for player ${player._id}:`, achievementError);
+              }
+
+              playersWithLockedPoints.push(player._id);
+            }
+          } catch (statusError) {
+            console.warn(`Could not get fresh status for player ${player._id}:`, statusError);
+            playersWithLockedPoints.push(player._id);
+          }
         }
       }
 
@@ -607,7 +699,34 @@ export class FunifierApiService {
       for (const player of allPlayersStatus) {
         const challengeProgress = player.challenge_progress || [];
         if (challengeProgress.length > 0) {
-          playersWithProgress.push(player._id);
+          // Double-check with fresh player status
+          try {
+            const freshStatus = await this.getPlayerStatus(player._id);
+            const freshChallengeProgress = freshStatus.challenge_progress || [];
+            
+            if (freshChallengeProgress.length > 0) {
+              // Final check using achievements - look for recent challenge resets
+              try {
+                const achievements = await this.getPlayerAchievements(player._id);
+                const recentChallengeResets = achievements.filter(achievement => 
+                  achievement.type === 'challenge_reset' &&
+                  Date.now() - achievement.time < 300000 // Within last 5 minutes
+                );
+
+                if (recentChallengeResets.length > 0) {
+                  // Recent challenge reset found, player should be cleared
+                  continue;
+                }
+              } catch (achievementError) {
+                console.warn(`Could not check achievements for player ${player._id}:`, achievementError);
+              }
+
+              playersWithProgress.push(player._id);
+            }
+          } catch (statusError) {
+            console.warn(`Could not get fresh status for player ${player._id}:`, statusError);
+            playersWithProgress.push(player._id);
+          }
         }
       }
 
@@ -650,7 +769,43 @@ export class FunifierApiService {
         const hasRequiredItem = catalogItems['E6F0MJ3'] === 1;
 
         if (hasExtraItems || !hasRequiredItem) {
-          playersWithExtraItems.push(player._id);
+          // Double-check with fresh player status
+          try {
+            const freshStatus = await this.getPlayerStatus(player._id);
+            const freshCatalogItems = freshStatus.catalog_items || {};
+            
+            const stillHasExtraItems = Object.keys(freshCatalogItems).some(itemId => {
+              if (itemId === 'E6F0MJ3') {
+                return freshCatalogItems[itemId] !== 1;
+              }
+              return freshCatalogItems[itemId] > 0;
+            });
+
+            const stillHasRequiredItem = freshCatalogItems['E6F0MJ3'] === 1;
+
+            if (stillHasExtraItems || !stillHasRequiredItem) {
+              // Final check using achievements - look for recent item changes
+              try {
+                const achievements = await this.getPlayerAchievements(player._id);
+                const recentItemChanges = achievements.filter(achievement => 
+                  (achievement.type === 'item_removed' || achievement.type === 'item_cleared') &&
+                  Date.now() - achievement.time < 300000 // Within last 5 minutes
+                );
+
+                if (recentItemChanges.length > 0) {
+                  // Recent item changes found, player should be cleared
+                  continue;
+                }
+              } catch (achievementError) {
+                console.warn(`Could not check achievements for player ${player._id}:`, achievementError);
+              }
+
+              playersWithExtraItems.push(player._id);
+            }
+          } catch (statusError) {
+            console.warn(`Could not get fresh status for player ${player._id}:`, statusError);
+            playersWithExtraItems.push(player._id);
+          }
         }
       }
 
