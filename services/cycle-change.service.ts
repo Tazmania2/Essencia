@@ -272,13 +272,11 @@ export class CycleChangeService {
           };
 
         case 'checkChallengeProgressCleared':
-          const challengeResult = await funifierApiService.checkAllPlayersChallengeProgressCleared();
+          const actionLogResult = await funifierApiService.checkActionLogCleared();
           return {
-            success: challengeResult.allCleared,
-            message: challengeResult.allCleared 
-              ? `Todo o progresso de desafios foi limpo (${challengeResult.totalPlayersChecked} jogadores verificados)`
-              : `${challengeResult.playersWithProgress.length} jogadores ainda têm progresso de desafios`,
-            details: challengeResult
+            success: actionLogResult.allCleared,
+            message: actionLogResult.message,
+            details: actionLogResult
           };
 
         case 'checkVirtualGoodsCleared':

@@ -514,6 +514,31 @@ export class FunifierApiService {
     }
   }
 
+  /**
+   * Get action logs
+   */
+  public async getActionLogs(params?: {
+    max_results?: number;
+    orderby?: string;
+    reverse?: boolean;
+    q?: string;
+  }): Promise<any[]> {
+    try {
+      const response = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/action/log`,
+        {
+          headers: this.getBasicAuthHeader(),
+          params,
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'get_action_logs');
+    }
+  }
+
   // ==================== UTILITY METHODS ====================
 
   /**
@@ -685,7 +710,32 @@ export class FunifierApiService {
   }
 
   /**
-   * Check if all players have cleared challenge progress
+   * Check if action log is cleared (for step 3: Resetar action_log em Troca de Ciclo)
+   */
+  public async checkActionLogCleared(): Promise<{
+    allCleared: boolean;
+    actionLogCount: number;
+    message: string;
+  }> {
+    try {
+      // Simply check if action log is empty
+      const actionLogs = await this.getActionLogs({ max_results: 1 });
+      const actionLogCount = actionLogs.length;
+      
+      return {
+        allCleared: actionLogCount === 0,
+        actionLogCount,
+        message: actionLogCount === 0 
+          ? 'Action log está vazio - validação bem-sucedida'
+          : `Action log contém ${actionLogCount} entradas - ainda não foi limpo`
+      };
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'check_action_log_cleared');
+    }
+  }
+
+  /**
+   * Check if all players have cleared challenge progress (legacy method - kept for compatibility)
    */
   public async checkAllPlayersChallengeProgressCleared(): Promise<{
     allCleared: boolean;
@@ -693,47 +743,13 @@ export class FunifierApiService {
     totalPlayersChecked: number;
   }> {
     try {
-      const allPlayersStatus = await this.getAllPlayersStatus({ max_results: 1000 });
-      const playersWithProgress: string[] = [];
-
-      for (const player of allPlayersStatus) {
-        const challengeProgress = player.challenge_progress || [];
-        if (challengeProgress.length > 0) {
-          // Double-check with fresh player status
-          try {
-            const freshStatus = await this.getPlayerStatus(player._id);
-            const freshChallengeProgress = freshStatus.challenge_progress || [];
-            
-            if (freshChallengeProgress.length > 0) {
-              // Final check using achievements - look for recent challenge resets
-              try {
-                const achievements = await this.getPlayerAchievements(player._id);
-                const recentChallengeResets = achievements.filter(achievement => 
-                  achievement.type === 'challenge_reset' &&
-                  Date.now() - achievement.time < 300000 // Within last 5 minutes
-                );
-
-                if (recentChallengeResets.length > 0) {
-                  // Recent challenge reset found, player should be cleared
-                  continue;
-                }
-              } catch (achievementError) {
-                console.warn(`Could not check achievements for player ${player._id}:`, achievementError);
-              }
-
-              playersWithProgress.push(player._id);
-            }
-          } catch (statusError) {
-            console.warn(`Could not get fresh status for player ${player._id}:`, statusError);
-            playersWithProgress.push(player._id);
-          }
-        }
-      }
-
+      // For step 3, we now use the simpler action log check
+      const actionLogResult = await this.checkActionLogCleared();
+      
       return {
-        allCleared: playersWithProgress.length === 0,
-        playersWithProgress,
-        totalPlayersChecked: allPlayersStatus.length
+        allCleared: actionLogResult.allCleared,
+        playersWithProgress: actionLogResult.allCleared ? [] : ['action_log_not_empty'],
+        totalPlayersChecked: 1 // We're checking the system, not individual players
       };
     } catch (error) {
       throw errorHandlerService.handleFunifierError(error, 'check_all_players_challenge_progress_cleared');
