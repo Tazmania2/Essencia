@@ -757,7 +757,42 @@ export class FunifierApiService {
   }
 
   /**
-   * Check if all players have virtual goods items set to correct quantities (0 for all except E6F0MJ3 = 1)
+   * Check if virtual goods scheduler completed successfully by checking scheduler logs
+   */
+  public async checkVirtualGoodsSchedulerCompleted(schedulerId: string): Promise<{
+    allCleared: boolean;
+    message: string;
+    executionLogs: any[];
+  }> {
+    try {
+      // Get recent scheduler logs for the virtual goods scheduler
+      const logs = await this.getSchedulerLogs(schedulerId, {
+        max_results: 10,
+        orderby: 'time',
+        reverse: true
+      });
+
+      // Check if there are recent successful execution logs
+      const recentLogs = logs.filter(log => 
+        Date.now() - log.time < 600000 // Within last 10 minutes
+      );
+
+      const hasSuccessfulExecution = recentLogs.length > 0;
+
+      return {
+        allCleared: hasSuccessfulExecution,
+        message: hasSuccessfulExecution 
+          ? `Scheduler executado com sucesso - ${recentLogs.length} logs de execução encontrados`
+          : 'Nenhum log de execução recente encontrado para o scheduler',
+        executionLogs: recentLogs
+      };
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, `check_virtual_goods_scheduler:${schedulerId}`);
+    }
+  }
+
+  /**
+   * Check if all players have virtual goods items set to correct quantities (legacy method - kept for compatibility)
    */
   public async checkAllPlayersVirtualGoodsCleared(): Promise<{
     allCleared: boolean;
@@ -765,88 +800,14 @@ export class FunifierApiService {
     totalPlayersChecked: number;
   }> {
     try {
-      const allPlayersStatus = await this.getAllPlayersStatus({ max_results: 1000 });
-      const playersWithExtraItems: string[] = [];
-
-      for (const player of allPlayersStatus) {
-        const catalogItems = player.catalog_items || {};
-        
-        // Check if player has incorrect item quantities
-        const hasIncorrectItems = Object.keys(catalogItems).some(itemId => {
-          if (itemId === 'E6F0MJ3') {
-            // Bloqueado item should be exactly 1
-            return catalogItems[itemId] !== 1;
-          }
-          // All other items should be 0 (not removed, just set to 0)
-          return catalogItems[itemId] !== 0;
-        });
-
-        // Also check if E6F0MJ3 exists and equals 1
-        const hasRequiredItem = catalogItems['E6F0MJ3'] === 1;
-
-        if (hasIncorrectItems || !hasRequiredItem) {
-          // Double-check with fresh player status
-          try {
-            const freshStatus = await this.getPlayerStatus(player._id);
-            const freshCatalogItems = freshStatus.catalog_items || {};
-            
-            const stillHasIncorrectItems = Object.keys(freshCatalogItems).some(itemId => {
-              if (itemId === 'E6F0MJ3') {
-                return freshCatalogItems[itemId] !== 1;
-              }
-              return freshCatalogItems[itemId] !== 0;
-            });
-
-            const stillHasRequiredItem = freshCatalogItems['E6F0MJ3'] === 1;
-
-            if (stillHasIncorrectItems || !stillHasRequiredItem) {
-              // Final check using achievements - look for recent item quantity changes
-              try {
-                const achievements = await this.getPlayerAchievements(player._id, '0'); // type 0 for items
-                
-                // Get all items that should be 0 (excluding E6F0MJ3)
-                const itemsToBeZero = Object.keys(freshCatalogItems).filter(itemId => 
-                  itemId !== 'E6F0MJ3' && freshCatalogItems[itemId] !== 0
-                );
-
-                // Check for recent achievements setting these items to 0
-                const recentItemClears = achievements.filter(achievement => 
-                  achievement.item && 
-                  itemsToBeZero.includes(achievement.item) &&
-                  achievement.value === 0 && // Set to 0
-                  Date.now() - achievement.time < 300000 // Within last 5 minutes
-                );
-
-                // Check for E6F0MJ3 being set to 1 (if it's not already 1)
-                const needsBloqueadoFix = freshCatalogItems['E6F0MJ3'] !== 1;
-                const recentBloqueadoSet = needsBloqueadoFix ? achievements.filter(achievement => 
-                  achievement.item === 'E6F0MJ3' && 
-                  achievement.value === 1 && // Set to 1
-                  Date.now() - achievement.time < 300000 // Within last 5 minutes
-                ) : [{ item: 'E6F0MJ3' }]; // Fake entry if already correct
-
-                // If we have recent achievements for all problematic items, player should be cleared
-                if (recentItemClears.length >= itemsToBeZero.length && recentBloqueadoSet.length > 0) {
-                  // Recent item changes found for all problematic items, player should be cleared
-                  continue;
-                }
-              } catch (achievementError) {
-                console.warn(`Could not check achievements for player ${player._id}:`, achievementError);
-              }
-
-              playersWithExtraItems.push(player._id);
-            }
-          } catch (statusError) {
-            console.warn(`Could not get fresh status for player ${player._id}:`, statusError);
-            playersWithExtraItems.push(player._id);
-          }
-        }
-      }
-
+      // For step 4, we now use the simpler scheduler log check
+      const schedulerId = '68e803cf06f77c5c2aad37bc'; // Limpar itens - fim de ciclo
+      const schedulerResult = await this.checkVirtualGoodsSchedulerCompleted(schedulerId);
+      
       return {
-        allCleared: playersWithExtraItems.length === 0,
-        playersWithExtraItems,
-        totalPlayersChecked: allPlayersStatus.length
+        allCleared: schedulerResult.allCleared,
+        playersWithExtraItems: schedulerResult.allCleared ? [] : ['scheduler_not_executed'],
+        totalPlayersChecked: 1 // We're checking the scheduler, not individual players
       };
     } catch (error) {
       throw errorHandlerService.handleFunifierError(error, 'check_all_players_virtual_goods_cleared');

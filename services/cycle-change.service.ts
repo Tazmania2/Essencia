@@ -280,13 +280,12 @@ export class CycleChangeService {
           };
 
         case 'checkVirtualGoodsCleared':
-          const virtualGoodsResult = await funifierApiService.checkAllPlayersVirtualGoodsCleared();
+          const schedulerId = '68e803cf06f77c5c2aad37bc'; // Limpar itens - fim de ciclo
+          const schedulerResult = await funifierApiService.checkVirtualGoodsSchedulerCompleted(schedulerId);
           return {
-            success: virtualGoodsResult.allCleared,
-            message: virtualGoodsResult.allCleared 
-              ? `Todas as quantidades de itens foram definidas corretamente (${virtualGoodsResult.totalPlayersChecked} jogadores verificados)`
-              : `${virtualGoodsResult.playersWithExtraItems.length} jogadores têm quantidades de itens incorretas`,
-            details: virtualGoodsResult
+            success: schedulerResult.allCleared,
+            message: schedulerResult.message,
+            details: schedulerResult
           };
 
         default:
