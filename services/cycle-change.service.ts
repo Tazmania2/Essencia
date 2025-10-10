@@ -284,8 +284,8 @@ export class CycleChangeService {
           return {
             success: virtualGoodsResult.allCleared,
             message: virtualGoodsResult.allCleared 
-              ? `Todos os itens virtuais foram limpos corretamente (${virtualGoodsResult.totalPlayersChecked} jogadores verificados)`
-              : `${virtualGoodsResult.playersWithExtraItems.length} jogadores têm itens incorretos`,
+              ? `Todas as quantidades de itens foram definidas corretamente (${virtualGoodsResult.totalPlayersChecked} jogadores verificados)`
+              : `${virtualGoodsResult.playersWithExtraItems.length} jogadores têm quantidades de itens incorretas`,
             details: virtualGoodsResult
           };
 

@@ -757,7 +757,7 @@ export class FunifierApiService {
   }
 
   /**
-   * Check if all players have only the required virtual goods item (E6F0MJ3 - Bloqueado)
+   * Check if all players have virtual goods items set to correct quantities (0 for all except E6F0MJ3 = 1)
    */
   public async checkAllPlayersVirtualGoodsCleared(): Promise<{
     allCleared: boolean;
@@ -771,45 +771,47 @@ export class FunifierApiService {
       for (const player of allPlayersStatus) {
         const catalogItems = player.catalog_items || {};
         
-        // Check if player has items other than E6F0MJ3 (Bloqueado)
-        const hasExtraItems = Object.keys(catalogItems).some(itemId => {
+        // Check if player has incorrect item quantities
+        const hasIncorrectItems = Object.keys(catalogItems).some(itemId => {
           if (itemId === 'E6F0MJ3') {
-            // This item should be exactly 1
+            // Bloqueado item should be exactly 1
             return catalogItems[itemId] !== 1;
           }
-          // Any other item should not exist or be 0
-          return catalogItems[itemId] > 0;
+          // All other items should be 0 (not removed, just set to 0)
+          return catalogItems[itemId] !== 0;
         });
 
         // Also check if E6F0MJ3 exists and equals 1
         const hasRequiredItem = catalogItems['E6F0MJ3'] === 1;
 
-        if (hasExtraItems || !hasRequiredItem) {
+        if (hasIncorrectItems || !hasRequiredItem) {
           // Double-check with fresh player status
           try {
             const freshStatus = await this.getPlayerStatus(player._id);
             const freshCatalogItems = freshStatus.catalog_items || {};
             
-            const stillHasExtraItems = Object.keys(freshCatalogItems).some(itemId => {
+            const stillHasIncorrectItems = Object.keys(freshCatalogItems).some(itemId => {
               if (itemId === 'E6F0MJ3') {
                 return freshCatalogItems[itemId] !== 1;
               }
-              return freshCatalogItems[itemId] > 0;
+              return freshCatalogItems[itemId] !== 0;
             });
 
             const stillHasRequiredItem = freshCatalogItems['E6F0MJ3'] === 1;
 
-            if (stillHasExtraItems || !stillHasRequiredItem) {
-              // Final check using achievements - look for recent item changes
+            if (stillHasIncorrectItems || !stillHasRequiredItem) {
+              // Final check using achievements - look for recent item quantity changes
               try {
-                const achievements = await this.getPlayerAchievements(player._id);
+                const achievements = await this.getPlayerAchievements(player._id, '0'); // type 0 for items
                 const recentItemChanges = achievements.filter(achievement => 
-                  (achievement.type === 'item_removed' || achievement.type === 'item_cleared') &&
+                  achievement.item && 
+                  achievement.item !== 'E6F0MJ3' && // Not the Bloqueado item
+                  achievement.value === 0 && // Set to 0
                   Date.now() - achievement.time < 300000 // Within last 5 minutes
                 );
 
                 if (recentItemChanges.length > 0) {
-                  // Recent item changes found, player should be cleared
+                  // Recent item quantity changes found, player should be cleared
                   continue;
                 }
               } catch (achievementError) {
