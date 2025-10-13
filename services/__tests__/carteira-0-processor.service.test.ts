@@ -39,7 +39,7 @@ describe('Carteira0Processor', () => {
       },
       challenge_progress: [
         {
-          challengeId: 'E6GglPq', // Carteira 0 - Conversões
+          challengeId: 'E82R5cQ', // Carteira 0 - Conversões
           percentage: 85,
           progress: 85,
           current: 85,
@@ -211,7 +211,7 @@ describe('Carteira0Processor', () => {
     it('should include correct challenge IDs in goal details', () => {
       const result = processor.processPlayerData(mockPlayerData, mockReportData);
 
-      expect(result.primaryGoal.details.challengeIds).toEqual(['E6GglPq']);
+      expect(result.primaryGoal.details.challengeIds).toEqual(['E82R5cQ']);
       expect(result.secondaryGoal1.details.challengeIds).toEqual(['E6Gm8RI', 'E6Gke5g']);
       expect(result.secondaryGoal2.details.challengeIds).toEqual(['E6GglPq', 'E6LIVVX']);
     });
@@ -458,7 +458,7 @@ describe('Carteira0Processor', () => {
       expect(result.primaryGoal.details.isMainGoal).toBe(true);
     });
 
-    it('should use E6GglPq challenge ID for conversoes', () => {
+    it('should use E82R5cQ challenge ID for conversoes', () => {
       const result = processor.processPlayerData(mockPlayerData, mockReportData);
       
       expect(result.primaryGoal.details.challengeIds).toContain('E6GglPq');

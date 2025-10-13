@@ -85,7 +85,9 @@ export class ReportComparisonService {
             atividade: record.atividadePercentual,
             reaisPorAtivo: record.reaisPorAtivoPercentual,
             faturamento: record.faturamentoPercentual,
-            multimarcas: record.multimarcasPorAtivoPercentual
+            multimarcas: record.multimarcasPorAtivoPercentual,
+            conversoes: record.conversoesPercentual,
+            upa: record.upaPercentual
           }
         });
         storedDataMap.set(record.playerId, record);
@@ -207,7 +209,7 @@ export class ReportComparisonService {
 
     // If no stored record exists OR it's a new cycle, all values are new
     if (!storedRecord || isNewCycle) {
-      const metrics = ['atividadePercentual', 'reaisPorAtivoPercentual', 'faturamentoPercentual', 'multimarcasPorAtivoPercentual'];
+      const metrics = ['atividadePercentual', 'reaisPorAtivoPercentual', 'faturamentoPercentual', 'multimarcasPorAtivoPercentual', 'conversoesPercentual', 'upaPercentual'];
 
       metrics.forEach(metric => {
         const reportValue = (reportRecord as any)[metric];
@@ -226,7 +228,7 @@ export class ReportComparisonService {
       });
     } else {
       // Compare each metric using the correct field names
-      const metrics = ['atividadePercentual', 'reaisPorAtivoPercentual', 'faturamentoPercentual', 'multimarcasPorAtivoPercentual'];
+      const metrics = ['atividadePercentual', 'reaisPorAtivoPercentual', 'faturamentoPercentual', 'multimarcasPorAtivoPercentual', 'conversoesPercentual', 'upaPercentual'];
 
       metrics.forEach(metric => {
         const reportValue = (reportRecord as any)[metric];

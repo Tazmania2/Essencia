@@ -37,7 +37,7 @@ export class ERProcessor extends BaseTeamProcessor {
     const currentCycleDay = this.getCurrentCycleDay(reportData);
     const daysUntilCycleEnd = this.getDaysUntilCycleEnd(reportData);
 
-    // Extract goal percentages
+    // Extract goal percentage
     const faturamentoPercentage = this.extractFaturamentoPercentage(rawData, reportData);
     const reaisPorAtivoPercentage = this.extractReaisPorAtivoPercentage(rawData, reportData);
     const upaPercentage = this.extractUpaPercentage(rawData, reportData);
@@ -100,7 +100,7 @@ export class ERProcessor extends BaseTeamProcessor {
     // Priority 1: Funifier challenge progress (primary source)
     const challengeIds = CHALLENGE_MAPPING[TeamType.ER].faturamento;
     const challengeFound = this.hasChallengeData(rawData.challenge_progress || [], challengeIds);
-    
+
     if (challengeFound) {
       const challengePercentage = this.extractChallengePercentage(
         rawData.challenge_progress || [],
@@ -131,7 +131,7 @@ export class ERProcessor extends BaseTeamProcessor {
     // Priority 1: Funifier challenge progress (primary source)
     const challengeIds = CHALLENGE_MAPPING[TeamType.ER].reaisPorAtivo;
     const challengeFound = this.hasChallengeData(rawData.challenge_progress || [], challengeIds);
-    
+
     if (challengeFound) {
       const challengePercentage = this.extractChallengePercentage(
         rawData.challenge_progress || [],
@@ -162,7 +162,7 @@ export class ERProcessor extends BaseTeamProcessor {
     // Priority 1: Funifier challenge progress (primary source)
     const challengeIds = CHALLENGE_MAPPING[TeamType.ER].upa;
     const challengeFound = this.hasChallengeData(rawData.challenge_progress || [], challengeIds);
-    
+
     if (challengeFound) {
       const challengePercentage = this.extractChallengePercentage(
         rawData.challenge_progress || [],
@@ -193,11 +193,11 @@ export class ERProcessor extends BaseTeamProcessor {
         percentage: p.percent_completed || p.percentage || p.progress
       }))
     });
-    
-    const found = challengeProgress.some(progress => 
+
+    const found = challengeProgress.some(progress =>
       challengeIds.includes(progress.challenge || progress.challengeId || progress.id)
     );
-    
+
     console.log('🎯 ER - Challenge data found:', found);
     return found;
   }
@@ -295,12 +295,12 @@ export class ERProcessor extends BaseTeamProcessor {
             upa: this.extractUpaPercentage(rawData, reportData)
           },
           dataSource: {
-            faturamento: faturamentoFromChallenge > 0 ? 'challenge' : 
-                        (reportData?.faturamento !== undefined ? 'report' : 'default'),
-            reaisPorAtivo: reaisPorAtivoFromChallenge > 0 ? 'challenge' : 
-                          (reportData?.reaisPorAtivo !== undefined ? 'report' : 'default'),
-            upa: upaFromChallenge > 0 ? 'challenge' : 
-                 (reportData?.upa !== undefined ? 'report' : 'default')
+            faturamento: faturamentoFromChallenge > 0 ? 'challenge' :
+              (reportData?.faturamento !== undefined ? 'report' : 'default'),
+            reaisPorAtivo: reaisPorAtivoFromChallenge > 0 ? 'challenge' :
+              (reportData?.reaisPorAtivo !== undefined ? 'report' : 'default'),
+            upa: upaFromChallenge > 0 ? 'challenge' :
+              (reportData?.upa !== undefined ? 'report' : 'default')
           }
         },
         reportDataAnalysis: {

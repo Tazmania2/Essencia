@@ -59,7 +59,7 @@ Atividade:        E6FQIjs (Carteira I)     | E6Gv58l (Carteira II)
 Reais por Ativo:  E6Gm8RI (Geral)         | E6MTIIK (Carteira II)
 Faturamento:      E6GglPq (Carteira 0/I)  | E6Gahd4 (Carteira III/IV/ER)
 Multimarcas:      E6MWJKs (Carteira II)   | E6MMH5v (Carteira III/IV)
-Conversões:       E6GglPq (Carteira 0)
+Conversões:       E82R5cQ (Carteira 0)
 UPA:              E62x2PW (ER)
 ```
 
@@ -67,7 +67,7 @@ UPA:              E62x2PW (ER)
 
 | Team Type | Primary Goal | Secondary Goal 1 | Secondary Goal 2 |
 |-----------|--------------|------------------|------------------|
-| **Carteira 0** | E6GglPq (Conversões) | E6Gm8RI (Reais por Ativo) | E6GglPq (Faturamento) |
+| **Carteira 0** | E82R5cQ (Conversões) | E6Gm8RI (Reais por Ativo) | E6GglPq (Faturamento) |
 | **Carteira I** | E6FQIjs (Atividade) | E6Gm8RI (Reais por Ativo) | E6GglPq (Faturamento) |
 | **Carteira II** | E6MTIIK (Reais por Ativo) | E6Gv58l (Atividade) | E6MWJKs (Multimarcas) |
 | **Carteira III** | E6Gahd4 (Faturamento) | E6Gm8RI (Reais por Ativo) | E6MMH5v (Multimarcas) |

@@ -18,7 +18,7 @@ import { BaseTeamProcessor, CHALLENGE_MAPPING } from './team-processor.service';
  * - Boost status: from catalog_items (presence of boost items indicates goal completion)
  * 
  * Reuses existing challenge IDs from Carteira I for Reais por Ativo and Faturamento
- * Uses new challenge ID E6GglPq for Conversões metric
+ * Uses challenge ID E82R5cQ for Conversões metric
  */
 export class Carteira0Processor extends BaseTeamProcessor {
   constructor() {

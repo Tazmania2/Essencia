@@ -3,6 +3,10 @@ export { FunifierAuthService, funifierAuthService } from './funifier-auth.servic
 export { FunifierPlayerService, funifierPlayerService } from './funifier-player.service';
 export { FunifierDatabaseService, funifierDatabaseService, type BulkInsertResult, type AggregationPipeline } from './funifier-database.service';
 export { FunifierConfigService, funifierConfigService } from './funifier-config.service';
+export { FunifierApiService, funifierApiService, type FunifierPlayer, type FunifierPlayerStatus, type FunifierTeam, type FunifierScheduler, type SchedulerExecutionResult } from './funifier-api.service';
+
+// Cycle Change Service
+export { CycleChangeService, cycleChangeService, type CycleChangeStep, type CycleChangeProgress } from './cycle-change.service';
 
 // History and Configuration Services
 export { HistoryService, historyService, type CycleSummaryStats, type CycleComparison } from './history.service';
@@ -19,7 +23,6 @@ export { TeamProcessorFactory, teamProcessorFactory } from './team-processor-fac
 export type {
   FunifierAuthRequest,
   FunifierAuthResponse,
-  FunifierPlayerStatus,
   EssenciaReportRecord,
   LoginCredentials,
   ApiError,

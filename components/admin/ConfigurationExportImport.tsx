@@ -123,7 +123,7 @@ export const ConfigurationExportImport: React.FC<ConfigurationExportImportProps>
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target?.result as string);
-      reader.onerror = (e) => reject(new Error('Erro ao ler arquivo'));
+      reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
       reader.readAsText(file);
     });
   };
