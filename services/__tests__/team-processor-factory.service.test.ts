@@ -155,7 +155,7 @@ describe('TeamProcessorFactory', () => {
         teams: ['E6F5k30'], // Carteira 0 team ID
         challenge_progress: [
           {
-            challengeId: 'E6GglPq', // Carteira 0 - Conversões
+            challengeId: 'E82R5cQ', // Carteira 0 - Conversões
             percentage: 75
           }
         ]

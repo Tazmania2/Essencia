@@ -741,7 +741,7 @@ const ConfigurationForm: React.FC<ConfigurationFormProps> = ({
           <div>
             <strong>Multimarcas:</strong> E6MWJKs (Carteira II)<br/>
             <strong>Multimarcas:</strong> E6MMH5v (Carteira III/IV)<br/>
-            <strong>Conversões:</strong> E6GglPq (Carteira 0)<br/>
+            <strong>Conversões:</strong> E82R5cQ (Carteira 0)<br/>
             <strong>UPA:</strong> E62x2PW (ER)
           </div>
         </div>

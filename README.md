@@ -117,7 +117,7 @@ A integração utiliza:
 - `E6K79Mt`: Boost meta secundária 2
 
 ### Challenge IDs por Métrica
-- **Conversões**: `E6GglPq` (Carteira 0)
+- **Conversões**: `E82R5cQ` (Carteira 0)
 - **UPA**: `E62x2PW` (ER)
 - **Faturamento**: Reutiliza IDs existentes das Carteiras
 - **Reais por Ativo**: Reutiliza IDs existentes das Carteiras
