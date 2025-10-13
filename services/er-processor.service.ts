@@ -37,7 +37,7 @@ export class ERProcessor extends BaseTeamProcessor {
     const currentCycleDay = this.getCurrentCycleDay(reportData);
     const daysUntilCycleEnd = this.getDaysUntilCycleEnd(reportData);
 
-    // Extract goal percentages
+    // Extract goal percentage
     const faturamentoPercentage = this.extractFaturamentoPercentage(rawData, reportData);
     const reaisPorAtivoPercentage = this.extractReaisPorAtivoPercentage(rawData, reportData);
     const upaPercentage = this.extractUpaPercentage(rawData, reportData);
