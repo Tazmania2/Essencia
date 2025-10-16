@@ -241,12 +241,17 @@ export class FunifierDatabaseService {
 
       console.log('🚀 Making enhanced database request with pipeline:', JSON.stringify(pipeline));
 
+      const basicToken = process.env.FUNIFIER_BASIC_TOKEN;
+      if (!basicToken) {
+        throw new Error('FUNIFIER_BASIC_TOKEN not configured');
+      }
+
       const response = await axios.post(
         `${FUNIFIER_CONFIG.BASE_URL}/database/${FUNIFIER_CONFIG.CUSTOM_COLLECTION}/aggregate?strict=true`,
         pipeline,
         {
           headers: {
-            'Authorization': process.env.FUNIFIER_BASIC_TOKEN || '',
+            'Authorization': basicToken,
             'Content-Type': 'application/json',
           },
           timeout: 25000,
