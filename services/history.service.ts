@@ -41,6 +41,7 @@ export class HistoryService {
   // Circuit breaker to prevent rapid successive calls
   private lastCallTime: Map<string, number> = new Map();
   private readonly CALL_COOLDOWN = 5000; // 5 seconds between calls for same player
+  private activeRequests: Map<string, Promise<CycleHistoryData[]>> = new Map(); // Prevent duplicate requests
 
   private constructor() {
     this.databaseService = FunifierDatabaseService.getInstance();
@@ -58,6 +59,13 @@ export class HistoryService {
    */
   async getPlayerCycleHistory(playerId: string): Promise<CycleHistoryData[]> {
     try {
+      // ✅ PREVENT DUPLICATE REQUESTS: If there's already a request in progress, return it
+      const existingRequest = this.activeRequests.get(playerId);
+      if (existingRequest) {
+        secureLogger.log(`🔄 Returning existing request for player: ${playerId}`);
+        return await existingRequest;
+      }
+
       // ✅ CIRCUIT BREAKER: Prevent rapid successive calls
       const now = Date.now();
       const lastCall = this.lastCallTime.get(playerId);
@@ -72,9 +80,33 @@ export class HistoryService {
         return [];
       }
 
-      this.lastCallTime.set(playerId, now);
+      // Create the request promise and store it
+      const requestPromise = this.executeHistoryRequest(playerId);
+      this.activeRequests.set(playerId, requestPromise);
 
-      secureLogger.log('🔍 Getting cycle history for player:', playerId);
+      try {
+        const result = await requestPromise;
+        this.lastCallTime.set(playerId, now);
+        return result;
+      } finally {
+        // Always clean up the active request
+        this.activeRequests.delete(playerId);
+      }
+    } catch (error) {
+      secureLogger.error('❌ Error getting cycle history:', error);
+      // Clear the rate limit on error to allow immediate retry if needed
+      this.lastCallTime.delete(playerId);
+      this.activeRequests.delete(playerId);
+      return [];
+    }
+  }
+
+  /**
+   * Execute the actual history request - separated for better error handling
+   */
+  private async executeHistoryRequest(playerId: string): Promise<CycleHistoryData[]> {
+
+    secureLogger.log('🔍 Getting cycle history for player:', playerId);
 
       // ✅ Simplified approach: Get ALL reports for this player first
       let reportMetadata;
@@ -256,15 +288,6 @@ export class HistoryService {
 
       secureLogger.log(`✅ Found ${cycleHistory.length} cycles for player: ${playerId}`);
       return cycleHistory;
-    } catch (error) {
-      secureLogger.error('❌ Error getting cycle history:', error);
-
-      // Clear the rate limit on error to allow immediate retry if needed
-      this.lastCallTime.delete(playerId);
-
-      // Return empty array to prevent crashes
-      return [];
-    }
   }
 
   /**

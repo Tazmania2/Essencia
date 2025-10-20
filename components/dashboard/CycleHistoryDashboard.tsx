@@ -22,39 +22,36 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Stable loading function without dependencies that change
-  const loadCycleHistory = useCallback(async () => {
-    if (!playerId || isLoading) return;
-
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const cycleHistory = await historyService.getPlayerCycleHistory(playerId);
-      
-      setCycles(cycleHistory);
-      setHasLoaded(true);
-      
-      if (cycleHistory.length === 0) {
-        console.log('ℹ️ No historical data found for this player');
-      } else {
-        console.log(`✅ History loaded successfully: ${cycleHistory.length} cycles found`);
-      }
-    } catch (error) {
-      console.error('❌ Error loading cycle history:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load history');
-      setHasLoaded(true); // Mark as loaded even on error to prevent infinite retries
-    } finally {
-      setIsLoading(false);
-    }
-  }, [playerId, isLoading]);
-
   // ✅ Load data only once when component mounts or playerId changes
   useEffect(() => {
-    if (playerId && !hasLoaded) {
-      loadCycleHistory();
-    }
-  }, [playerId, hasLoaded, loadCycleHistory]);
+    if (!playerId || hasLoaded || isLoading) return;
+
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const cycleHistory = await historyService.getPlayerCycleHistory(playerId);
+        
+        setCycles(cycleHistory);
+        setHasLoaded(true);
+        
+        if (cycleHistory.length === 0) {
+          console.log('ℹ️ No historical data found for this player');
+        } else {
+          console.log(`✅ History loaded successfully: ${cycleHistory.length} cycles found`);
+        }
+      } catch (error) {
+        console.error('❌ Error loading cycle history:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load history');
+        setHasLoaded(true); // Mark as loaded even on error to prevent infinite retries
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [playerId, hasLoaded, isLoading]); // Only depend on primitive values
 
   // ✅ Reset when playerId changes
   useEffect(() => {
@@ -69,8 +66,9 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
 
   const handleRetry = useCallback(async () => {
     setHasLoaded(false);
-    await loadCycleHistory();
-  }, [loadCycleHistory]);
+    setError(null);
+    // The useEffect will automatically trigger when hasLoaded becomes false
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
