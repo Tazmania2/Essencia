@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CycleHistoryData } from '../../types';
 import { historyService } from '../../services/history.service';
 import { LoadingState, Skeleton } from '../ui/LoadingSpinner';
