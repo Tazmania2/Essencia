@@ -41,6 +41,7 @@ export class HistoryService {
   // Circuit breaker to prevent rapid successive calls
   private lastCallTime: Map<string, number> = new Map();
   private readonly CALL_COOLDOWN = 5000; // 5 seconds between calls for same player
+  private activeRequests: Map<string, Promise<CycleHistoryData[]>> = new Map(); // Prevent duplicate requests
 
   private constructor() {
     this.databaseService = FunifierDatabaseService.getInstance();
@@ -54,10 +55,17 @@ export class HistoryService {
   }
 
   /**
-   * Get cycle history for a player - Fetch minimal metadata, then parse CSV files
+   * Get cycle history for a player - Show all CSVs grouped by cycle number
    */
   async getPlayerCycleHistory(playerId: string): Promise<CycleHistoryData[]> {
     try {
+      // ✅ PREVENT DUPLICATE REQUESTS: If there's already a request in progress, return it
+      const existingRequest = this.activeRequests.get(playerId);
+      if (existingRequest) {
+        secureLogger.log(`🔄 Returning existing request for player: ${playerId}`);
+        return await existingRequest;
+      }
+
       // ✅ CIRCUIT BREAKER: Prevent rapid successive calls
       const now = Date.now();
       const lastCall = this.lastCallTime.get(playerId);
@@ -72,71 +80,94 @@ export class HistoryService {
         return [];
       }
 
-      this.lastCallTime.set(playerId, now);
+      // Create the request promise and store it
+      const requestPromise = this.executeHistoryRequest(playerId);
+      this.activeRequests.set(playerId, requestPromise);
 
-      secureLogger.log('🔍 Getting cycle history for player:', playerId);
+      try {
+        const result = await requestPromise;
+        this.lastCallTime.set(playerId, now);
+        return result;
+      } finally {
+        // Always clean up the active request
+        this.activeRequests.delete(playerId);
+      }
+    } catch (error) {
+      secureLogger.error('❌ Error getting cycle history:', error);
+      // Clear the rate limit on error to allow immediate retry if needed
+      this.lastCallTime.delete(playerId);
+      this.activeRequests.delete(playerId);
+      return [];
+    }
+  }
 
-      // LIMIT CSV downloads to prevent loops and crashes
-      const MAX_CSV_DOWNLOADS = 10; // Circuit breaker
+  /**
+   * Execute the actual history request - separated for better error handling
+   */
+  private async executeHistoryRequest(playerId: string): Promise<CycleHistoryData[]> {
 
-      // Use MongoDB aggregation pipeline for better performance (Funifier preferred method)
-      const aggregationPipeline = [
-        {
-          $match: {
-            playerId: playerId,
-            uploadUrl: { $exists: true, $ne: null },
-            status: 'REGISTERED',
-          },
-        },
-        {
-          $addFields: {
-            // ✅ Treat records without cycleNumber as cycle 1
-            cycleNumber: {
-              $ifNull: ['$cycleNumber', 1],
+    secureLogger.log('🔍 Getting cycle history for player:', playerId);
+
+      // ✅ Simplified approach: Get ALL reports for this player first
+      let reportMetadata;
+      
+      // Try simple query first - but we need to cast to EnhancedReportRecord since that has uploadUrl
+      try {
+        const allReports = await this.databaseService.getReportData({ playerId });
+        secureLogger.log(`📊 Found ${allReports.length} total reports for player: ${playerId}`);
+        
+        // Filter for reports with CSV files - cast to any to access uploadUrl and status
+        reportMetadata = allReports.filter((report: any) => 
+          report.uploadUrl && 
+          report.uploadUrl.trim() !== '' &&
+          (report.status === 'REGISTERED' || !report.status) // Some reports might not have status
+        );
+        
+        secureLogger.log(`📊 Found ${reportMetadata.length} reports with CSV files`);
+        
+      } catch (simpleQueryError) {
+        secureLogger.error('Simple query failed, trying aggregation:', simpleQueryError);
+        
+        // Fallback to aggregation if simple query fails
+        const aggregationPipeline = [
+          {
+            $match: {
+              playerId: playerId,
+              uploadUrl: { $exists: true, $ne: null },
             },
           },
-        },
-        {
-          $sort: { reportDate: -1 }, // Most recent first
-        },
-        {
-          $limit: MAX_CSV_DOWNLOADS, // Limit results to prevent overload
-        },
-        {
-          $project: {
-            _id: 1,
-            playerId: 1,
-            reportDate: 1,
-            uploadUrl: 1,
-            status: 1,
-            cycleNumber: 1,
-            time: 1,
+          {
+            $sort: { reportDate: 1 },
           },
-        },
-      ];
+        ];
 
-      // Get minimal report metadata with timeout protection using aggregation
-      let reportMetadata;
-      try {
-        reportMetadata = (await Promise.race([
-          this.databaseService.aggregateReportData(aggregationPipeline),
-          new Promise((_, reject) =>
-            setTimeout(
-              () => reject(new Error('Database aggregation timeout')),
-              10000
-            )
-          ),
-        ])) as any[];
-      } catch (dbError) {
-        secureLogger.error(
-          `❌ Database aggregation error for player ${playerId}:`,
-          dbError
-        );
-        return [];
+        try {
+          reportMetadata = (await Promise.race([
+            this.databaseService.aggregateReportData(aggregationPipeline),
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error('Database aggregation timeout')),
+                10000
+              )
+            ),
+          ])) as any[];
+          
+          secureLogger.log(`📋 Aggregation returned ${reportMetadata?.length || 0} results`);
+        } catch (dbError) {
+          secureLogger.error(
+            `❌ Database aggregation error for player ${playerId}:`,
+            dbError
+          );
+          return [];
+        }
       }
 
       if (!reportMetadata || reportMetadata.length === 0) {
         secureLogger.log(`❌ No report metadata found for player: ${playerId}`);
+        
+        // ✅ Try to understand why no data was found
+        secureLogger.log(`🔍 No CSV reports found for player: ${playerId}`);
+        
         return [];
       }
 
@@ -144,105 +175,68 @@ export class HistoryService {
         `📋 Found ${reportMetadata.length} reports with CSV files for player: ${playerId}`
       );
 
-      // LIMIT CSV downloads to prevent loops and crashes (using constant defined above)
-      const limitedMetadata = reportMetadata.slice(0, MAX_CSV_DOWNLOADS);
+      // ✅ Process ALL reports and group by cycle number from CSV
+      const cycleMap = new Map<number, any[]>();
 
-      if (reportMetadata.length > MAX_CSV_DOWNLOADS) {
-        secureLogger.warn(
-          `⚠️ Limiting CSV downloads to ${MAX_CSV_DOWNLOADS} out of ${reportMetadata.length} reports for player: ${playerId}`
-        );
-      }
-
-      // Process reports sequentially to avoid overwhelming the system
-      const validCycleData = [];
-
-      for (const metadata of limitedMetadata) {
+      for (const metadata of reportMetadata) {
         try {
           const enhancedRecord = metadata as any as EnhancedReportRecord;
 
-          if (!enhancedRecord.uploadUrl) {
+          if (!(enhancedRecord as any).uploadUrl) {
             secureLogger.warn(`⚠️ No uploadUrl for report: ${metadata._id}`);
             continue;
           }
 
-          // Parse CSV to get actual goal data
-          const csvData =
-            await this.databaseService.getCSVGoalData(enhancedRecord);
+          // Parse CSV to get actual goal data and cycle info
+          const csvData = await this.databaseService.getCSVGoalData(enhancedRecord);
 
           if (!csvData) {
-            secureLogger.warn(
-              `⚠️ Failed to parse CSV for report: ${metadata._id}`
-            );
+            secureLogger.warn(`⚠️ Failed to parse CSV for report: ${metadata._id}`);
             continue;
           }
 
-          validCycleData.push({
+          // ✅ Use the cycle number from the database record, defaulting to 1 if not present
+          const cycleNumber = (metadata as any).cycleNumber || 1;
+
+          if (!cycleMap.has(cycleNumber)) {
+            cycleMap.set(cycleNumber, []);
+          }
+
+          cycleMap.get(cycleNumber)!.push({
             reportDate: metadata.reportDate,
             cycleDay: csvData.cycleDay,
             totalCycleDays: csvData.totalCycleDays,
             csvData,
-            uploadUrl: enhancedRecord.uploadUrl,
+            uploadUrl: (enhancedRecord as any).uploadUrl,
+            cycleNumber: cycleNumber,
           });
+
         } catch (error) {
-          secureLogger.warn(
-            `⚠️ Error processing report ${metadata._id}:`,
-            error
-          );
+          secureLogger.warn(`⚠️ Error processing report ${metadata._id}:`, error);
           // Continue processing other reports instead of failing completely
         }
       }
 
-      if (validCycleData.length === 0) {
-        secureLogger.log(
-          `❌ No valid cycle data found for player: ${playerId}`
-        );
+      if (cycleMap.size === 0) {
+        secureLogger.log(`❌ No valid cycle data found for player: ${playerId}`);
         return [];
       }
 
-      // Group by cycle (estimate cycle number from dates and cycle days)
-      const cycleMap = new Map<number, typeof validCycleData>();
-
-      validCycleData.forEach((data) => {
-        // Estimate cycle number based on report date and cycle day
-        const reportDate = new Date(data.reportDate);
-        const cycleStartDate = new Date(reportDate);
-        cycleStartDate.setDate(reportDate.getDate() - (data.cycleDay - 1));
-
-        // Use cycle start date as cycle identifier (convert to cycle number)
-        const cycleNumber = Math.floor(
-          cycleStartDate.getTime() / (1000 * 60 * 60 * 24 * data.totalCycleDays)
-        );
-
-        if (!cycleMap.has(cycleNumber)) {
-          cycleMap.set(cycleNumber, []);
-        }
-        cycleMap.get(cycleNumber)!.push(data);
-      });
-
-      // Convert to CycleHistoryData format
-      const cycleHistory: CycleHistoryData[] = Array.from(
-        cycleMap.entries()
-      ).map(([cycleNumber, cycleReports]) => {
-        // Sort reports by date
-        cycleReports.sort(
-          (a, b) =>
-            new Date(a.reportDate).getTime() - new Date(b.reportDate).getTime()
-        );
+      // ✅ Convert to CycleHistoryData format
+      const cycleHistory: CycleHistoryData[] = Array.from(cycleMap.entries()).map(([cycleNumber, cycleReports]) => {
+        // Sort reports by date within each cycle
+        cycleReports.sort((a, b) => new Date(a.reportDate).getTime() - new Date(b.reportDate).getTime());
 
         const firstReport = cycleReports[0];
         const lastReport = cycleReports[cycleReports.length - 1];
 
-        // Calculate cycle start and end dates
+        // Calculate cycle start and end dates based on first report
         const firstReportDate = new Date(firstReport.reportDate);
         const cycleStartDate = new Date(firstReportDate);
-        cycleStartDate.setDate(
-          firstReportDate.getDate() - (firstReport.cycleDay - 1)
-        );
+        cycleStartDate.setDate(firstReportDate.getDate() - (firstReport.cycleDay - 1));
 
         const cycleEndDate = new Date(cycleStartDate);
-        cycleEndDate.setDate(
-          cycleStartDate.getDate() + firstReport.totalCycleDays - 1
-        );
+        cycleEndDate.setDate(cycleStartDate.getDate() + firstReport.totalCycleDays - 1);
 
         return {
           cycleNumber,
@@ -292,19 +286,8 @@ export class HistoryService {
       // Sort by cycle number (most recent first)
       cycleHistory.sort((a, b) => b.cycleNumber - a.cycleNumber);
 
-      secureLogger.log(
-        `✅ Found ${cycleHistory.length} cycles for player: ${playerId}`
-      );
+      secureLogger.log(`✅ Found ${cycleHistory.length} cycles for player: ${playerId}`);
       return cycleHistory;
-    } catch (error) {
-      secureLogger.error('❌ Error getting cycle history:', error);
-
-      // Clear the rate limit on error to allow immediate retry if needed
-      this.lastCallTime.delete(playerId);
-
-      // Return empty array to prevent crashes
-      return [];
-    }
   }
 
   /**

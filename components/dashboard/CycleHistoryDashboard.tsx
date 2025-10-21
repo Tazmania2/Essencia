@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CycleHistoryData } from '../../types';
 import { historyService } from '../../services/history.service';
 import { LoadingState, Skeleton } from '../ui/LoadingSpinner';
-import { useHistoryLoading } from '../../hooks/useLoadingState';
-import { useNotificationHelpers } from '../ui/NotificationSystem';
 
 interface CycleHistoryDashboardProps {
   playerId: string;
@@ -20,49 +18,57 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
 }) => {
   const [cycles, setCycles] = useState<CycleHistoryData[]>([]);
   const [expandedCycle, setExpandedCycle] = useState<number | null>(null);
-  const { loadingState, executeWithLoading, retry } = useHistoryLoading();
-  const { notifyHistoryLoaded, notifyNoHistoryData } = useNotificationHelpers();
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // ✅ Load data only once when component mounts or playerId changes
   useEffect(() => {
-    let isMounted = true; // Prevent state updates if component unmounts
-    
-    const loadCycleHistory = async () => {
-      if (!playerId || !isMounted) return;
+    if (!playerId || hasLoaded || isLoading) return;
 
-      const result = await executeWithLoading(
-        async () => {
-          const cycleHistory = await historyService.getPlayerCycleHistory(playerId);
-          return cycleHistory;
-        },
-        'Carregando histórico de ciclos...'
-      );
-
-      if (result && isMounted) {
-        setCycles(result);
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
         
-        if (result.length === 0) {
-          notifyNoHistoryData();
+        const cycleHistory = await historyService.getPlayerCycleHistory(playerId);
+        
+        setCycles(cycleHistory);
+        setHasLoaded(true);
+        
+        if (cycleHistory.length === 0) {
+          console.log('ℹ️ No historical data found for this player');
         } else {
-          notifyHistoryLoaded(result.length);
+          console.log(`✅ History loaded successfully: ${cycleHistory.length} cycles found`);
         }
+      } catch (error) {
+        console.error('❌ Error loading cycle history:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load history');
+        setHasLoaded(true); // Mark as loaded even on error to prevent infinite retries
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    loadCycleHistory();
-    
-    // Cleanup function to prevent memory leaks
-    return () => {
-      isMounted = false;
-    };
-  }, [playerId, executeWithLoading, notifyHistoryLoaded, notifyNoHistoryData]);
+    loadData();
+  }, [playerId, hasLoaded, isLoading]); // Only depend on primitive values
+
+  // ✅ Reset when playerId changes
+  useEffect(() => {
+    setHasLoaded(false);
+    setCycles([]);
+    setExpandedCycle(null);
+  }, [playerId]);
 
   const handleCycleToggle = (cycleNumber: number) => {
     setExpandedCycle(expandedCycle === cycleNumber ? null : cycleNumber);
   };
 
-  const handleRetry = async () => {
-    await retry();
-  };
+  const handleRetry = useCallback(async () => {
+    setHasLoaded(false);
+    setError(null);
+    // The useEffect will automatically trigger when hasLoaded becomes false
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
@@ -86,7 +92,7 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
             )}
           </div>
           
-          {!loadingState.isLoading && !loadingState.error && cycles.length > 0 && (
+          {!isLoading && !error && cycles.length > 0 && (
             <div className="mt-4 text-sm text-gray-500">
               {cycles.length} ciclo{cycles.length !== 1 ? 's' : ''} encontrado{cycles.length !== 1 ? 's' : ''}
             </div>
@@ -94,11 +100,11 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
         </div>
 
         <LoadingState
-          isLoading={loadingState.isLoading}
-          error={loadingState.error}
-          isEmpty={cycles.length === 0}
+          isLoading={isLoading}
+          error={error}
+          isEmpty={cycles.length === 0 && hasLoaded}
           emptyMessage="Nenhum histórico de ciclos encontrado para este jogador"
-          loadingMessage={loadingState.message || 'Carregando histórico...'}
+          loadingMessage="Carregando histórico..."
           onRetry={handleRetry}
           className="min-h-[400px]"
         >
@@ -116,7 +122,7 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
         </LoadingState>
 
         {/* Loading skeleton */}
-        {loadingState.isLoading && (
+        {isLoading && (
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, index) => (
               <CycleHistoryCardSkeleton key={index} />
