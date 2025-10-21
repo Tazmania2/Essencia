@@ -284,7 +284,7 @@ function AdminPlayersContent() {
               <select
                 value={teamFilter}
                 onChange={(e) => setTeamFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
               >
                 <option value="all">Todas as Equipes</option>
                 {availableTeams.map(team => (
@@ -718,7 +718,7 @@ function EditPlayerModal({ player, onClose, onSuccess }: EditPlayerModalProps) {
         await funifierApiService.updatePlayerImage(player._id, formData.imageUrl);
       }
 
-      // Handle team changes
+      // Handle team changes (using individual operations since they work correctly)
       const currentTeams = player.status?.teams || [];
       const newTeams = formData.teams;
       
@@ -736,11 +736,20 @@ function EditPlayerModal({ player, onClose, onSuccess }: EditPlayerModalProps) {
         }
       }
 
-      // Update player status with new name if changed
+      // Update player data (name, email, image) if changed
+      const playerUpdates: any = {};
+      
       if (formData.name !== (player.status?.name || player.name)) {
-        await funifierApiService.updatePlayerStatus(player._id, {
-          name: formData.name
-        });
+        playerUpdates.name = formData.name;
+      }
+      
+      if (formData.email !== player.email) {
+        playerUpdates.email = formData.email;
+      }
+      
+      // Only update player data if there are changes (not teams, those are handled above)
+      if (Object.keys(playerUpdates).length > 0) {
+        await funifierApiService.updatePlayer(player._id, playerUpdates);
       }
 
       onSuccess();

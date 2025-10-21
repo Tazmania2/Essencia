@@ -259,18 +259,59 @@ export class FunifierApiService {
   }
 
   /**
-   * Update player status
+   * Update player (complete player object)
    */
-  public async updatePlayerStatus(playerId: string, statusData: Partial<FunifierPlayerStatus>): Promise<void> {
+  public async updatePlayer(playerId: string, playerData: Partial<FunifierPlayer>): Promise<FunifierPlayer> {
     try {
-      await axios.post(
-        `${FUNIFIER_CONFIG.BASE_URL}/player/${playerId}/status`,
-        statusData,
+      const response = await axios.post<FunifierPlayer>(
+        `${FUNIFIER_CONFIG.BASE_URL}/player`,
+        {
+          _id: playerId,
+          ...playerData
+        },
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
         }
       );
+
+      return response.data;
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, `update_player:${playerId}`);
+    }
+  }
+
+  /**
+   * Update player teams directly
+   */
+  public async updatePlayerTeams(playerId: string, teamIds: string[]): Promise<void> {
+    try {
+      // Get current player data first
+      const currentPlayer = await this.getPlayerById(playerId);
+      
+      // Update the player with the new teams
+      await this.updatePlayer(playerId, {
+        ...currentPlayer,
+        teams: teamIds
+      });
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, `update_player_teams:${playerId}`);
+    }
+  }
+
+  /**
+   * Update player status (legacy method - now uses updatePlayer)
+   */
+  public async updatePlayerStatus(playerId: string, statusData: Partial<FunifierPlayerStatus>): Promise<void> {
+    try {
+      // Get current player data first
+      const currentPlayer = await this.getPlayerById(playerId);
+      
+      // Update the player with the new data
+      await this.updatePlayer(playerId, {
+        ...currentPlayer,
+        ...statusData
+      });
     } catch (error) {
       throw errorHandlerService.handleFunifierError(error, `update_player_status:${playerId}`);
     }
@@ -346,9 +387,8 @@ export class FunifierApiService {
    */
   public async addPlayerToTeam(teamId: string, playerId: string): Promise<void> {
     try {
-      await axios.post(
+      await axios.get(
         `${FUNIFIER_CONFIG.BASE_URL}/team/${teamId}/member/add/${playerId}`,
-        {},
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -364,9 +404,8 @@ export class FunifierApiService {
    */
   public async removePlayerFromTeam(teamId: string, playerId: string): Promise<void> {
     try {
-      await axios.post(
+      await axios.get(
         `${FUNIFIER_CONFIG.BASE_URL}/team/${teamId}/member/remove/${playerId}`,
-        {},
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,

@@ -377,6 +377,27 @@ export const DataExport: React.FC<DataExportProps> = ({ className = '' }) => {
 
   return (
     <div className={`space-y-6 ${className}`}>
+      <style jsx>{`
+        input[type="date"]::-webkit-calendar-picker-indicator {
+          color: #374151;
+          opacity: 1;
+        }
+        input[type="date"]::-webkit-datetime-edit {
+          color: #374151;
+        }
+        input[type="date"]::-webkit-datetime-edit-text {
+          color: #374151;
+        }
+        input[type="date"]::-webkit-datetime-edit-month-field {
+          color: #374151;
+        }
+        input[type="date"]::-webkit-datetime-edit-day-field {
+          color: #374151;
+        }
+        input[type="date"]::-webkit-datetime-edit-year-field {
+          color: #374151;
+        }
+      `}</style>
       {/* Filters Section */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Filtros de Exportação</h3>
@@ -395,7 +416,7 @@ export const DataExport: React.FC<DataExportProps> = ({ className = '' }) => {
                 ...prev,
                 dateRange: { ...prev.dateRange, start: e.target.value }
               }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-boticario-pink focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-boticario-pink focus:border-transparent text-gray-900 bg-white"
             />
           </div>
           
@@ -411,7 +432,7 @@ export const DataExport: React.FC<DataExportProps> = ({ className = '' }) => {
                 ...prev,
                 dateRange: { ...prev.dateRange, end: e.target.value }
               }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-boticario-pink focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-boticario-pink focus:border-transparent text-gray-900 bg-white"
             />
           </div>
         </div>
