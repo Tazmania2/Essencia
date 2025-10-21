@@ -10,8 +10,8 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: 'Funifier Dashboard - Essência',
-  description: 'Dashboard de gamificação integrado com Funifier para o grupo Essência',
+  title: 'Game Essência',
+  description: 'Game Essência – Sua Jornada de Conquistas. Acompanhe seu desempenho, conquiste medalhas e avance nas missões do Game Essência!',
 }
 
 export default function RootLayout({
