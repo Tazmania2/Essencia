@@ -263,7 +263,7 @@ export class FunifierApiService {
    */
   public async updatePlayerStatus(playerId: string, statusData: Partial<FunifierPlayerStatus>): Promise<void> {
     try {
-      await axios.post(
+      await axios.put(
         `${FUNIFIER_CONFIG.BASE_URL}/player/${playerId}/status`,
         statusData,
         {
@@ -346,9 +346,8 @@ export class FunifierApiService {
    */
   public async addPlayerToTeam(teamId: string, playerId: string): Promise<void> {
     try {
-      await axios.post(
+      await axios.get(
         `${FUNIFIER_CONFIG.BASE_URL}/team/${teamId}/member/add/${playerId}`,
-        {},
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -364,9 +363,8 @@ export class FunifierApiService {
    */
   public async removePlayerFromTeam(teamId: string, playerId: string): Promise<void> {
     try {
-      await axios.post(
+      await axios.get(
         `${FUNIFIER_CONFIG.BASE_URL}/team/${teamId}/member/remove/${playerId}`,
-        {},
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
