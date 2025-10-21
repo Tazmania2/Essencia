@@ -104,7 +104,7 @@ function AdminContent() {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <p className="text-red-800">{error}</p>
-          <button 
+          <button
             onClick={loadDashboardStats}
             className="mt-2 text-red-600 hover:text-red-800 underline"
           >
@@ -247,7 +247,7 @@ function AdminContent() {
       <div className="bg-white rounded-2xl shadow-xl p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">📊 Atividade Recente</h2>
-          <button 
+          <button
             onClick={loadDashboardStats}
             className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
           >

@@ -53,7 +53,7 @@ export class CycleChangeService {
       validation: 'checkChallengeProgressCleared'
     },
     {
-      id: '68e803cf06f77c5c2aad37bc',
+      id: '68f7c841e179d46fce25195e',
       name: 'Limpar itens - fim de ciclo',
       description: 'Remove itens virtuais, mantendo apenas o item Bloqueado (E6F0MJ3)',
       validation: 'checkVirtualGoodsCleared'
@@ -280,7 +280,7 @@ export class CycleChangeService {
           };
 
         case 'checkVirtualGoodsCleared':
-          const schedulerId = '68e803cf06f77c5c2aad37bc'; // Limpar itens - fim de ciclo
+          const schedulerId = '68f7c841e179d46fce25195e'; // Limpar itens - fim de ciclo
           const schedulerResult = await funifierApiService.checkVirtualGoodsSchedulerCompleted(schedulerId);
           return {
             success: schedulerResult.allCleared,
