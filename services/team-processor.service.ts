@@ -226,8 +226,9 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
       }
       
       // Fallback: when locked, show total points (maintains current behavior)
-    // In a real scenario, this might need to be 0 or a calculated value
-    return totalPoints;
+      // In a real scenario, this might need to be 0 or a calculated value
+      return totalPoints;
+    }
   }
 
   /**
