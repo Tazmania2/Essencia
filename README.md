@@ -1,238 +1,318 @@
-# Funifier Gamification Dashboard
+# Funifier Gamification Dashboard - Complete System Documentation
 
-Dashboard de gamificação integrado com a plataforma Funifier para o grupo Essência (distribuidora do Boticário). O sistema oferece interfaces personalizadas para jogadores visualizarem suas métricas de gamificação e para administradores gerenciarem dados e sincronizarem informações.
+## 🎯 Overview
 
-## Funcionalidades
+The **Funifier Gamification Dashboard** is a comprehensive Next.js application designed for Grupo Essência (O Boticário distributor) that provides gamification management and visualization capabilities. The system integrates with the Funifier platform to deliver personalized dashboards for different team types and comprehensive administrative tools.
 
-### Dashboard do Jogador
-- Visualização personalizada de métricas por time (Carteira 0, Carteira I, II, III, IV, ER)
-- Acompanhamento de pontos, metas e progresso do ciclo
-- Interface responsiva com design O Boticário
-- Indicadores visuais de boost e desbloqueio de pontos
-- Seleção automática de time ou modal de seleção para usuários com múltiplos times
+## 🏗️ System Architecture
 
-### Dashboard Administrativo
-- Visualização de dados de todos os jogadores
-- Upload e processamento de relatórios
-- Sincronização automática com API Funifier
-- Exportação de dados
+### Core Components
 
-## Tecnologias
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Frontend (Next.js 14)                   │
+├─────────────────────────────────────────────────────────────┤
+│  • Player Dashboards (6 team types)                        │
+│  • Admin Interface (Configuration, Reports, Players)       │
+│  • Authentication & Team Selection                         │
+│  • History & Analytics Views                               │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Service Layer                            │
+├─────────────────────────────────────────────────────────────┤
+│  • Team Processors (Business Logic)                        │
+│  • Dashboard Configuration Service                         │
+│  • Report Processing & Comparison                          │
+│  • CSV Data Processing                                     │
+│  • Action Log Generation                                   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 Funifier Platform                          │
+├─────────────────────────────────────────────────────────────┤
+│  • REST API v3 (Player Status, Teams, Challenges)         │
+│  • Database Collections (Reports, Configuration)          │
+│  • Authentication & Authorization                          │
+│  • Action Logs & Challenge Progress                        │
+└─────────────────────────────────────────────────────────────┘
+```
 
-- **Frontend**: Next.js 14, React 18, TypeScript
-- **Styling**: Tailwind CSS
+## 🎮 Team Types & Configurations
+
+The system supports 6 distinct team types, each with unique metrics and processing logic:
+
+### 1. **Carteira 0** (New Customer Acquisition)
+- **Primary Goal**: Conversões (Conversions)
+- **Secondary Goals**: Reais por Ativo, Faturamento
+- **Challenge ID**: `E82R5cQ` (Conversões)
+- **Team ID**: `E6F5k30`
+- **Processing**: Direct Funifier API integration
+
+### 2. **Carteira I** (Activity-Based)
+- **Primary Goal**: Atividade (Activity)
+- **Secondary Goals**: Reais por Ativo, Faturamento
+- **Challenge ID**: `E6FQIjs` (Atividade)
+- **Team ID**: `E6F4sCh`
+- **Processing**: Direct Funifier API integration
+
+### 3. **Carteira II** (Revenue per Asset Focus)
+- **Primary Goal**: Reais por Ativo (controls unlock)
+- **Secondary Goals**: Atividade, Multimarcas por Ativo
+- **Challenge ID**: `E6MTIIK` (Reais por Ativo)
+- **Team ID**: `E6F4O1b`
+- **Processing**: Local processing with multipliers
+
+### 4. **Carteira III** (Revenue Focus)
+- **Primary Goal**: Faturamento (Revenue)
+- **Secondary Goals**: Reais por Ativo, Multimarcas por Ativo
+- **Challenge ID**: `E6Gahd4` (Faturamento)
+- **Team ID**: `E6F4Xf2`
+- **Processing**: Direct Funifier API integration
+
+### 5. **Carteira IV** (Revenue Focus)
+- **Primary Goal**: Faturamento (Revenue)
+- **Secondary Goals**: Reais por Ativo, Multimarcas por Ativo
+- **Challenge ID**: `E6Gahd4` (Faturamento)
+- **Team ID**: `E6F41Bb`
+- **Processing**: Direct Funifier API integration
+
+### 6. **ER** (Relationship Team)
+- **Primary Goal**: Faturamento (Revenue)
+- **Secondary Goals**: Reais por Ativo, UPA
+- **Challenge ID**: `E6Gahd4` (Faturamento), `E62x2PW` (UPA)
+- **Team ID**: `E500AbT`
+- **Processing**: Direct Funifier API integration
+- **Special Feature**: "Medalhas" button (Coming Soon)
+
+## 🔧 Technical Stack
+
+### Frontend
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS with O Boticário brand colors
 - **State Management**: React Query (TanStack Query)
 - **HTTP Client**: Axios
-- **Code Quality**: ESLint, Prettier
-- **Deployment**: Vercel
+- **Forms**: React Hook Form
 
-## Estrutura do Projeto
+### Backend Services
+- **API Routes**: Next.js serverless functions
+- **Authentication**: Custom JWT-based system
+- **File Processing**: Papa Parse (CSV), XLSX
+- **Caching**: In-memory caching with TTL
 
-```
-├── components/          # Componentes React reutilizáveis
-│   ├── auth/           # Componentes de autenticação
-│   ├── dashboard/      # Componentes do dashboard
-│   ├── admin/          # Componentes administrativos
-│   └── ui/             # Componentes de interface base
-├── pages/              # Páginas Next.js
-├── services/           # Serviços de integração com APIs
-├── types/              # Definições TypeScript
-├── utils/              # Utilitários e helpers
-├── styles/             # Estilos globais
-└── public/             # Assets estáticos
-```
+### External Integrations
+- **Funifier API**: REST API v3 integration
+- **Database**: Funifier custom collections
+- **Authentication**: Funifier Basic Auth tokens
 
-## Configuração do Ambiente
+## 📊 Key Features
 
-### Pré-requisitos
-- Node.js 18+ 
-- npm ou yarn
+### 🎯 Player Dashboards
+- **Personalized Metrics**: Team-specific goal tracking
+- **Real-time Data**: Live integration with Funifier API
+- **Progress Visualization**: Interactive progress bars and cards
+- **Boost Indicators**: Visual feedback for active boosts
+- **Points Display**: Smart locked/unlocked points logic
+- **Cycle Information**: Current cycle day and remaining time
+- **History Access**: Complete cycle history with timeline
+
+### 🛠️ Administrative Interface
+
+#### Configuration Management
+- **Dynamic Dashboard Configuration**: Customize goals, challenge IDs, and display names per team
+- **CSV Field Mapping**: Configure which CSV fields map to which metrics
+- **Challenge ID Management**: Update Funifier challenge IDs through UI
+- **Unsaved Changes Protection**: Prevent accidental data loss
+- **Export/Import**: Configuration backup and restore
+
+#### Player Management
+- **Complete Player Overview**: View all players with detailed information
+- **Team Membership**: Visual team badges and admin status
+- **Real-time Status**: Live points, challenges, and progress data
+- **Advanced Filtering**: Search by name/ID and filter by team
+- **Funifier Integration**: Direct API integration for player operations
+
+#### Report Processing
+- **CSV Upload**: Multi-player report processing
+- **Data Validation**: Comprehensive validation with error reporting
+- **Comparison Logic**: Intelligent duplicate detection
+- **Action Log Generation**: Automatic Funifier action log creation
+- **Progress Tracking**: Real-time upload progress
+
+#### Cycle Management
+- **Automated Cycle Change**: 4-step scheduler execution
+- **Real-time Validation**: Step-by-step validation and progress tracking
+- **Safety Features**: Process cancellation and error recovery
+- **Comprehensive Logging**: Detailed execution logs for debugging
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
 - Git
 
-### Instalação
+### Installation
 
-1. Clone o repositório:
+1. **Clone the repository:**
 ```bash
 git clone <repository-url>
 cd funifier-gamification-dashboard
 ```
 
-2. Instale as dependências:
+2. **Install dependencies:**
 ```bash
 npm install
-# ou
-yarn install
 ```
 
-3. Configure as variáveis de ambiente:
+3. **Configure environment variables:**
 ```bash
 cp .env.example .env.local
 ```
 
-Edite o arquivo `.env.local` com suas configurações:
+Edit `.env.local` with your configuration:
 ```env
-FUNIFIER_API_KEY=your_api_key_here
+FUNIFIER_API_KEY=your_funifier_api_key_here
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
-NEXTAUTH_SECRET=your_nextauth_secret
+FUNIFIER_BASIC_TOKEN=your_basic_auth_token_here
+NEXTAUTH_SECRET=your_nextauth_secret_here
 NEXTAUTH_URL=http://localhost:3000
+NODE_ENV=development
 ```
 
-4. Execute o projeto em desenvolvimento:
+4. **Run the development server:**
 ```bash
 npm run dev
-# ou
-yarn dev
 ```
 
-5. Acesse http://localhost:3000
+5. **Access the application:**
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Scripts Disponíveis
+## 📁 Project Structure
 
-- `npm run dev` - Executa em modo desenvolvimento
-- `npm run build` - Gera build de produção
-- `npm run start` - Executa build de produção
-- `npm run lint` - Executa ESLint
-- `npm run lint:fix` - Corrige problemas do ESLint automaticamente
-- `npm run type-check` - Verifica tipos TypeScript
-- `npm test` - Executa testes
+```
+├── app/                          # Next.js App Router
+│   ├── admin/                    # Admin interface pages
+│   │   ├── configuration/        # Dashboard configuration
+│   │   ├── cycle-change/         # Cycle management
+│   │   ├── players/              # Player management
+│   │   └── reports/              # Report processing
+│   ├── api/                      # API routes
+│   ├── dashboard/                # Player dashboard
+│   ├── history/                  # Cycle history
+│   └── login/                    # Authentication
+├── components/                   # React components
+│   ├── admin/                    # Admin-specific components
+│   ├── auth/                     # Authentication components
+│   ├── dashboard/                # Dashboard components
+│   └── ui/                       # Reusable UI components
+├── services/                     # Business logic services
+│   ├── team processors/          # Team-specific logic
+│   ├── funifier integration/     # API services
+│   ├── data processing/          # CSV and report handling
+│   └── configuration/            # Configuration management
+├── types/                        # TypeScript definitions
+├── utils/                        # Utility functions
+└── contexts/                     # React contexts
+```
 
-## Integração com Funifier
+## 🔧 Available Scripts
 
-O sistema integra com a API Funifier v3 para:
-- Autenticação de usuários
-- Recuperação de dados de jogadores
-- Gerenciamento de collections customizadas
-- Envio de action logs
+```bash
+npm run dev          # Development server
+npm run build        # Production build
+npm run start        # Production server
+npm run lint         # ESLint check
+npm run lint:fix     # ESLint auto-fix
+npm run type-check   # TypeScript check
+npm run test         # Run tests
+npm run test:e2e     # E2E tests
+```
 
-### Configuração da API
+## 🚀 Deployment
 
-A integração utiliza:
-- **API Key**: `[configured_via_environment_variable]`
-- **Base URL**: `https://service2.funifier.com/v3`
-- **Collection**: `essencia_reports__c`
+### Vercel (Recommended)
 
-### Catalog Items Importantes
-- `E6F0O5f`: Desbloqueio de pontos
-- `E6F0WGc`: Boost meta secundária 1
-- `E6K79Mt`: Boost meta secundária 2
+The project is optimized for Vercel deployment:
 
-### Challenge IDs por Métrica
-- **Conversões**: `E82R5cQ` (Carteira 0)
-- **UPA**: `E62x2PW` (ER)
-- **Faturamento**: Reutiliza IDs existentes das Carteiras
-- **Reais por Ativo**: Reutiliza IDs existentes das Carteiras
+1. **Connect your repository** to Vercel
+2. **Configure environment variables** in Vercel dashboard
+3. **Deploy automatically** on push to main branch
 
-## Formato CSV Estendido
-
-### Estrutura do Arquivo
-O sistema suporta upload de arquivos CSV com as seguintes colunas:
-
-**Colunas Obrigatórias:**
-- Player ID, Dia do Ciclo, Total Dias Ciclo
-- Faturamento Meta, Faturamento Atual, Faturamento %
-- Reais por Ativo Meta, Reais por Ativo Atual, Reais por Ativo %
-- Atividade Meta, Atividade Atual, Atividade %
-- Multimarcas por Ativo Meta, Multimarcas por Ativo Atual, Multimarcas por Ativo %
-
-**Colunas Opcionais (Novas Métricas):**
-- Conversões Meta, Conversões Atual, Conversões % (para Carteira 0)
-- UPA Meta, UPA Atual, UPA % (para ER)
-
-### Compatibilidade
-- **Retrocompatibilidade**: Arquivos CSV existentes continuam funcionando
-- **Validação Flexível**: Novas métricas são opcionais e validadas conforme o tipo de time
-- **Mensagens de Erro**: Indicações claras sobre campos ausentes ou inválidos
-
-## Times e Processamento
-
-### Carteira 0
-- Meta principal: Conversões
-- Metas secundárias: Reais por ativo, Faturamento
-- Pontos diretos da Funifier
-- Team ID: E6F5k30
-
-### Carteira I
-- Meta principal: Atividade
-- Metas secundárias: Reais por ativo, Faturamento
-- Pontos diretos da Funifier
-
-### Carteira II
-- Meta principal: Reais por ativo (controla desbloqueio)
-- Metas secundárias: Atividade, Multimarcas por ativo
-- Processamento local de pontos com multiplicadores
-
-### Carteira III/IV
-- Meta principal: Faturamento
-- Metas secundárias: Reais por ativo, Multimarcas por ativo
-- Pontos diretos da Funifier
-
-### ER (Equipe de Relacionamento)
-- Meta principal: Faturamento
-- Metas secundárias: Reais por ativo, UPA
-- Funcionalidade adicional: Botão Medalhas (Em Breve)
-- Team ID: E500AbT
-
-## Seleção de Times
-
-### Fluxo de Autenticação
-- **Time único**: Redirecionamento automático para o dashboard correspondente
-- **Múltiplos times**: Modal de seleção apresenta todas as opções disponíveis
-- **Acesso Admin**: Disponível através do modal de seleção para usuários com privilégios
-
-### Times Suportados
-- Carteira 0, I, II, III, IV, ER
-- Admin (interface administrativa)
-
-## Deploy
-
-### Vercel (Recomendado)
-
-O projeto está configurado para deploy automático no Vercel. Consulte o [Guia de Deploy](./DEPLOYMENT.md) para instruções detalhadas.
-
-#### Configuração Rápida
-
-1. **Conectar Repositório**: Importe o projeto no [Vercel Dashboard](https://vercel.com/dashboard)
-2. **Configurar Variáveis**: Adicione as variáveis de ambiente necessárias
-3. **Deploy Automático**: Push para `main` faz deploy automático
-
-#### Variáveis de Ambiente Obrigatórias
+#### Required Environment Variables
 ```env
 FUNIFIER_API_KEY=[your_funifier_api_key]
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
-NEXTAUTH_SECRET=your_secure_random_string
+FUNIFIER_BASIC_TOKEN=[your_basic_auth_token]
+NEXTAUTH_SECRET=[your_secure_random_string]
 NEXTAUTH_URL=https://your-domain.vercel.app
 NODE_ENV=production
 ```
 
-#### Recursos Configurados
-- ✅ **API Routes**: Serverless functions para backend
-- ✅ **Automatic Deployments**: Deploy automático por branch
-- ✅ **Preview Deployments**: Preview para todas as branches
-- ✅ **Environment Variables**: Configuração segura de variáveis
-- ✅ **Build Optimization**: Build otimizado para produção
+For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md).
 
-Para instruções completas, consulte [DEPLOYMENT.md](./DEPLOYMENT.md).
+## 📚 Documentation
 
-## Contribuição
+- **[Technical Architecture](./TECHNICAL_ARCHITECTURE.md)**: Deep technical documentation
+- **[API Documentation](./API_DOCUMENTATION.md)**: Complete API reference
+- **[Deployment Guide](./DEPLOYMENT_GUIDE.md)**: Production deployment instructions
+- **[System Evolution](./SYSTEM_EVOLUTION.md)**: Development history and changelog
 
-1. Faça fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -am 'Adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
+## 🔐 Security & Authentication
 
-## Licença
+### Authentication Flow
+```
+Login → Funifier API → Token Validation → Team Detection → Dashboard/Admin Access
+```
 
-Este projeto é propriedade do grupo Essência e destina-se ao uso interno.
+### Security Features
+- **JWT Tokens**: Secure token-based authentication
+- **Role-based Access**: Admin vs. Player permissions
+- **API Key Management**: Secure Funifier API key handling
+- **Input Validation**: Comprehensive data validation
+- **Error Handling**: Secure error messages without data exposure
 
-## Documentação Adicional
+## 🧪 Testing & Quality Assurance
 
-- **[Guia Multi-Team](./docs/MULTI_TEAM_GUIDE.md)**: Funcionalidade de múltiplos times e seleção
-- **[Formato CSV](./docs/CSV_FORMAT_GUIDE.md)**: Guia completo do formato CSV estendido
-- **[Deploy](./DEPLOYMENT.md)**: Instruções detalhadas de deployment
-- **[Segurança](./docs/SECURITY.md)**: Práticas de segurança
-- **[Performance](./docs/PERFORMANCE_TESTING.md)**: Testes e otimização de performance
+### Testing Strategy
+- **Unit Tests**: Jest for service layer testing
+- **Integration Tests**: API endpoint testing
+- **E2E Tests**: Playwright for user flow testing
+- **Performance Tests**: Load testing for critical paths
 
-## Suporte
+### Quality Tools
+- **TypeScript**: Static type checking
+- **ESLint**: Code quality and consistency
+- **Prettier**: Code formatting
 
-Para dúvidas ou problemas, entre em contato com a equipe de desenvolvimento.
+## 🤝 Contributing
+
+### Development Guidelines
+1. **Code Style**: Follow ESLint and Prettier configurations
+2. **TypeScript**: Maintain strict type safety
+3. **Testing**: Write tests for new features
+4. **Documentation**: Update documentation for changes
+5. **Security**: Follow security best practices
+
+### Pull Request Process
+1. Create feature branch from `main`
+2. Implement changes with tests
+3. Update documentation
+4. Submit pull request with description
+5. Code review and approval
+6. Merge to `main`
+
+## 📞 Support
+
+For questions or issues, contact the development team.
+
+## 📄 License
+
+This project is proprietary to Grupo Essência and is intended for internal use only.
+
+---
+
+**Built with ❤️ for Grupo Essência using Next.js, TypeScript, and the Funifier Platform**
