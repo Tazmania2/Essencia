@@ -102,76 +102,89 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {/* Back Button - Always visible */}
-              <button
-                onClick={() => {
-                  if (onBack) {
-                    onBack();
-                  } else {
-                    // Default back behavior - go to dashboard
-                    window.location.href = '/dashboard';
-                  }
-                }}
-                className="flex items-center px-4 py-2 bg-boticario-pink hover:bg-boticario-purple text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Voltar ao Dashboard
-              </button>
-              
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">📈 Histórico de Ciclos</h1>
-                {playerName && (
-                  <p className="text-gray-600 mt-1">Jogador: {playerName}</p>
-                )}
+        <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg mb-6">
+          {/* Mobile-first layout: Stack vertically on small screens */}
+          <div className="space-y-4">
+            {/* Back Button and Title Row */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                {/* Back Button - Responsive sizing */}
+                <button
+                  onClick={() => {
+                    if (onBack) {
+                      onBack();
+                    } else {
+                      // Default back behavior - go to dashboard
+                      window.location.href = '/dashboard';
+                    }
+                  }}
+                  className="flex items-center px-3 py-2 md:px-4 md:py-2 bg-boticario-pink hover:bg-boticario-purple text-white rounded-lg transition-colors shadow-md hover:shadow-lg text-sm md:text-base"
+                >
+                  <svg className="w-4 h-4 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span className="hidden sm:inline">Voltar ao Dashboard</span>
+                  <span className="sm:hidden">Voltar</span>
+                </button>
+                
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-lg md:text-2xl font-bold text-gray-800 truncate">📈 Histórico de Ciclos</h1>
+                  {playerName && (
+                    <p className="text-gray-600 mt-1 text-sm md:text-base truncate">Jogador: {playerName}</p>
+                  )}
+                </div>
               </div>
             </div>
             
-            {/* Current Player Points Information */}
+            {/* Current Player Points Information - Mobile Responsive */}
             {playerData && (
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">💰 Pontuação Atual</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Pontos da Temporada:</span>
-                    <div className="font-bold text-purple-600 text-lg">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 md:p-4 border border-purple-200 w-full">
+                <h3 className="text-xs md:text-sm font-semibold text-gray-700 mb-3">💰 Pontuação Atual</h3>
+                
+                {/* Mobile: Stack vertically, Desktop: Grid */}
+                <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
+                  <div className="min-w-0">
+                    <div className="text-gray-600 text-xs md:text-sm mb-1">Pontos da Temporada:</div>
+                    <div className="font-bold text-purple-600 text-sm md:text-lg break-all">
                       {playerData.point_categories?.pontos_da_temporada?.toLocaleString('pt-BR') || '0'}
                     </div>
                   </div>
-                  <div>
-                    <span className="text-gray-600">Pontos Bloqueados:</span>
-                    <div className="font-bold text-orange-600 text-lg">
+                  <div className="min-w-0">
+                    <div className="text-gray-600 text-xs md:text-sm mb-1">Pontos Bloqueados:</div>
+                    <div className="font-bold text-orange-600 text-sm md:text-lg break-all">
                       {playerData.point_categories?.locked_points?.toLocaleString('pt-BR') || '0'}
                     </div>
                   </div>
                 </div>
-                <div className="mt-2 pt-2 border-t border-purple-200">
-                  <span className="text-gray-600 text-xs">Total Acumulado:</span>
-                  <span className="ml-2 font-semibold text-gray-800">
-                    {playerData.total_points?.toLocaleString('pt-BR') || '0'}
-                  </span>
+                
+                <div className="mt-3 pt-2 border-t border-purple-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <span className="text-gray-600 text-xs md:text-sm">Total Acumulado:</span>
+                    <span className="font-semibold text-gray-800 text-sm md:text-base break-all">
+                      {playerData.total_points?.toLocaleString('pt-BR') || '0'}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
             
-            {/* Loading state for player data */}
+            {/* Loading state for player data - Mobile Responsive */}
             {playerDataLoading && (
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200 w-full">
                 <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="h-3 md:h-4 bg-gray-200 rounded w-24 md:w-32 mb-3"></div>
+                  <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
                     <div>
-                      <div className="h-3 bg-gray-200 rounded w-24 mb-1"></div>
-                      <div className="h-6 bg-gray-200 rounded w-20"></div>
+                      <div className="h-3 bg-gray-200 rounded w-20 md:w-24 mb-1"></div>
+                      <div className="h-4 md:h-6 bg-gray-200 rounded w-16 md:w-20"></div>
                     </div>
                     <div>
-                      <div className="h-3 bg-gray-200 rounded w-24 mb-1"></div>
-                      <div className="h-6 bg-gray-200 rounded w-20"></div>
+                      <div className="h-3 bg-gray-200 rounded w-20 md:w-24 mb-1"></div>
+                      <div className="h-4 md:h-6 bg-gray-200 rounded w-16 md:w-20"></div>
                     </div>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-gray-200">
+                    <div className="h-3 bg-gray-200 rounded w-32 md:w-40"></div>
                   </div>
                 </div>
               </div>
@@ -253,33 +266,38 @@ const CycleHistoryCard: React.FC<CycleHistoryCardProps> = ({ cycle, isExpanded, 
   const performanceColorClass = getPerformanceColor(overallPerformance);
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 hover:border-blue-300">
+    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 hover:border-blue-300">
       {/* Main Card Content - Clickable */}
       <div
         className="cursor-pointer"
         onClick={onClick}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div className="flex items-center space-x-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
+        {/* Mobile: Stack vertically, Desktop: Horizontal layout */}
+        <div className="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
+          <div className="flex-1 min-w-0">
+            {/* Mobile: Stack cycle info and dates, Desktop: Side by side */}
+            <div className="space-y-3 md:space-y-0 md:flex md:items-start md:space-x-4">
+              {/* Cycle Number and Days */}
+              <div className="text-center md:text-left flex-shrink-0">
+                <div className="text-xl md:text-2xl font-bold text-purple-600">
                   Ciclo {cycle.cycleNumber}
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-xs md:text-sm text-gray-500">
                   {cycle.totalDays} dias
                 </div>
               </div>
               
-              <div className="flex-1">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
+              {/* Dates and Goals */}
+              <div className="flex-1 min-w-0 space-y-3">
+                {/* Dates - Mobile: Stack, Desktop: Grid */}
+                <div className="space-y-1 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 text-xs md:text-sm">
+                  <div className="truncate">
                     <span className="text-gray-500">Início:</span>
                     <span className="ml-1 font-medium">
                       {formatDate(cycle.startDate)}
                     </span>
                   </div>
-                  <div>
+                  <div className="truncate">
                     <span className="text-gray-500">Fim:</span>
                     <span className="ml-1 font-medium">
                       {formatDate(cycle.endDate)}
@@ -287,15 +305,16 @@ const CycleHistoryCard: React.FC<CycleHistoryCardProps> = ({ cycle, isExpanded, 
                   </div>
                 </div>
                 
-                <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">Meta Principal:</span>
+                {/* Goals - Mobile: Stack, Desktop: Grid */}
+                <div className="space-y-2 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 text-xs md:text-sm">
+                  <div className="min-w-0">
+                    <div className="text-gray-500 truncate">Meta Principal:</div>
                     <div className="font-semibold text-purple-600">
                       {cycle.finalMetrics.primaryGoal.percentage.toFixed(1)}%
                     </div>
                   </div>
-                  <div>
-                    <span className="text-gray-500">Meta Secundária 1:</span>
+                  <div className="min-w-0">
+                    <div className="text-gray-500 truncate">Meta Secundária 1:</div>
                     <div className="font-semibold text-green-600">
                       {cycle.finalMetrics.secondaryGoal1.percentage.toFixed(1)}%
                       {cycle.finalMetrics.secondaryGoal1.boostActive && (
@@ -303,8 +322,8 @@ const CycleHistoryCard: React.FC<CycleHistoryCardProps> = ({ cycle, isExpanded, 
                       )}
                     </div>
                   </div>
-                  <div>
-                    <span className="text-gray-500">Meta Secundária 2:</span>
+                  <div className="min-w-0">
+                    <div className="text-gray-500 truncate">Meta Secundária 2:</div>
                     <div className="font-semibold text-purple-600">
                       {cycle.finalMetrics.secondaryGoal2.percentage.toFixed(1)}%
                       {cycle.finalMetrics.secondaryGoal2.boostActive && (
@@ -317,18 +336,19 @@ const CycleHistoryCard: React.FC<CycleHistoryCardProps> = ({ cycle, isExpanded, 
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+          {/* Performance Badge and Arrow */}
+          <div className="flex items-center justify-between md:justify-end md:space-x-4">
             <div className="text-center">
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${performanceColorClass}`}>
+              <div className={`px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium ${performanceColorClass}`}>
                 {overallPerformance}%
               </div>
               <div className="text-xs text-gray-500 mt-1">
-                Performance Geral
+                Performance
               </div>
             </div>
             
-            <div className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''} ml-2 md:ml-0`}>
+              <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </div>
@@ -338,7 +358,7 @@ const CycleHistoryCard: React.FC<CycleHistoryCardProps> = ({ cycle, isExpanded, 
         {/* Progress Timeline Preview */}
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="text-xs text-gray-500 mb-2">
-            Evolução do ciclo ({cycle.progressTimeline.length} pontos de dados)
+            Evolução ({cycle.progressTimeline.length} pontos)
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div 
@@ -411,57 +431,64 @@ const CycleHistoryCard: React.FC<CycleHistoryCardProps> = ({ cycle, isExpanded, 
 
 const CycleHistoryCardSkeleton: React.FC = () => {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+    <div className="bg-white rounded-2xl p-4 md:p-6 shadow-lg border border-gray-200">
       <div className="animate-pulse">
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div className="flex items-center space-x-4">
-              <div className="text-center">
-                <Skeleton className="h-8 w-16 mb-2" />
-                <Skeleton className="h-4 w-12" />
+        {/* Mobile: Stack vertically, Desktop: Horizontal layout */}
+        <div className="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="space-y-3 md:space-y-0 md:flex md:items-start md:space-x-4">
+              {/* Cycle info */}
+              <div className="text-center md:text-left flex-shrink-0">
+                <Skeleton className="h-6 md:h-8 w-16 mb-2 mx-auto md:mx-0" />
+                <Skeleton className="h-3 md:h-4 w-12 mx-auto md:mx-0" />
               </div>
               
-              <div className="flex-1">
-                <div className="grid grid-cols-2 gap-4 mb-3">
+              {/* Dates and goals */}
+              <div className="flex-1 min-w-0 space-y-3">
+                {/* Dates */}
+                <div className="space-y-1 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
                   <div>
-                    <Skeleton className="h-4 w-20 mb-1" />
-                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 md:h-4 w-16 md:w-20 mb-1" />
+                    <Skeleton className="h-3 md:h-4 w-20 md:w-24" />
                   </div>
                   <div>
-                    <Skeleton className="h-4 w-16 mb-1" />
-                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 md:h-4 w-12 md:w-16 mb-1" />
+                    <Skeleton className="h-3 md:h-4 w-20 md:w-24" />
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4">
+                {/* Goals */}
+                <div className="space-y-2 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
                   <div>
-                    <Skeleton className="h-4 w-20 mb-1" />
-                    <Skeleton className="h-5 w-12" />
+                    <Skeleton className="h-3 md:h-4 w-16 md:w-20 mb-1" />
+                    <Skeleton className="h-4 md:h-5 w-10 md:w-12" />
                   </div>
                   <div>
-                    <Skeleton className="h-4 w-24 mb-1" />
-                    <Skeleton className="h-5 w-12" />
+                    <Skeleton className="h-3 md:h-4 w-20 md:w-24 mb-1" />
+                    <Skeleton className="h-4 md:h-5 w-10 md:w-12" />
                   </div>
                   <div>
-                    <Skeleton className="h-4 w-24 mb-1" />
-                    <Skeleton className="h-5 w-12" />
+                    <Skeleton className="h-3 md:h-4 w-20 md:w-24 mb-1" />
+                    <Skeleton className="h-4 md:h-5 w-10 md:w-12" />
                   </div>
                 </div>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
+          {/* Performance and arrow */}
+          <div className="flex items-center justify-between md:justify-end md:space-x-4">
             <div className="text-center">
-              <Skeleton className="h-6 w-12 rounded-full mb-1" />
-              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-5 md:h-6 w-10 md:w-12 rounded-full mb-1" />
+              <Skeleton className="h-3 w-12 md:w-16" />
             </div>
-            <Skeleton className="h-5 w-5" />
+            <Skeleton className="h-4 w-4 md:h-5 md:w-5" />
           </div>
         </div>
         
+        {/* Progress bar */}
         <div className="mt-4 pt-4 border-t border-gray-100">
-          <Skeleton className="h-3 w-32 mb-2" />
+          <Skeleton className="h-3 w-24 md:w-32 mb-2" />
           <Skeleton className="h-2 w-full rounded-full" />
         </div>
       </div>

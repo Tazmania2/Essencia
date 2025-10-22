@@ -31,7 +31,13 @@ export class CarteiraIIProcessor extends BaseTeamProcessor {
     this.validateTeamType(reportData);
 
     const playerName = rawData.name;
-    const basePoints = rawData.total_points || 0;
+    
+    // Carteira II always uses locked_points as base, never total_points or points
+    const pointCategories = rawData.point_categories || {};
+    const basePoints = pointCategories['locked_points'] || 
+                      pointCategories['locked'] || 
+                      rawData.total_points || 0; // Fallback to total_points if no locked_points
+    
     const currentCycleDay = this.getCurrentCycleDay(reportData);
     const daysUntilCycleEnd = this.getDaysUntilCycleEnd(reportData);
 
