@@ -148,48 +148,63 @@ The system supports 6 distinct team types, each with unique metrics and processi
 - **Safety Features**: Process cancellation and error recovery
 - **Comprehensive Logging**: Detailed execution logs for debugging
 
-## 🚀 Getting Started
+### 📈 Data Processing Pipeline
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Git
-
-### Installation
-
-1. **Clone the repository:**
-```bash
-git clone <repository-url>
-cd funifier-gamification-dashboard
+```
+CSV Upload → Parsing → Validation → Storage → Comparison → Action Logs → Funifier API
+     ↓           ↓          ↓          ↓           ↓            ↓            ↓
+File Validation  Field     Business   Database   Change      Log          API
+& Format Check   Mapping   Rules      Storage    Detection   Generation   Submission
 ```
 
-2. **Install dependencies:**
-```bash
-npm install
+#### Enhanced CSV Support
+- **Backward Compatibility**: Existing CSV formats continue working
+- **New Metrics**: Support for Conversões and UPA metrics
+- **Flexible Validation**: Optional fields based on team type
+- **Error Reporting**: Clear validation messages
+
+#### Intelligent Comparison System
+- **Aggregation Pipelines**: Uses Funifier-preferred aggregation queries
+- **Latest Record Logic**: Compares against most recent data per player
+- **Change Detection**: Identifies actual changes vs. duplicate uploads
+- **Action Log Prevention**: Prevents duplicate action logs
+
+## 🔐 Security & Authentication
+
+### Authentication Flow
+```
+Login → Funifier API → Token Validation → Team Detection → Dashboard/Admin Access
 ```
 
-3. **Configure environment variables:**
-```bash
-cp .env.example .env.local
-```
+### Security Features
+- **JWT Tokens**: Secure token-based authentication
+- **Role-based Access**: Admin vs. Player permissions
+- **API Key Management**: Secure Funifier API key handling
+- **Input Validation**: Comprehensive data validation
+- **Error Handling**: Secure error messages without data exposure
 
-Edit `.env.local` with your configuration:
-```env
+## 🚀 Deployment & Configuration
+
+### Environment Variables
+```bash
+# Funifier API Configuration
 FUNIFIER_API_KEY=your_funifier_api_key_here
 FUNIFIER_BASE_URL=https://service2.funifier.com/v3
 FUNIFIER_BASIC_TOKEN=your_basic_auth_token_here
+
+# NextAuth Configuration
 NEXTAUTH_SECRET=your_nextauth_secret_here
-NEXTAUTH_URL=http://localhost:3000
-NODE_ENV=development
+NEXTAUTH_URL=https://your-domain.vercel.app
+
+# Environment
+NODE_ENV=production
 ```
 
-4. **Run the development server:**
-```bash
-npm run dev
-```
-
-5. **Access the application:**
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Vercel Deployment
+- **Automatic Deployments**: Git-based deployment pipeline
+- **Environment Variables**: Secure configuration management
+- **Serverless Functions**: Optimized API routes
+- **Build Optimization**: Production-ready builds
 
 ## 📁 Project Structure
 
@@ -219,61 +234,23 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 └── contexts/                     # React contexts
 ```
 
-## 🔧 Available Scripts
+## 🔄 Data Flow
 
-```bash
-npm run dev          # Development server
-npm run build        # Production build
-npm run start        # Production server
-npm run lint         # ESLint check
-npm run lint:fix     # ESLint auto-fix
-npm run type-check   # TypeScript check
-npm run test         # Run tests
-npm run test:e2e     # E2E tests
+### Player Dashboard Flow
+```
+User Login → Team Detection → Configuration Loading → Data Fetching → Dashboard Rendering
+     ↓              ↓                ↓                    ↓               ↓
+Authentication  Multi-team      Dashboard Config    Funifier API    Personalized
+& Authorization  Detection      Service Cache       Player Status    Dashboard
 ```
 
-## 🚀 Deployment
-
-### Vercel (Recommended)
-
-The project is optimized for Vercel deployment:
-
-1. **Connect your repository** to Vercel
-2. **Configure environment variables** in Vercel dashboard
-3. **Deploy automatically** on push to main branch
-
-#### Required Environment Variables
-```env
-FUNIFIER_API_KEY=[your_funifier_api_key]
-FUNIFIER_BASE_URL=https://service2.funifier.com/v3
-FUNIFIER_BASIC_TOKEN=[your_basic_auth_token]
-NEXTAUTH_SECRET=[your_secure_random_string]
-NEXTAUTH_URL=https://your-domain.vercel.app
-NODE_ENV=production
+### Admin Report Processing Flow
 ```
-
-For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md).
-
-## 📚 Documentation
-
-- **[Technical Architecture](./TECHNICAL_ARCHITECTURE.md)**: Deep technical documentation
-- **[API Documentation](./API_DOCUMENTATION.md)**: Complete API reference
-- **[Deployment Guide](./DEPLOYMENT_GUIDE.md)**: Production deployment instructions
-- **[System Evolution](./SYSTEM_EVOLUTION.md)**: Development history and changelog
-
-## 🔐 Security & Authentication
-
-### Authentication Flow
+CSV Upload → Validation → Parsing → Storage → Comparison → Action Logs → Confirmation
+     ↓           ↓          ↓         ↓          ↓            ↓            ↓
+File Format   Field       Data      Database   Change       Funifier     Success
+Validation    Mapping     Transform  Storage    Detection    API          Message
 ```
-Login → Funifier API → Token Validation → Team Detection → Dashboard/Admin Access
-```
-
-### Security Features
-- **JWT Tokens**: Secure token-based authentication
-- **Role-based Access**: Admin vs. Player permissions
-- **API Key Management**: Secure Funifier API key handling
-- **Input Validation**: Comprehensive data validation
-- **Error Handling**: Secure error messages without data exposure
 
 ## 🧪 Testing & Quality Assurance
 
@@ -287,6 +264,126 @@ Login → Funifier API → Token Validation → Team Detection → Dashboard/Adm
 - **TypeScript**: Static type checking
 - **ESLint**: Code quality and consistency
 - **Prettier**: Code formatting
+- **Husky**: Git hooks for quality gates
+
+## 📊 Performance Optimizations
+
+### Caching Strategy
+- **Dashboard Data**: 5-minute TTL for player data
+- **Configuration**: 5-minute TTL for dashboard configurations
+- **API Responses**: Intelligent caching with version keys
+- **Static Assets**: CDN optimization
+
+### Database Optimizations
+- **Aggregation Pipelines**: Efficient data queries
+- **Indexed Queries**: Optimized database access
+- **Connection Pooling**: Efficient API connections
+- **Data Pagination**: Large dataset handling
+
+## 🔧 Development Workflow
+
+### Getting Started
+```bash
+# Clone repository
+git clone <repository-url>
+cd funifier-gamification-dashboard
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env.local
+# Edit .env.local with your configuration
+
+# Run development server
+npm run dev
+```
+
+### Available Scripts
+```bash
+npm run dev          # Development server
+npm run build        # Production build
+npm run start        # Production server
+npm run lint         # ESLint check
+npm run lint:fix     # ESLint auto-fix
+npm run type-check   # TypeScript check
+npm run test         # Run tests
+npm run test:e2e     # E2E tests
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### Authentication Problems
+- **Symptom**: 401 Unauthorized errors
+- **Solution**: Check `FUNIFIER_BASIC_TOKEN` configuration
+- **Debug**: Verify token format includes "Basic " prefix
+
+#### Dashboard Data Issues
+- **Symptom**: Wrong player data displayed
+- **Solution**: Clear cache and verify player ID
+- **Debug**: Check console logs for API responses
+
+#### CSV Upload Problems
+- **Symptom**: Validation errors or processing failures
+- **Solution**: Verify CSV format and required fields
+- **Debug**: Check admin interface error messages
+
+#### Configuration Not Loading
+- **Symptom**: Default configuration always used
+- **Solution**: Verify database connection and configuration storage
+- **Debug**: Check console logs for configuration loading
+
+## 📚 API Documentation
+
+### Key Endpoints
+
+#### Player Data
+```typescript
+GET /api/dashboard/[playerId]
+// Returns complete dashboard data for player
+
+GET /api/player/status/[playerId]
+// Returns Funifier player status
+```
+
+#### Admin Operations
+```typescript
+POST /api/reports/upload
+// Process CSV report upload
+
+GET /api/admin/players
+// Get all players with detailed information
+
+POST /api/admin/configuration
+// Save dashboard configuration
+```
+
+#### Authentication
+```typescript
+POST /api/auth/login
+// Authenticate user and return token
+
+GET /api/auth/teams/[playerId]
+// Get player's team memberships
+```
+
+## 🔮 Future Enhancements
+
+### Planned Features
+- **Real-time Notifications**: WebSocket integration for live updates
+- **Advanced Analytics**: Detailed performance analytics and reporting
+- **Mobile App**: React Native mobile application
+- **Batch Operations**: Bulk player and configuration management
+- **Advanced Permissions**: Granular role-based access control
+
+### Technical Improvements
+- **Microservices**: Service decomposition for better scalability
+- **GraphQL**: More efficient data fetching
+- **Redis Caching**: Distributed caching layer
+- **Monitoring**: Application performance monitoring
+- **CI/CD Pipeline**: Automated testing and deployment
 
 ## 🤝 Contributing
 
@@ -307,12 +404,23 @@ Login → Funifier API → Token Validation → Team Detection → Dashboard/Adm
 
 ## 📞 Support
 
-For questions or issues, contact the development team.
+### Documentation Resources
+- **[Multi-Team Guide](./docs/MULTI_TEAM_GUIDE.md)**: Team selection and management
+- **[CSV Format Guide](./docs/CSV_FORMAT_GUIDE.md)**: Complete CSV format documentation
+- **[Security Guide](./docs/SECURITY.md)**: Security practices and guidelines
+- **[Performance Guide](./docs/PERFORMANCE_TESTING.md)**: Performance optimization
 
-## 📄 License
-
-This project is proprietary to Grupo Essência and is intended for internal use only.
+### Contact Information
+- **Development Team**: Game4u
+- **Business Owner**: Game4u
+- **Platform Support**: Funifier platform support
 
 ---
 
-**Built with ❤️ for Grupo Essência using Next.js, TypeScript, and the Funifier Platform**
+## 📄 License
+
+This project is proprietary to Game4u and is intended for internal use only.
+
+---
+
+**Built with ❤️ for Grupo Essência using Next.js, TypeScript, Kiro and the Funifier Platform**
