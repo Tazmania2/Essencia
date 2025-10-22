@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { CycleHistoryData } from '../../types';
+import { CycleHistoryData, FunifierPlayerStatus } from '../../types';
 import { historyService } from '../../services/history.service';
+import { funifierPlayerService } from '../../services/funifier-player.service';
 import { LoadingState, Skeleton } from '../ui/LoadingSpinner';
 
 interface CycleHistoryDashboardProps {
@@ -21,8 +22,10 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [playerData, setPlayerData] = useState<FunifierPlayerStatus | null>(null);
+  const [playerDataLoading, setPlayerDataLoading] = useState(false);
 
-  // ✅ Load data only once when component mounts or playerId changes
+  // ✅ Load cycle history data only once when component mounts or playerId changes
   useEffect(() => {
     if (!playerId || hasLoaded || isLoading) return;
 
@@ -53,11 +56,34 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
     loadData();
   }, [playerId, hasLoaded, isLoading]); // Only depend on primitive values
 
+  // ✅ Load current player data to show pontos_da_temporada
+  useEffect(() => {
+    if (!playerId || playerData || playerDataLoading) return;
+
+    const loadPlayerData = async () => {
+      try {
+        setPlayerDataLoading(true);
+        const currentPlayerData = await funifierPlayerService.getPlayerStatus(playerId);
+        setPlayerData(currentPlayerData);
+        console.log('✅ Current player data loaded for history view');
+      } catch (error) {
+        console.error('❌ Error loading current player data:', error);
+        // Don't set error state for player data - it's supplementary information
+      } finally {
+        setPlayerDataLoading(false);
+      }
+    };
+
+    loadPlayerData();
+  }, [playerId, playerData, playerDataLoading]);
+
   // ✅ Reset when playerId changes
   useEffect(() => {
     setHasLoaded(false);
     setCycles([]);
     setExpandedCycle(null);
+    setPlayerData(null);
+    setPlayerDataLoading(false);
   }, [playerId]);
 
   const handleCycleToggle = (cycleNumber: number) => {
@@ -67,6 +93,8 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
   const handleRetry = useCallback(async () => {
     setHasLoaded(false);
     setError(null);
+    setPlayerData(null);
+    setPlayerDataLoading(false);
     // The useEffect will automatically trigger when hasLoaded becomes false
   }, []);
 
@@ -76,19 +104,77 @@ export const CycleHistoryDashboard: React.FC<CycleHistoryDashboardProps> = ({
         {/* Header */}
         <div className="bg-white rounded-2xl p-6 shadow-lg mb-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">📈 Histórico de Ciclos</h1>
-              {playerName && (
-                <p className="text-gray-600 mt-1">Jogador: {playerName}</p>
-              )}
-            </div>
-            {onBack && (
+            <div className="flex items-center space-x-4">
+              {/* Back Button - Always visible */}
               <button
-                onClick={onBack}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                onClick={() => {
+                  if (onBack) {
+                    onBack();
+                  } else {
+                    // Default back behavior - go to dashboard
+                    window.location.href = '/dashboard';
+                  }
+                }}
+                className="flex items-center px-4 py-2 bg-boticario-pink hover:bg-boticario-purple text-white rounded-lg transition-colors shadow-md hover:shadow-lg"
               >
-                ← Voltar ao Dashboard
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Voltar ao Dashboard
               </button>
+              
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">📈 Histórico de Ciclos</h1>
+                {playerName && (
+                  <p className="text-gray-600 mt-1">Jogador: {playerName}</p>
+                )}
+              </div>
+            </div>
+            
+            {/* Current Player Points Information */}
+            {playerData && (
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-200">
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">💰 Pontuação Atual</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Pontos da Temporada:</span>
+                    <div className="font-bold text-purple-600 text-lg">
+                      {playerData.point_categories?.pontos_da_temporada?.toLocaleString('pt-BR') || '0'}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Pontos Bloqueados:</span>
+                    <div className="font-bold text-orange-600 text-lg">
+                      {playerData.point_categories?.locked_points?.toLocaleString('pt-BR') || '0'}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 pt-2 border-t border-purple-200">
+                  <span className="text-gray-600 text-xs">Total Acumulado:</span>
+                  <span className="ml-2 font-semibold text-gray-800">
+                    {playerData.total_points?.toLocaleString('pt-BR') || '0'}
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            {/* Loading state for player data */}
+            {playerDataLoading && (
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="h-3 bg-gray-200 rounded w-24 mb-1"></div>
+                      <div className="h-6 bg-gray-200 rounded w-20"></div>
+                    </div>
+                    <div>
+                      <div className="h-3 bg-gray-200 rounded w-24 mb-1"></div>
+                      <div className="h-6 bg-gray-200 rounded w-20"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
           
