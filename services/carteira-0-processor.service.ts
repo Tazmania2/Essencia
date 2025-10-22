@@ -32,8 +32,11 @@ export class Carteira0Processor extends BaseTeamProcessor {
     this.validateTeamType(reportData);
 
     const playerName = rawData.name;
-    const totalPoints = rawData.total_points || 0;
     const pointsLocked = this.calculatePointsLocked(rawData.catalog_items || {});
+    
+    // Calculate the appropriate points to display based on lock status
+    const totalPoints = this.calculateDisplayPoints(rawData, pointsLocked);
+    
     const currentCycleDay = this.getCurrentCycleDay(reportData);
     const daysUntilCycleEnd = this.getDaysUntilCycleEnd(reportData);
 

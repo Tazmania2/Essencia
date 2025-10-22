@@ -190,6 +190,48 @@ export abstract class BaseTeamProcessor implements TeamProcessor {
   }
 
   /**
+   * Calculate the appropriate points to display based on lock status
+   * When points are unlocked, show 'points' from point_categories if available, otherwise total_points
+   * When points are locked, show 'locked_points' from point_categories if available, otherwise total_points
+   */
+  protected calculateDisplayPoints(rawData: FunifierPlayerStatus, pointsLocked: boolean): number {
+    const totalPoints = rawData.total_points || 0;
+    const pointCategories = rawData.point_categories || {};
+    
+    if (!pointsLocked) {
+      // Points are UNLOCKED - try to get 'points' from point_categories first
+      const unlockedPoints = pointCategories['points'] || 
+                            pointCategories['available_points'] ||
+                            pointCategories['unlocked_points'] ||
+                            null;
+      
+      // If we have a specific unlocked points value, use it
+      if (unlockedPoints !== null && typeof unlockedPoints === 'number') {
+        return unlockedPoints;
+      }
+      
+      // Fallback to total_points when unlocked
+      return totalPoints;
+    } else {
+      // Points are LOCKED - try to get 'locked_points' from point_categories
+      const lockedPoints = pointCategories['locked_points'] || 
+                          pointCategories['locked'] || 
+                          pointCategories['available'] ||
+                          pointCategories['current'] ||
+                          null;
+      
+      // If we have a specific locked points value, use it
+      if (lockedPoints !== null && typeof lockedPoints === 'number') {
+        return lockedPoints;
+      }
+      
+      // Fallback: when locked, show total points (maintains current behavior)
+      // In a real scenario, this might need to be 0 or a calculated value
+      return totalPoints;
+    }
+  }
+
+  /**
    * Check if boost is active from catalog items
    */
   protected isBoostActive(catalogItems: Record<string, number>, boostType: 'secondary1' | 'secondary2'): boolean {

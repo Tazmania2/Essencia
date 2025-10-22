@@ -60,7 +60,7 @@ export class CycleChangeService {
     }
   ];
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): CycleChangeService {
     if (!CycleChangeService.instance) {
@@ -74,7 +74,7 @@ export class CycleChangeService {
    */
   public onProgressUpdate(callback: (progress: CycleChangeProgress) => void): () => void {
     this.progressCallbacks.push(callback);
-    
+
     // Return unsubscribe function
     return () => {
       const index = this.progressCallbacks.indexOf(callback);
@@ -159,7 +159,7 @@ export class CycleChangeService {
       for (let i = 0; i < this.currentProgress.steps.length; i++) {
         this.currentProgress.currentStep = i;
         await this.executeStep(i);
-        
+
         // If step failed, stop the process
         if (this.currentProgress.steps[i].status === 'failed') {
           this.currentProgress.overallStatus = 'failed';
@@ -175,7 +175,7 @@ export class CycleChangeService {
     } catch (error) {
       console.error('Cycle change process failed:', error);
       this.currentProgress.overallStatus = 'failed';
-      
+
       // Mark current step as failed if not already marked
       const currentStep = this.currentProgress.steps[this.currentProgress.currentStep];
       if (currentStep && currentStep.status === 'running') {
@@ -204,9 +204,9 @@ export class CycleChangeService {
       // Execute the scheduler
       console.log(`Executing scheduler: ${step.name} (${step.schedulerId})`);
       const result = await funifierApiService.executeScheduler(step.schedulerId);
-      
+
       step.result = result;
-      
+
       if (!result.success) {
         step.status = 'failed';
         step.endTime = new Date();
@@ -255,7 +255,7 @@ export class CycleChangeService {
           const pointsResult = await funifierApiService.checkAllPlayersPointsCleared();
           return {
             success: pointsResult.allCleared,
-            message: pointsResult.allCleared 
+            message: pointsResult.allCleared
               ? `Todos os pontos foram limpos (${pointsResult.totalPlayersChecked} jogadores verificados)`
               : `${pointsResult.playersWithPoints.length} jogadores ainda têm pontos`,
             details: pointsResult
@@ -265,7 +265,7 @@ export class CycleChangeService {
           const lockedPointsResult = await funifierApiService.checkAllPlayersLockedPointsCleared();
           return {
             success: lockedPointsResult.allCleared,
-            message: lockedPointsResult.allCleared 
+            message: lockedPointsResult.allCleared
               ? `Todos os pontos bloqueados foram limpos (${lockedPointsResult.totalPlayersChecked} jogadores verificados)`
               : `${lockedPointsResult.playersWithLockedPoints.length} jogadores ainda têm pontos bloqueados`,
             details: lockedPointsResult
@@ -311,7 +311,7 @@ export class CycleChangeService {
       this.currentProgress.isRunning = false;
       this.currentProgress.overallStatus = 'cancelled';
       this.currentProgress.endTime = new Date();
-      
+
       // Mark current running step as cancelled
       const currentStep = this.currentProgress.steps[this.currentProgress.currentStep];
       if (currentStep && currentStep.status === 'running') {
@@ -325,7 +325,7 @@ export class CycleChangeService {
           };
         }
       }
-      
+
       this.notifyProgressUpdate();
     }
   }
@@ -382,7 +382,7 @@ export class CycleChangeService {
 
     const completedSteps = this.currentProgress.steps.filter(step => step.status === 'completed').length;
     const failedSteps = this.currentProgress.steps.filter(step => step.status === 'failed').length;
-    
+
     let duration: number | undefined;
     if (this.currentProgress.startTime) {
       const endTime = this.currentProgress.endTime || new Date();
