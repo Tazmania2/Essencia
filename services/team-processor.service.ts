@@ -52,7 +52,7 @@ import {
 export const CHALLENGE_MAPPING: ChallengeMapping = {
   [TeamType.CARTEIRA_0]: {
     conversoes: [
-      'E6GglPq'  // Carteira 0 - Conversões (using challenge ID from design)
+      'E82R5cQ'  // Carteira 0 - Conversões (correct challenge ID)
     ],
     reaisPorAtivo: [
       'E6Gm8RI', // Carteira I, III & IV - Subir Reais por Ativo (reused from Carteira I)
