@@ -105,7 +105,7 @@ describe('Carteira0Processor', () => {
 
       // Secondary goal 2: Faturamento
       expect(result.secondaryGoal2.name).toBe('Faturamento');
-      expect(result.secondaryGoal2.percentage).toBe(85); // From challenge data (priority over report)
+      expect(result.secondaryGoal2.percentage).toBe(95); // From challenge data (priority over report)
       expect(result.secondaryGoal2.boostActive).toBe(false); // Boost 2 inactive
     });
 
@@ -119,7 +119,7 @@ describe('Carteira0Processor', () => {
       // Should use challenge progress data
       expect(result.primaryGoal.percentage).toBe(85); // From challenge progress
       expect(result.secondaryGoal1.percentage).toBe(110); // From challenge progress
-      expect(result.secondaryGoal2.percentage).toBe(85); // From challenge progress
+      expect(result.secondaryGoal2.percentage).toBe(95); // From challenge progress
     });
 
     it('should handle locked points correctly', () => {
@@ -173,7 +173,7 @@ describe('Carteira0Processor', () => {
       // Should use challenge data values, not report data values (challenge has priority)
       expect(result.primaryGoal.percentage).toBe(85); // Challenge: 85, Report: 90
       expect(result.secondaryGoal1.percentage).toBe(110); // Challenge: 110, Report: 105
-      expect(result.secondaryGoal2.percentage).toBe(85); // Challenge: 85, Report: 88
+      expect(result.secondaryGoal2.percentage).toBe(95); // Challenge: 95, Report: 88
     });
 
     it('should validate and sanitize percentage values', () => {
@@ -189,7 +189,7 @@ describe('Carteira0Processor', () => {
       // Should use challenge data since it has priority over invalid report data
       expect(result.primaryGoal.percentage).toBe(85); // From challenge data
       expect(result.secondaryGoal1.percentage).toBe(110); // From challenge data
-      expect(result.secondaryGoal2.percentage).toBe(85); // From challenge data
+      expect(result.secondaryGoal2.percentage).toBe(95); // From challenge data
     });
 
     it('should create correct progress bar configurations', () => {
@@ -203,9 +203,9 @@ describe('Carteira0Processor', () => {
       expect(result.secondaryGoal1.details.progressBar.color).toBe('green');
       expect(result.secondaryGoal1.details.progressBar.percentage).toBe(110);
 
-      // Faturamento: 85% -> yellow color (from challenge data)
+      // Faturamento: 95% -> yellow color (from challenge data)
       expect(result.secondaryGoal2.details.progressBar.color).toBe('yellow');
-      expect(result.secondaryGoal2.details.progressBar.percentage).toBe(85);
+      expect(result.secondaryGoal2.details.progressBar.percentage).toBe(95);
     });
 
     it('should include correct challenge IDs in goal details', () => {
@@ -276,7 +276,7 @@ describe('Carteira0Processor', () => {
       expect(analysis.rawAnalysis.challengeAnalysis.challengeProgress).toHaveLength(3);
       expect(analysis.rawAnalysis.challengeAnalysis.extractedPercentages.conversoes).toBe(85);
       expect(analysis.rawAnalysis.challengeAnalysis.extractedPercentages.reaisPorAtivo).toBe(110);
-      expect(analysis.rawAnalysis.challengeAnalysis.extractedPercentages.faturamento).toBe(85);
+      expect(analysis.rawAnalysis.challengeAnalysis.extractedPercentages.faturamento).toBe(95);
 
       // Report data analysis
       expect(analysis.rawAnalysis.reportDataAnalysis.hasReportData).toBe(true);
@@ -349,7 +349,7 @@ describe('Carteira0Processor', () => {
     });
 
     it('should handle team type mismatch warning', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = jest.spyOn(console, 'info').mockImplementation();
       
       const mismatchedReportData = {
         ...mockReportData,
@@ -359,7 +359,7 @@ describe('Carteira0Processor', () => {
       processor.processPlayerData(mockPlayerData, mismatchedReportData);
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Team type mismatch')
+        expect.stringContaining('Team context: viewing CARTEIRA_0 dashboard with CARTEIRA_II report data')
       );
 
       consoleSpy.mockRestore();
@@ -378,7 +378,7 @@ describe('Carteira0Processor', () => {
       // Challenge data has priority over report data
       expect(result.primaryGoal.percentage).toBe(85);
       expect(result.secondaryGoal1.percentage).toBe(110);
-      expect(result.secondaryGoal2.percentage).toBe(85);
+      expect(result.secondaryGoal2.percentage).toBe(95);
 
       // Progress bars should handle challenge data values correctly (challenge has priority)
       expect(result.primaryGoal.details.progressBar.color).toBe('yellow'); // 85% -> yellow
@@ -391,12 +391,16 @@ describe('Carteira0Processor', () => {
         ...mockPlayerData,
         challenge_progress: [
           {
-            challenge: 'E6GglPq', // Using 'challenge' instead of 'challengeId'
+            challenge: 'E82R5cQ', // Using 'challenge' instead of 'challengeId'
             percent_completed: 92 // Using 'percent_completed' instead of 'percentage'
           },
           {
             id: 'E6Gm8RI', // Using 'id' instead of 'challengeId'
             progress: 115 // Using 'progress' instead of 'percentage'
+          },
+          {
+            challenge: 'E6GglPq', // Using 'challenge' instead of 'challengeId'
+            percent_completed: 88 // Using 'percent_completed' instead of 'percentage'
           }
         ]
       };
@@ -420,7 +424,7 @@ describe('Carteira0Processor', () => {
       // Challenge data has priority over report data
       expect(result.primaryGoal.percentage).toBe(85);
       expect(result.secondaryGoal1.percentage).toBe(110);
-      expect(result.secondaryGoal2.percentage).toBe(85);
+      expect(result.secondaryGoal2.percentage).toBe(95);
 
       // Check progress bar colors for challenge data values (challenge has priority)
       expect(result.primaryGoal.details.progressBar.color).toBe('yellow'); // 85% -> yellow
@@ -461,7 +465,7 @@ describe('Carteira0Processor', () => {
     it('should use E82R5cQ challenge ID for conversoes', () => {
       const result = processor.processPlayerData(mockPlayerData, mockReportData);
       
-      expect(result.primaryGoal.details.challengeIds).toContain('E6GglPq');
+      expect(result.primaryGoal.details.challengeIds).toContain('E82R5cQ');
     });
 
     it('should handle conversoes data from both sources correctly', () => {
@@ -470,7 +474,7 @@ describe('Carteira0Processor', () => {
         ...mockPlayerData,
         challenge_progress: [
           {
-            challengeId: 'E6GglPq',
+            challengeId: 'E82R5cQ',
             percentage: 75
           }
         ]

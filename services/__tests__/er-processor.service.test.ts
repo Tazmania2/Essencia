@@ -386,7 +386,7 @@ describe('ERProcessor', () => {
     });
 
     it('should handle team type mismatch warning', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = jest.spyOn(console, 'info').mockImplementation();
       
       const mismatchedReportData = {
         ...mockReportData,
@@ -396,7 +396,7 @@ describe('ERProcessor', () => {
       processor.processPlayerData(mockPlayerData, mismatchedReportData);
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Team type mismatch')
+        expect.stringContaining('Team context: viewing ER dashboard with CARTEIRA_I report data')
       );
 
       consoleSpy.mockRestore();
