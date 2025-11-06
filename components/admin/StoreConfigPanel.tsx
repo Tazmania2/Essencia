@@ -255,8 +255,8 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
             >
               {availablePoints.map(point => (
-                <option key={point._id} value={point.category}>
-                  {point.shortName} ({point.category})
+                <option key={point._id} value={point._id}>
+                  {point.category} ({point._id})
                 </option>
               ))}
             </select>
