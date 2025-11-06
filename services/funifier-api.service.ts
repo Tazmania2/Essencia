@@ -991,17 +991,15 @@ export class FunifierApiService {
 
   /**
    * Update store configuration in store__c custom collection
+   * Uses PUT with the complete object as required by Funifier
    * @param configId Configuration ID to update
-   * @param config Updated configuration object
+   * @param config Complete configuration object (must include all fields)
    */
   public async updateStoreConfig(configId: string, config: any): Promise<void> {
     try {
-      await axios.post(
-        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
-        {
-          ...config,
-          _id: configId
-        },
+      await axios.put(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c/${configId}`,
+        config,
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -1022,9 +1020,12 @@ export class FunifierApiService {
       // First, get all existing configurations
       const existingConfigs = await this.getAllStoreConfigs();
 
-      // Mark all existing configs as not current
+      // Check if this is an update to an existing config
+      const isUpdate = config._id && existingConfigs.some(c => c._id === config._id);
+
+      // Mark all existing configs as not current (except the one being updated)
       for (const existingConfig of existingConfigs) {
-        if (existingConfig.current) {
+        if (existingConfig.current && existingConfig._id !== config._id) {
           await this.updateStoreConfig(existingConfig._id, {
             ...existingConfig,
             current: false
@@ -1032,20 +1033,30 @@ export class FunifierApiService {
         }
       }
 
-      // Save the new configuration as current
-      await axios.post(
-        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
-        {
+      if (isUpdate) {
+        // Update existing configuration
+        await this.updateStoreConfig(config._id, {
           ...config,
           current: true,
-          createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
-        },
-        {
-          headers: this.getBasicAuthHeader(),
-          timeout: 15000,
-        }
-      );
+        });
+      } else {
+        // Create new configuration (remove _id if present to let Funifier generate it)
+        const { _id, ...configWithoutId } = config;
+        await axios.post(
+          `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+          {
+            ...configWithoutId,
+            current: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            headers: this.getBasicAuthHeader(),
+            timeout: 15000,
+          }
+        );
+      }
     } catch (error) {
       throw errorHandlerService.handleFunifierError(error, 'save_store_config');
     }

@@ -38,14 +38,17 @@ export interface StoreConfiguration {
 - Used internally to manage the current flag
 
 #### `updateStoreConfig()` - NEW method
-- Updates an existing configuration by ID
+- Updates an existing configuration by ID using PUT
+- Sends the complete configuration object (as required by Funifier)
 - Used to mark old configs as not current
 
 #### `saveStoreConfig()` - Enhanced to manage current flag
 - Fetches all existing configurations
-- Marks all existing configs as `current: false`
-- Saves new configuration with `current: true`
-- Adds `createdAt` and `updatedAt` timestamps
+- Checks if this is an update (config has `_id` that exists) or new creation
+- Marks all other existing configs as `current: false`
+- **If updating**: Updates the existing config with `current: true` and new `updatedAt`
+- **If creating**: Removes `_id` (if present) and creates new config with `current: true`, `createdAt`, and `updatedAt`
+- Prevents duplicate key errors by properly handling updates vs creates
 
 ### 3. Updated Store Service (services/store.service.ts)
 
@@ -65,9 +68,11 @@ export interface StoreConfiguration {
 ### When saving configuration:
 1. Validates the new configuration
 2. Fetches all existing configurations
-3. Marks all existing configs as `current: false`
-4. Saves new config with `current: true`, `createdAt`, and `updatedAt`
-5. Invalidates cache to force refresh
+3. Checks if this is an update (has existing `_id`) or new creation
+4. Marks all other existing configs as `current: false`
+5. **If updating**: Updates the existing config with `current: true` and new `updatedAt`
+6. **If creating**: Creates new config with `current: true`, `createdAt`, and `updatedAt`
+7. Invalidates cache to force refresh
 
 ### Fallback to Default:
 The system falls back to default configuration when:
@@ -115,9 +120,18 @@ const config = await storeService.getStoreConfiguration();
 await storeService.saveStoreConfiguration(newConfig);
 ```
 
+## Error Handling
+
+### Duplicate Key Error (E11000)
+The system now properly handles the distinction between creating new configurations and updating existing ones:
+- **Update scenario**: When a config with an existing `_id` is saved, it uses the update endpoint
+- **Create scenario**: When a new config is saved, the `_id` is removed to let Funifier generate a new one
+- This prevents the E11000 duplicate key error that would occur if trying to POST with an existing `_id`
+
 ## Testing Recommendations
 1. Test with no configurations in `store__c`
 2. Test with multiple configurations (ensure only one is current)
 3. Test saving new configuration (verify old ones are marked as not current)
-4. Test error scenarios (API failures, invalid data)
-5. Verify cache invalidation after saves
+4. Test updating existing configuration (verify it doesn't create duplicate)
+5. Test error scenarios (API failures, invalid data)
+6. Verify cache invalidation after saves
