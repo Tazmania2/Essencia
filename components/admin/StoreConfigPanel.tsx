@@ -252,7 +252,7 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
             <select
               value={configuration.currencyId}
               onChange={(e) => handleCurrencyChange(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
             >
               {availablePoints.map(point => (
                 <option key={point._id} value={point.category}>
@@ -325,7 +325,7 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
                         value={level.levelNumber}
                         onChange={(e) => handleLevelChange(level.catalogId, 'levelNumber', parseInt(e.target.value) || 0)}
                         min="0"
-                        className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                        className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm text-gray-900 bg-white"
                       />
                     </td>
                     <td className="py-3 px-2">
