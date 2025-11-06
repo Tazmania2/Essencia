@@ -852,6 +852,112 @@ export class FunifierApiService {
       throw errorHandlerService.handleFunifierError(error, 'check_all_players_virtual_goods_cleared');
     }
   }
+
+  // ==================== STORE OPERATIONS ====================
+
+  /**
+   * Get virtual goods items from Funifier API
+   * @returns Array of virtual goods items
+   */
+  public async getVirtualGoodsItems(): Promise<any[]> {
+    try {
+      const response = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/v3/virtualgoods/item`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'get_virtual_goods_items');
+    }
+  }
+
+  /**
+   * Get catalogs from Funifier API
+   * @returns Array of catalogs
+   */
+  public async getCatalogs(): Promise<any[]> {
+    try {
+      const response = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/v3/virtualgoods/catalog`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'get_catalogs');
+    }
+  }
+
+  /**
+   * Get points from Funifier API
+   * @returns Array of point types
+   */
+  public async getPoints(): Promise<any[]> {
+    try {
+      const response = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/v3/point`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'get_points');
+    }
+  }
+
+  /**
+   * Get store configuration from store__c custom collection
+   * @returns Store configuration object or null if not found
+   */
+  public async getStoreConfig(): Promise<any> {
+    try {
+      const response = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      // Return the first configuration object if it exists
+      return response.data && response.data.length > 0 ? response.data[0] : null;
+    } catch (error) {
+      // If collection doesn't exist or is empty, return null instead of throwing
+      if (axios.isAxiosError(error) && (error.response?.status === 404 || error.response?.status === 400)) {
+        return null;
+      }
+      throw errorHandlerService.handleFunifierError(error, 'get_store_config');
+    }
+  }
+
+  /**
+   * Save store configuration to store__c custom collection
+   * @param config Store configuration object to save
+   */
+  public async saveStoreConfig(config: any): Promise<void> {
+    try {
+      await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+        config,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'save_store_config');
+    }
+  }
 }
 
 // Export singleton instance

@@ -12,6 +12,11 @@ export { CycleChangeService, cycleChangeService, type CycleChangeStep, type Cycl
 export { HistoryService, historyService, type CycleSummaryStats, type CycleComparison } from './history.service';
 export { ConfigurationValidator, configurationValidator } from './configuration-validator.service';
 
+// Store Services
+export { VirtualGoodsService, virtualGoodsService } from './virtual-goods.service';
+export { PointsService, pointsService } from './points.service';
+export { StoreService, storeService } from './store.service';
+
 // Team Processors
 export { BaseTeamProcessor, TeamProcessorUtils, CHALLENGE_MAPPING } from './team-processor.service';
 export { CarteiraIProcessor, carteiraIProcessor } from './carteira-i-processor.service';

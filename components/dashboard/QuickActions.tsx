@@ -29,7 +29,6 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
   onHistoryClick 
 }) => {
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
-  const [isRankingLoading, setIsRankingLoading] = useState(false);
   const { notifyNoHistoryData, notifyError } = useNotificationHelpers();
 
   const handleHistoryClick = async () => {
@@ -63,16 +62,9 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
     }
   };
 
-  const handleRankingClick = async () => {
-    try {
-      setIsRankingLoading(true);
-      // TODO: Implement ranking functionality
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
-      notifyError('Funcionalidade de ranking em desenvolvimento');
-    } catch (error) {
-      notifyError('Erro ao carregar ranking');
-    } finally {
-      setIsRankingLoading(false);
+  const handleShopClick = () => {
+    if (typeof window !== 'undefined') {
+      window.location.href = '/store';
     }
   };
 
@@ -86,13 +78,11 @@ export const QuickActions: React.FC<QuickActionsProps> = ({
       loading: isHistoryLoading
     },
     {
-      icon: '🏆',
-      label: 'Ranking',
-      onClick: handleRankingClick,
+      icon: '🛒',
+      label: 'Loja',
+      onClick: handleShopClick,
       gradient: 'bg-gradient-to-r from-purple-400 to-purple-500',
-      disabled: false,
-      comingSoon: true,
-      loading: isRankingLoading
+      disabled: false
     }
   ];
 

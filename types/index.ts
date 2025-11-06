@@ -421,10 +421,132 @@ export interface ProgressDataPoint {
   };
 }
 
+// Store/Storefront Types
+export interface ImageData {
+  url: string;
+  size: number;
+  width: number;
+  height: number;
+  depth: number;
+}
+
+export interface Requirement {
+  total: number;
+  type: number;
+  item: string;
+  operation: number;
+  extra: Record<string, any>;
+  restrict: boolean;
+  perPlayer: boolean;
+}
+
+export interface VirtualGoodItem {
+  _id: string;
+  catalogId: string;
+  name: string;
+  description?: string;
+  amount: number;
+  active: boolean;
+  created: number;
+  image?: {
+    small?: ImageData;
+    medium?: ImageData;
+    original?: ImageData;
+  };
+  requires: Requirement[];
+  rewards: any[];
+  notifications: any[];
+  limit: {
+    total: number;
+    per: string;
+    every: string;
+  };
+  extra: Record<string, any>;
+  i18n: Record<string, any>;
+  techniques: string[];
+  owned: number;
+}
+
+export interface Catalog {
+  _id: string;
+  catalog: string;
+  extra: Record<string, any>;
+  created: number;
+  i18n: Record<string, any>;
+}
+
+export interface Point {
+  _id: string;
+  category: string;
+  shortName: string;
+  extra: Record<string, any>;
+  techniques: string[];
+}
+
+export interface LevelConfiguration {
+  catalogId: string;
+  levelNumber: number;
+  levelName: string;
+  visible: boolean;
+}
+
+export interface StoreConfiguration {
+  currencyId: string;
+  currencyName: string;
+  grayOutLocked: boolean;
+  levels: LevelConfiguration[];
+}
+
+// Default Store Configuration
+export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
+  currencyId: 'coins',
+  currencyName: 'Moedas',
+  grayOutLocked: false,
+  levels: [
+    {
+      catalogId: 'loja_de_recompensas',
+      levelNumber: 1,
+      levelName: 'Nível 1',
+      visible: true,
+    },
+    {
+      catalogId: 'loja_de_recompensas_2',
+      levelNumber: 2,
+      levelName: 'Nível 2',
+      visible: true,
+    },
+    {
+      catalogId: 'loja_de_recompensas_3',
+      levelNumber: 3,
+      levelName: 'Nível 3',
+      visible: true,
+    },
+    {
+      catalogId: 'backend_tools',
+      levelNumber: 999,
+      levelName: 'Internal',
+      visible: false,
+    },
+  ],
+};
+
+// Store Error Messages
+export const STORE_ERROR_MESSAGES = {
+  FETCH_ITEMS_FAILED: 'Não foi possível carregar os itens da loja. Tente novamente.',
+  FETCH_CONFIG_FAILED: 'Erro ao carregar configuração da loja. Usando configuração padrão.',
+  SAVE_CONFIG_FAILED: 'Não foi possível salvar a configuração. Tente novamente.',
+  FETCH_BALANCE_FAILED: 'Não foi possível carregar seu saldo.',
+  NO_ITEMS_AVAILABLE: 'Nenhum item disponível no momento.',
+  FETCH_CATALOGS_FAILED: 'Não foi possível carregar os catálogos.',
+  FETCH_POINTS_FAILED: 'Não foi possível carregar as moedas disponíveis.',
+  INVALID_CONFIGURATION: 'Configuração inválida. Verifique os dados e tente novamente.',
+} as const;
+
 export const FUNIFIER_CONFIG = {
   API_KEY: process.env.FUNIFIER_API_KEY || '',
   BASE_URL: process.env.FUNIFIER_BASE_URL || 'https://service2.funifier.com/v3',
   CUSTOM_COLLECTION: 'report__c',
+  STORE_COLLECTION: 'store__c',
   CATALOG_ITEMS: {
     UNLOCK_POINTS: 'E6F0O5f',
     LOCK_POINTS: 'E6F0MJ3',
