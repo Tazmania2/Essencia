@@ -10,6 +10,7 @@ interface ItemGridProps {
   onItemClick: (item: VirtualGoodItem) => void;
   grayOutLocked: boolean;
   currencyName: string;
+  playerCatalogItems: Record<string, number>;
 }
 
 export const ItemGrid: React.FC<ItemGridProps> = ({
@@ -18,7 +19,18 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
   onItemClick,
   grayOutLocked,
   currencyName,
+  playerCatalogItems,
 }) => {
+  
+  // Helper function to check if player has access to a level
+  const hasLevelAccess = (level: LevelConfiguration): boolean => {
+    // If no unlock item is configured, level is always accessible
+    if (!level.unlockItemId) {
+      return true;
+    }
+    // Check if player owns the unlock item
+    return (playerCatalogItems[level.unlockItemId] || 0) > 0;
+  };
   // Sort level configurations by levelNumber
   const sortedLevels = [...levelConfig]
     .filter(level => level.visible)
@@ -49,18 +61,22 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
           return null;
         }
 
+        const isLevelLocked = !hasLevelAccess(level);
+        const shouldGrayOut = grayOutLocked && isLevelLocked;
+
         return (
           <div key={level.catalogId} className="space-y-4">
             {/* Level Header */}
             <div className="flex items-center space-x-3">
-              <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg md:text-xl shadow-lg">
+              <div className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-lg md:text-xl shadow-lg ${shouldGrayOut ? 'opacity-50' : ''}`}>
                 {level.levelNumber}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-800 truncate">
+                <h2 className={`text-xl md:text-2xl font-bold text-gray-800 truncate ${shouldGrayOut ? 'opacity-50' : ''}`}>
                   {level.levelName}
+                  {isLevelLocked && ' 🔒'}
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p className={`text-sm text-gray-500 ${shouldGrayOut ? 'opacity-50' : ''}`}>
                   {items.length} {items.length === 1 ? 'item' : 'itens'}
                 </p>
               </div>
@@ -74,7 +90,7 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
                   item={item}
                   levelName={level.levelName}
                   currencyName={currencyName}
-                  grayedOut={grayOutLocked}
+                  grayedOut={shouldGrayOut}
                   onClick={() => onItemClick(item)}
                 />
               ))}

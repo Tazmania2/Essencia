@@ -135,49 +135,27 @@ function StorefrontContent() {
       const itemsWithCurrency = virtualGoodsService.filterItemsByCurrency(items, storeConfig.currencyId);
       secureLogger.log(`✅ Filtered to ${itemsWithCurrency.length} items with currency ${storeConfig.currencyId}`);
 
-      // Step 2: Filter levels by visibility and unlock item access
-      const accessibleLevels = storeConfig.levels.filter(level => {
-        // Must be visible
-        if (!level.visible) {
-          return false;
-        }
-
-        // If no unlock item is configured, level is always accessible
-        if (!level.unlockItemId) {
-          secureLogger.log(`✅ Level ${level.levelNumber} (${level.catalogId}) has no unlock requirement`);
-          return true;
-        }
-
-        // Check if player owns the unlock item
-        const ownsUnlockItem = (playerCatalogItems[level.unlockItemId] || 0) > 0;
-        if (ownsUnlockItem) {
-          secureLogger.log(`✅ Player has access to level ${level.levelNumber} (${level.catalogId}) - owns ${level.unlockItemId}`);
-        } else {
-          secureLogger.log(`🔒 Player does NOT have access to level ${level.levelNumber} (${level.catalogId}) - missing ${level.unlockItemId}`);
-        }
-        return ownsUnlockItem;
-      });
-
-      const accessibleCatalogIds = accessibleLevels.map(level => level.catalogId);
-      secureLogger.log(`✅ Player has access to ${accessibleCatalogIds.length} levels:`, accessibleCatalogIds);
-
-      // Step 3: Filter items by accessible catalogs
-      const accessibleItems = itemsWithCurrency.filter(item => 
-        accessibleCatalogIds.includes(item.catalogId)
+      // Step 2: Filter items by visible catalogs only (show all visible items)
+      const visibleCatalogIds = storeConfig.levels
+        .filter(level => level.visible)
+        .map(level => level.catalogId);
+      
+      const visibleItems = itemsWithCurrency.filter(item => 
+        visibleCatalogIds.includes(item.catalogId)
       );
-      secureLogger.log(`✅ Filtered to ${accessibleItems.length} items from accessible catalogs`);
+      secureLogger.log(`✅ Filtered to ${visibleItems.length} items from visible catalogs`);
 
-      setFilteredItems(accessibleItems);
+      setFilteredItems(visibleItems);
 
-      // Step 4: Group items by catalog/level
-      const grouped = virtualGoodsService.groupItemsByCatalog(accessibleItems);
+      // Step 3: Group items by catalog/level
+      const grouped = virtualGoodsService.groupItemsByCatalog(visibleItems);
       setItemsByLevel(grouped);
       secureLogger.log(`✅ Grouped items into ${grouped.size} catalogs`);
 
     } catch (err) {
       secureLogger.error('❌ Error filtering and grouping items:', err);
     }
-  }, [storeConfig, items, playerCatalogItems]);
+  }, [storeConfig, items]);
 
   const handleBackClick = () => {
     router.push('/dashboard');
@@ -319,6 +297,7 @@ function StorefrontContent() {
             onItemClick={handleItemClick}
             grayOutLocked={storeConfig.grayOutLocked}
             currencyName={storeConfig.currencyName}
+            playerCatalogItems={playerCatalogItems}
           />
         )}
       </div>

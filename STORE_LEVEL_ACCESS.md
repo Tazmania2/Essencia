@@ -22,10 +22,14 @@ The storefront now supports level-based access control using unlock items. Playe
 
 When a player visits the storefront:
 1. The system fetches their owned catalog items from Funifier
-2. For each level with an unlock item configured:
-   - If the player owns the unlock item (quantity > 0), they can see items from that level
-   - If the player doesn't own the unlock item, items from that level are hidden
-3. Levels without an unlock item configured are always visible
+2. **All items from visible catalogs are always displayed**
+3. When the "Gray out locked items" option is enabled:
+   - Levels the player doesn't have access to are shown with reduced opacity
+   - A lock icon (🔒) appears next to locked level names
+   - Items from locked levels appear grayed out
+4. When the "Gray out locked items" option is disabled:
+   - All items appear normal regardless of level access
+5. Levels without an unlock item configured are always accessible (never grayed out)
 
 ### Technical Implementation
 
@@ -38,8 +42,9 @@ When a player visits the storefront:
 
 **Storefront Logic:**
 - Fetches player's catalog items on page load
-- Filters levels based on unlock item ownership
-- Only displays items from accessible levels
+- Displays ALL items from visible catalogs
+- When "grayOutLocked" is enabled, applies visual styling to locked levels
+- Locked levels show with reduced opacity and a lock icon
 
 ## Example Player Data
 
@@ -54,18 +59,26 @@ When a player visits the storefront:
 }
 ```
 
-With this data:
-- If Level 1 requires `E6F0O5f`, the player CAN access Level 1 (owns 1)
-- If Level 2 requires `E6F0WGc`, the player CANNOT access Level 2 (owns 0)
-- If Level 3 has no unlock requirement, the player CAN access Level 3
+With this data and "Gray out locked items" enabled:
+- If Level 1 requires `E6F0O5f`, Level 1 items appear NORMAL (player owns 1)
+- If Level 2 requires `E6F0WGc`, Level 2 items appear GRAYED OUT (player owns 0)
+- If Level 3 has no unlock requirement, Level 3 items appear NORMAL (always accessible)
+
+With "Gray out locked items" disabled:
+- ALL items appear normal regardless of ownership
 
 ## Default Configuration
 
 By default, Level 1 requires `E6F0O5f` as the unlock item. This can be changed in the admin panel.
 
-## Logging
+## Visual Indicators
 
-The storefront logs level access checks for debugging:
-- `✅ Level X has no unlock requirement` - Level is always accessible
-- `✅ Player has access to level X - owns [itemId]` - Player owns the unlock item
-- `🔒 Player does NOT have access to level X - missing [itemId]` - Player lacks the unlock item
+When "Gray out locked items" is enabled:
+- Locked level headers show with 50% opacity
+- A lock icon (🔒) appears next to locked level names
+- All items in locked levels appear grayed out
+- Accessible levels and items appear with normal styling
+
+When "Gray out locked items" is disabled:
+- All levels and items appear with normal styling
+- No visual distinction between locked and unlocked content
