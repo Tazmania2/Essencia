@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { VirtualGoodItem } from '../../types';
-import Image from 'next/image';
 
 interface ItemCardProps {
   item: VirtualGoodItem;
@@ -27,8 +26,16 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     return currencyRequirement?.total || 0;
   };
 
+  // Get the best available image (prefer small for cards, fallback to medium, then original)
+  const getImageUrl = () => {
+    if (item.image?.small?.url) return item.image.small.url;
+    if (item.image?.medium?.url) return item.image.medium.url;
+    if (item.image?.original?.url) return item.image.original.url;
+    return null;
+  };
+
   const price = getPrice();
-  const imageUrl = item.image?.small?.url || item.image?.medium?.url || item.image?.original?.url;
+  const imageUrl = getImageUrl();
 
   return (
     <div
@@ -51,22 +58,18 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       }}
     >
       {/* Image Container */}
-      <div className="relative w-full aspect-square bg-gradient-to-br from-purple-50 to-pink-50 overflow-hidden">
+      <div className="relative w-full aspect-square bg-gradient-to-br from-purple-50 to-pink-50 overflow-hidden flex items-center justify-center p-2">
         {imageUrl ? (
-          <Image
+          <img
             src={imageUrl}
             alt={item.name}
-            fill
             className={`
-              object-cover group-hover:scale-110 transition-transform duration-300
+              max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300
               ${grayedOut ? 'grayscale' : ''}
             `}
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-4xl md:text-5xl">🎁</div>
-          </div>
+          <div className="text-4xl md:text-5xl">🎁</div>
         )}
         
         {/* Locked Badge */}
