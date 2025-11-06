@@ -38,8 +38,8 @@ export interface StoreConfiguration {
 - Used internally to manage the current flag
 
 #### `updateStoreConfig()` - NEW method
-- Updates an existing configuration by ID using PUT
-- Sends the complete configuration object (as required by Funifier)
+- Updates an existing configuration using `PUT /database/store__c`
+- Sends the complete configuration object with `_id` in the body (as required by Funifier)
 - Used to mark old configs as not current
 
 #### `saveStoreConfig()` - Enhanced to manage current flag

@@ -991,15 +991,18 @@ export class FunifierApiService {
 
   /**
    * Update store configuration in store__c custom collection
-   * Uses PUT with the complete object as required by Funifier
+   * Uses PUT /database/store__c with the complete object (including _id) in the body
    * @param configId Configuration ID to update
    * @param config Complete configuration object (must include all fields)
    */
   public async updateStoreConfig(configId: string, config: any): Promise<void> {
     try {
       await axios.put(
-        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c/${configId}`,
-        config,
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+        {
+          ...config,
+          _id: configId
+        },
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
