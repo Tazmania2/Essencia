@@ -88,6 +88,36 @@ export class PointsService {
     const pointCategories = playerStatus.point_categories || {};
     return pointCategories[currencyId] || 0;
   }
+
+  /**
+   * Get player's owned catalog items
+   * @param playerId - The player's ID
+   * @returns Object mapping item IDs to quantities owned
+   */
+  public async getPlayerCatalogItems(playerId: string): Promise<Record<string, number>> {
+    try {
+      const playerStatus = await funifierApiService.getPlayerStatus(playerId);
+      return playerStatus.catalog_items || {};
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, `get_player_catalog_items:${playerId}`);
+    }
+  }
+
+  /**
+   * Check if player owns a specific catalog item
+   * @param playerId - The player's ID
+   * @param itemId - The catalog item ID to check
+   * @returns True if player owns at least one of the item, false otherwise
+   */
+  public async playerOwnsItem(playerId: string, itemId: string): Promise<boolean> {
+    try {
+      const catalogItems = await this.getPlayerCatalogItems(playerId);
+      return (catalogItems[itemId] || 0) > 0;
+    } catch (error) {
+      console.warn(`Error checking if player owns item ${itemId}:`, error);
+      return false;
+    }
+  }
 }
 
 // Export singleton instance

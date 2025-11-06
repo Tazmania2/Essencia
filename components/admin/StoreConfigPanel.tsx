@@ -303,6 +303,9 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
       {/* Catalog Configuration */}
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">📚 Configuração de Catálogos</h3>
+        <p className="text-sm text-gray-600 mb-3">
+          Configure o item de desbloqueio para cada nível. Jogadores só verão itens de níveis cujo item de desbloqueio eles possuem. Deixe em branco para níveis sempre acessíveis.
+        </p>
         <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -310,6 +313,7 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
                 <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">ID do Catálogo</th>
                 <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">Nível</th>
                 <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">Nome</th>
+                <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">Item de Desbloqueio</th>
                 <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700">Visível</th>
               </tr>
             </thead>
@@ -334,6 +338,15 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
                         value={level.levelName}
                         onChange={(e) => handleLevelChange(level.catalogId, 'levelName', e.target.value)}
                         placeholder="Nome do nível"
+                        className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                      />
+                    </td>
+                    <td className="py-3 px-2">
+                      <input
+                        type="text"
+                        value={level.unlockItemId || ''}
+                        onChange={(e) => handleLevelChange(level.catalogId, 'unlockItemId', e.target.value)}
+                        placeholder="Ex: E6F0O5f (opcional)"
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                       />
                     </td>

@@ -488,6 +488,7 @@ export interface LevelConfiguration {
   levelNumber: number;
   levelName: string;
   visible: boolean;
+  unlockItemId?: string; // Virtual good item ID required to unlock this level
 }
 
 export interface StoreConfiguration {
@@ -512,24 +513,28 @@ export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
       levelNumber: 1,
       levelName: 'Nível 1',
       visible: true,
+      unlockItemId: 'E6F0O5f', // Unlock item for level 1
     },
     {
       catalogId: 'loja_de_recompensas_2',
       levelNumber: 2,
       levelName: 'Nível 2',
       visible: true,
+      unlockItemId: undefined, // No unlock requirement for level 2
     },
     {
       catalogId: 'loja_de_recompensas_3',
       levelNumber: 3,
       levelName: 'Nível 3',
       visible: true,
+      unlockItemId: undefined, // No unlock requirement for level 3
     },
     {
       catalogId: 'backend_tools',
       levelNumber: 999,
       levelName: 'Internal',
       visible: false,
+      unlockItemId: undefined,
     },
   ],
 };
