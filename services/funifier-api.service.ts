@@ -862,7 +862,7 @@ export class FunifierApiService {
   public async getVirtualGoodsItems(): Promise<any[]> {
     try {
       const response = await axios.get<any[]>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/virtualgoods/item`,
+        `${FUNIFIER_CONFIG.BASE_URL}/virtualgoods/item`,
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -882,7 +882,7 @@ export class FunifierApiService {
   public async getCatalogs(): Promise<any[]> {
     try {
       const response = await axios.get<any[]>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/virtualgoods/catalog`,
+        `${FUNIFIER_CONFIG.BASE_URL}/virtualgoods/catalog`,
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
@@ -902,7 +902,7 @@ export class FunifierApiService {
   public async getPoints(): Promise<any[]> {
     try {
       const response = await axios.get<any[]>(
-        `${FUNIFIER_CONFIG.BASE_URL}/v3/point`,
+        `${FUNIFIER_CONFIG.BASE_URL}/point`,
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,
