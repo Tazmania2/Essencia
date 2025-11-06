@@ -32,10 +32,11 @@ export class PointsService {
       const rawPoints = await funifierApiService.getPoints();
       
       // Transform raw API data to Point interface
+      // Note: In Funifier, _id IS the category identifier (e.g., "locked_points", "coins")
       const points: Point[] = rawPoints.map((point: any) => ({
-        _id: point._id,
-        category: point.category || '',
-        shortName: point.shortName || point.category || '',
+        _id: point._id, // This is the actual category ID used in point_categories
+        category: point.category || point._id, // Display name
+        shortName: point.shortName || point.category || point._id,
         extra: point.extra || {},
         techniques: point.techniques || []
       }));
