@@ -16,6 +16,8 @@ This document specifies the requirements for a storefront feature that displays 
 - **Admin Panel**: The administrative interface for configuring store settings
 - **Funifier API**: The external API service providing virtual goods, catalogs, and points data
 - **Custom Collection**: Funifier's database storage mechanism for custom data (store__c)
+- **Level Unlock Item**: A specific virtual good that, when owned by a player, grants access to a catalog/level
+- **Player Status**: Funifier's player data including owned items and point balances
 
 ## Requirements
 
@@ -66,6 +68,8 @@ This document specifies the requirements for a storefront feature that displays 
 3. WHILE configuring the store, THE Admin Panel SHALL allow the administrator to show or hide each catalog via toggle controls
 4. WHERE THE administrator configures catalog visibility, THE Admin Panel SHALL allow mapping each visible catalog to a level number
 5. WHEN THE administrator maps catalogs to levels, THE Admin Panel SHALL allow entering custom display names for each level
+6. WHEN THE administrator configures a level, THE Admin Panel SHALL allow entering a virtual good item ID that serves as the unlock requirement for that level
+7. WHERE THE administrator configures level unlock items, THE Admin Panel SHALL validate that the item ID is a valid virtual good identifier
 
 ### Requirement 5: Currency Configuration
 
@@ -81,12 +85,12 @@ This document specifies the requirements for a storefront feature that displays 
 
 ### Requirement 6: White-Label Configuration Storage
 
-**User Story:** As a system, I want to store store configuration in Funifier's custom collection, so that configuration persists and follows the existing white-label pattern
+**User Story:** As a system, I want to store configuration in Funifier's custom collection, so that configuration persists and follows the existing white-label pattern
 
 #### Acceptance Criteria
 
 1. WHEN THE administrator saves store configuration, THE System SHALL store the configuration in Funifier's store__c custom collection
-2. WHEN THE System stores configuration, THE Configuration Record SHALL include catalog visibility settings, level mappings, level names, currency point ID, and currency display name
+2. WHEN THE System stores configuration, THE Configuration Record SHALL include catalog visibility settings, level mappings, level names, level unlock item IDs, currency point ID, and currency display name
 3. WHEN THE player loads the storefront, THE System SHALL fetch the latest configuration from the store__c collection
 4. WHERE NO configuration exists in store__c, THE System SHALL use default configuration with catalogs from the provided sample data
 5. WHEN THE System uses default configuration, THE Default Configuration SHALL hide the "backend_tools" catalog and use "coins" as the currency
@@ -122,10 +126,11 @@ This document specifies the requirements for a storefront feature that displays 
 #### Acceptance Criteria
 
 1. WHEN NO store configuration exists, THE System SHALL use default catalog mappings based on the provided sample data
-2. WHEN THE System creates default configuration, THE Default Configuration SHALL map "loja_de_recompensas" to Level 1 with display name "Nível 1"
-3. WHEN THE System creates default configuration, THE Default Configuration SHALL map "loja_de_recompensas_2" to Level 2 with display name "Nível 2"
-4. WHEN THE System creates default configuration, THE Default Configuration SHALL set "backend_tools" catalog as hidden
-5. WHEN THE System creates default configuration, THE Default Configuration SHALL set currency to "coins" with display name "Moedas"
+2. WHEN THE System creates default configuration, THE Default Configuration SHALL map "loja_de_recompensas" to Level 1 with display name "Nível 1" and unlock item ID "E6F0O5f"
+3. WHEN THE System creates default configuration, THE Default Configuration SHALL map "loja_de_recompensas_2" to Level 2 with display name "Nível 2" and unlock item ID "FbXIjDZ"
+4. WHEN THE System creates default configuration, THE Default Configuration SHALL map "loja_de_recompensas_3" to Level 3 with display name "Nível 3" and unlock item ID "FbXIqPs"
+5. WHEN THE System creates default configuration, THE Default Configuration SHALL set "backend_tools" catalog as hidden
+6. WHEN THE System creates default configuration, THE Default Configuration SHALL set currency to "coins" with display name "Moedas"
 
 ### Requirement 10: Item Modal Display
 
@@ -138,3 +143,27 @@ This document specifies the requirements for a storefront feature that displays 
 3. WHEN THE modal displays item details, THE Modal SHALL show the item name, level name, price with currency, and full description
 4. WHEN THE player wants to close the modal, THE Modal SHALL provide a close button and backdrop click functionality
 5. WHILE THE modal is open, THE System SHALL prevent scrolling of the background content
+
+### Requirement 11: Level Unlocking Logic
+
+**User Story:** As a player, I want to know which store levels I have unlocked, so that I understand my progression and access to items
+
+#### Acceptance Criteria
+
+1. WHEN THE storefront loads, THE System SHALL fetch the player's owned items from the player/status endpoint
+2. WHEN THE System determines level access, THE System SHALL check if the player owns the level unlock item with a quantity greater than or equal to 1
+3. IF THE player owns a level unlock item, THEN THE System SHALL grant access to that level's catalog
+4. WHERE THE "gray out locked items" option is enabled, THE Storefront SHALL apply visual styling to items from catalogs the player has not unlocked
+5. WHEN THE System checks item ownership, THE System SHALL use the catalog_items array from player status data
+
+### Requirement 12: Player Level Display
+
+**User Story:** As a player, I want to see my current level and unlocked catalogs on the storefront, so that I understand my progression status
+
+#### Acceptance Criteria
+
+1. WHEN THE storefront displays, THE Storefront SHALL show the player's current highest unlocked level
+2. WHEN THE storefront shows level information, THE Storefront SHALL display which catalogs/levels the player has access to
+3. WHILE displaying level status, THE Storefront SHALL use visual indicators (badges, icons, or labels) to show unlocked vs locked levels
+4. WHERE THE player has not unlocked any levels, THE System SHALL display Level 1 as the default accessible level
+5. WHEN THE player views their level status, THE Storefront SHALL show the level display names configured by the administrator
