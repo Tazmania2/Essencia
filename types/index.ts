@@ -491,10 +491,14 @@ export interface LevelConfiguration {
 }
 
 export interface StoreConfiguration {
+  _id?: string;
   currencyId: string;
   currencyName: string;
   grayOutLocked: boolean;
   levels: LevelConfiguration[];
+  current?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Default Store Configuration

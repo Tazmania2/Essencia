@@ -917,6 +917,7 @@ export class FunifierApiService {
 
   /**
    * Get store configuration from store__c custom collection
+   * Fetches only the configuration marked as current
    * @returns Store configuration object or null if not found
    */
   public async getStoreConfig(): Promise<any> {
@@ -925,12 +926,36 @@ export class FunifierApiService {
         `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
         {
           headers: this.getBasicAuthHeader(),
+          params: {
+            q: JSON.stringify({ current: true })
+          },
           timeout: 15000,
         }
       );
 
-      // Return the first configuration object if it exists
-      return response.data && response.data.length > 0 ? response.data[0] : null;
+      // Return the current configuration if it exists
+      if (response.data && response.data.length > 0) {
+        return response.data[0];
+      }
+
+      // If no current config found, try to get any config and mark it as current
+      const allConfigsResponse = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      if (allConfigsResponse.data && allConfigsResponse.data.length > 0) {
+        // Mark the first one as current
+        const firstConfig = allConfigsResponse.data[0];
+        firstConfig.current = true;
+        await this.updateStoreConfig(firstConfig._id, firstConfig);
+        return firstConfig;
+      }
+
+      return null;
     } catch (error) {
       // If collection doesn't exist or is empty, return null instead of throwing
       if (axios.isAxiosError(error) && (error.response?.status === 404 || error.response?.status === 400)) {
@@ -941,14 +966,81 @@ export class FunifierApiService {
   }
 
   /**
+   * Get all store configurations from store__c custom collection
+   * @returns Array of all store configurations
+   */
+  public async getAllStoreConfigs(): Promise<any[]> {
+    try {
+      const response = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      // If collection doesn't exist or is empty, return empty array
+      if (axios.isAxiosError(error) && (error.response?.status === 404 || error.response?.status === 400)) {
+        return [];
+      }
+      throw errorHandlerService.handleFunifierError(error, 'get_all_store_configs');
+    }
+  }
+
+  /**
+   * Update store configuration in store__c custom collection
+   * @param configId Configuration ID to update
+   * @param config Updated configuration object
+   */
+  public async updateStoreConfig(configId: string, config: any): Promise<void> {
+    try {
+      await axios.post(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+        {
+          ...config,
+          _id: configId
+        },
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'update_store_config');
+    }
+  }
+
+  /**
    * Save store configuration to store__c custom collection
+   * Marks all existing configs as not current and the new one as current
    * @param config Store configuration object to save
    */
   public async saveStoreConfig(config: any): Promise<void> {
     try {
+      // First, get all existing configurations
+      const existingConfigs = await this.getAllStoreConfigs();
+
+      // Mark all existing configs as not current
+      for (const existingConfig of existingConfigs) {
+        if (existingConfig.current) {
+          await this.updateStoreConfig(existingConfig._id, {
+            ...existingConfig,
+            current: false
+          });
+        }
+      }
+
+      // Save the new configuration as current
       await axios.post(
         `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
-        config,
+        {
+          ...config,
+          current: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
         {
           headers: this.getBasicAuthHeader(),
           timeout: 15000,

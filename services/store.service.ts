@@ -42,13 +42,13 @@ export class StoreService {
         return this.configCache;
       }
 
-      secureLogger.log('🔍 Fetching store configuration from Funifier');
+      secureLogger.log('🔍 Fetching current store configuration from Funifier');
       
-      // Fetch configuration from store__c collection
+      // Fetch current configuration from store__c collection
       const rawConfig = await funifierApiService.getStoreConfig();
 
       if (!rawConfig) {
-        secureLogger.log('⚠️ No store configuration found, using default configuration');
+        secureLogger.log('⚠️ No current store configuration found, using default configuration');
         const defaultConfig = this.getDefaultConfiguration();
         
         // Cache the default configuration
@@ -56,6 +56,11 @@ export class StoreService {
         this.cacheTimestamp = now;
         
         return defaultConfig;
+      }
+
+      secureLogger.log(`✅ Found current store configuration (ID: ${rawConfig._id || 'unknown'})`);
+      if (rawConfig.createdAt) {
+        secureLogger.log(`📅 Configuration created at: ${rawConfig.createdAt}`);
       }
 
       // Transform raw config to StoreConfiguration interface
