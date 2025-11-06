@@ -917,18 +917,20 @@ export class FunifierApiService {
 
   /**
    * Get store configuration from store__c custom collection
-   * Fetches only the configuration marked as current
+   * Fetches only the configuration marked as current using aggregate
    * @returns Store configuration object or null if not found
    */
   public async getStoreConfig(): Promise<any> {
     try {
-      const response = await axios.get<any[]>(
-        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+      // Use aggregate to filter for current configuration
+      const response = await axios.post<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c/aggregate`,
+        [
+          { "$match": { "current": true } },
+          { "$limit": 1 }
+        ],
         {
           headers: this.getBasicAuthHeader(),
-          params: {
-            q: JSON.stringify({ current: true })
-          },
           timeout: 15000,
         }
       );

@@ -29,7 +29,7 @@ export interface StoreConfiguration {
 ### 2. Updated Funifier API Service (services/funifier-api.service.ts)
 
 #### `getStoreConfig()` - Enhanced to fetch only current configuration
-- Queries `store__c` collection with filter `{ current: true }`
+- Uses `POST /database/store__c/aggregate` with MongoDB-style query: `[{ "$match": { "current": true } }, { "$limit": 1 }]`
 - If no current config found, attempts to find any config and marks it as current
 - Returns `null` if no configurations exist (triggers default fallback)
 
