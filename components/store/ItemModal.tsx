@@ -22,6 +22,11 @@ export function ItemModal({
     return null;
   }
 
+  // Additional safety check - don't render if modal shouldn't be visible
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();

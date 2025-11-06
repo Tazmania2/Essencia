@@ -22,7 +22,7 @@ export default function StorefrontPage() {
 
 function StorefrontContent() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, showTeamSelection, selectedTeam, isLoading: authLoading } = useAuth();
   
   // State management
   const [storeConfig, setStoreConfig] = useState<StoreConfiguration | null>(null);
@@ -36,6 +36,22 @@ function StorefrontContent() {
   // Filtered and grouped items
   const [filteredItems, setFilteredItems] = useState<VirtualGoodItem[]>([]);
   const [itemsByLevel, setItemsByLevel] = useState<Map<string, VirtualGoodItem[]>>(new Map());
+
+  // Redirect if team selection is in progress
+  useEffect(() => {
+    if (showTeamSelection) {
+      secureLogger.log('⚠️ Team selection in progress, redirecting to dashboard');
+      router.push('/dashboard');
+    }
+  }, [showTeamSelection, router]);
+
+  // Redirect if no valid team is selected (but only after auth is loaded)
+  useEffect(() => {
+    if (!authLoading && (!selectedTeam || selectedTeam === 'ADMIN')) {
+      secureLogger.log('⚠️ No valid team selected for store access, redirecting to dashboard');
+      router.push('/dashboard');
+    }
+  }, [selectedTeam, authLoading, router]);
 
   // Fetch store data function
   const fetchStoreData = async () => {
@@ -149,6 +165,37 @@ function StorefrontContent() {
     const level = storeConfig.levels.find(l => l.catalogId === selectedItem.catalogId);
     return level?.levelName || '';
   };
+
+  // Show loading while auth is initializing or team selection is in progress
+  if (authLoading || showTeamSelection) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-boticario-pink mx-auto mb-4"></div>
+          <p className="text-gray-600">
+            {showTeamSelection ? 'Aguardando seleção de equipe...' : 'Carregando...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if no valid team is selected
+  if (!selectedTeam || selectedTeam === 'ADMIN') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Acesso negado. Você precisa selecionar uma equipe válida para acessar a loja.</p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="bg-boticario-pink text-white px-6 py-2 rounded-lg hover:bg-boticario-purple transition-colors"
+          >
+            Voltar ao Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
