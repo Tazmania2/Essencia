@@ -27,7 +27,7 @@ function StorefrontContent() {
   // State management
   const [storeConfig, setStoreConfig] = useState<StoreConfiguration | null>(null);
   const [items, setItems] = useState<VirtualGoodItem[]>([]);
-  const [playerBalance, setPlayerBalance] = useState<number>(0);
+  const [playerBalances, setPlayerBalances] = useState<Record<string, number>>({});
   const [playerCatalogItems, setPlayerCatalogItems] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,17 +79,26 @@ function StorefrontContent() {
         setItems(allItems);
         secureLogger.log(`✅ Loaded ${allItems.length} virtual goods items`);
 
-        // Fetch player balance for configured currency
-        secureLogger.log(`💰 Fetching player balance for currency: ${config.currencyId}...`);
-        try {
-          const balance = await pointsService.getPlayerBalance(user.userId, config.currencyId);
-          setPlayerBalance(balance);
-          secureLogger.log(`✅ Player balance loaded: ${balance} ${config.currencyName}`);
-        } catch (balanceError) {
-          secureLogger.error('❌ Error fetching player balance:', balanceError);
-          // Don't fail the entire page if balance fetch fails
-          setPlayerBalance(0);
+        // Fetch player balances for all currencies used in visible levels
+        secureLogger.log('💰 Fetching player balances for all currencies...');
+        const balances: Record<string, number> = {};
+        const uniqueCurrencies = new Set(
+          config.levels
+            .filter(level => level.visible)
+            .map(level => level.currencyId)
+        );
+
+        for (const currencyId of uniqueCurrencies) {
+          try {
+            const balance = await pointsService.getPlayerBalance(user.userId, currencyId);
+            balances[currencyId] = balance;
+            secureLogger.log(`✅ Balance loaded for ${currencyId}: ${balance}`);
+          } catch (balanceError) {
+            secureLogger.error(`❌ Error fetching balance for ${currencyId}:`, balanceError);
+            balances[currencyId] = 0;
+          }
         }
+        setPlayerBalances(balances);
 
         // Fetch player's owned catalog items for level access checking
         secureLogger.log('🎁 Fetching player catalog items...');
@@ -131,26 +140,31 @@ function StorefrontContent() {
     try {
       secureLogger.log('🔍 Filtering and grouping items...');
 
-      // Step 1: Filter items by configured currency (type 0 only)
-      const itemsWithCurrency = virtualGoodsService.filterItemsByCurrency(items, storeConfig.currencyId);
-      secureLogger.log(`✅ Filtered to ${itemsWithCurrency.length} items with currency ${storeConfig.currencyId}`);
-
-      // Step 2: Filter items by visible catalogs only (show all visible items)
-      const visibleCatalogIds = storeConfig.levels
-        .filter(level => level.visible)
-        .map(level => level.catalogId);
+      // Get visible levels
+      const visibleLevels = storeConfig.levels.filter(level => level.visible);
       
-      const visibleItems = itemsWithCurrency.filter(item => 
-        visibleCatalogIds.includes(item.catalogId)
-      );
-      secureLogger.log(`✅ Filtered to ${visibleItems.length} items from visible catalogs`);
+      // Filter items by level-specific currency and catalog
+      const allVisibleItems: VirtualGoodItem[] = [];
+      const grouped = new Map<string, VirtualGoodItem[]>();
 
-      setFilteredItems(visibleItems);
+      for (const level of visibleLevels) {
+        // Filter items by this level's currency
+        const itemsWithCurrency = virtualGoodsService.filterItemsByCurrency(items, level.currencyId);
+        
+        // Filter items by this level's catalog
+        const levelItems = itemsWithCurrency.filter(item => item.catalogId === level.catalogId);
+        
+        secureLogger.log(`✅ Level ${level.levelNumber} (${level.levelName}): ${levelItems.length} items with currency ${level.currencyId}`);
+        
+        if (levelItems.length > 0) {
+          grouped.set(level.catalogId, levelItems);
+          allVisibleItems.push(...levelItems);
+        }
+      }
 
-      // Step 3: Group items by catalog/level
-      const grouped = virtualGoodsService.groupItemsByCatalog(visibleItems);
+      setFilteredItems(allVisibleItems);
       setItemsByLevel(grouped);
-      secureLogger.log(`✅ Grouped items into ${grouped.size} catalogs`);
+      secureLogger.log(`✅ Grouped items into ${grouped.size} catalogs with ${allVisibleItems.length} total items`);
 
     } catch (err) {
       secureLogger.error('❌ Error filtering and grouping items:', err);
@@ -171,12 +185,12 @@ function StorefrontContent() {
     setSelectedItem(null);
   };
 
-  // Get level name for selected item
-  const getSelectedItemLevelName = (): string => {
-    if (!selectedItem || !storeConfig) return '';
+  // Get level info for selected item
+  const getSelectedItemLevel = () => {
+    if (!selectedItem || !storeConfig) return null;
     
     const level = storeConfig.levels.find(l => l.catalogId === selectedItem.catalogId);
-    return level?.levelName || '';
+    return level || null;
   };
 
   // Show loading while auth is initializing or team selection is in progress
@@ -215,7 +229,8 @@ function StorefrontContent() {
       {/* Header */}
       <div className="bg-white shadow-md sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          {/* Top Row: Back Button and Title */}
+          <div className="flex items-center justify-between mb-4">
             {/* Back Button */}
             <button
               onClick={handleBackClick}
@@ -225,7 +240,7 @@ function StorefrontContent() {
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="font-medium">Voltar</span>
+              <span className="font-medium hidden sm:inline">Voltar</span>
             </button>
 
             {/* Title */}
@@ -233,19 +248,39 @@ function StorefrontContent() {
               🏪 Loja
             </h1>
 
-            {/* Currency Balance - Placeholder for now */}
-            <div className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full shadow-lg">
-              <span className="text-xl">💰</span>
-              <div className="text-right">
-                <div className="font-bold text-lg">
-                  {loading ? '...' : playerBalance.toLocaleString('pt-BR')}
-                </div>
-                <div className="text-xs opacity-90">
-                  {storeConfig?.currencyName || 'Moedas'}
-                </div>
-              </div>
-            </div>
+            {/* Spacer for alignment */}
+            <div className="w-20 sm:w-24"></div>
           </div>
+
+          {/* Currency Balances Row */}
+          {storeConfig && (
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {storeConfig.levels
+                .filter(level => level.visible)
+                .sort((a, b) => a.levelNumber - b.levelNumber)
+                .map((level) => {
+                  const balance = playerBalances[level.currencyId] || 0;
+                  const currencyEmoji = level.levelNumber === 1 ? '💰' : level.levelNumber === 2 ? '🥇' : '💎';
+                  
+                  return (
+                    <div
+                      key={level.currencyId}
+                      className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-2 rounded-full shadow-lg"
+                    >
+                      <span className="text-lg">{currencyEmoji}</span>
+                      <div className="text-right">
+                        <div className="font-bold text-sm md:text-base">
+                          {loading ? '...' : balance.toLocaleString('pt-BR')}
+                        </div>
+                        <div className="text-xs opacity-90">
+                          {level.currencyName}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -296,7 +331,6 @@ function StorefrontContent() {
             levelConfig={storeConfig.levels}
             onItemClick={handleItemClick}
             grayOutLocked={storeConfig.grayOutLocked}
-            currencyName={storeConfig.currencyName}
             playerCatalogItems={playerCatalogItems}
           />
         )}
@@ -305,8 +339,8 @@ function StorefrontContent() {
       {/* Item Modal */}
       <ItemModal
         item={selectedItem}
-        levelName={getSelectedItemLevelName()}
-        currencyName={storeConfig?.currencyName || 'Moedas'}
+        levelName={getSelectedItemLevel()?.levelName || ''}
+        currencyName={getSelectedItemLevel()?.currencyName || 'Moedas'}
         isOpen={isModalOpen}
         onClose={handleModalClose}
       />

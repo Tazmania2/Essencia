@@ -84,28 +84,14 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
         catalogId: catalog._id,
         levelNumber: existingLevels.length + index + 1,
         levelName: catalog.catalog || `Nível ${existingLevels.length + index + 1}`,
-        visible: false
+        visible: false,
+        currencyId: 'coins',
+        currencyName: 'Moedas'
       };
     });
   };
 
-  const handleCurrencyChange = (currencyId: string) => {
-    if (!configuration) return;
-    
-    setConfiguration({
-      ...configuration,
-      currencyId
-    });
-  };
 
-  const handleCurrencyNameChange = (currencyName: string) => {
-    if (!configuration) return;
-    
-    setConfiguration({
-      ...configuration,
-      currencyName
-    });
-  };
 
   const handleGrayOutLockedChange = (checked: boolean) => {
     if (!configuration) return;
@@ -241,41 +227,7 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
         </div>
       )}
 
-      {/* Currency Settings */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">💰 Configurações de Moeda</h3>
-        <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tipo de Moeda
-            </label>
-            <select
-              value={configuration.currencyId}
-              onChange={(e) => handleCurrencyChange(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 bg-white"
-            >
-              {availablePoints.map(point => (
-                <option key={point._id} value={point._id}>
-                  {point.category} ({point._id})
-                </option>
-              ))}
-            </select>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nome de Exibição da Moeda
-            </label>
-            <input
-              type="text"
-              value={configuration.currencyName}
-              onChange={(e) => handleCurrencyNameChange(e.target.value)}
-              placeholder="Ex: Moedas, Pontos, Créditos"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-        </div>
-      </div>
 
       {/* Display Options */}
       <div className="mb-8">
@@ -302,18 +254,20 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
 
       {/* Catalog Configuration */}
       <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">📚 Configuração de Catálogos</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">📚 Configuração de Catálogos e Moedas</h3>
         <p className="text-sm text-gray-600 mb-3">
-          Configure o item de desbloqueio para cada nível. Jogadores só verão itens de níveis cujo item de desbloqueio eles possuem. Deixe em branco para níveis sempre acessíveis.
+          Configure cada nível com sua moeda específica e item de desbloqueio. Cada nível pode usar uma moeda diferente (ex: Nível 1 = Moedas, Nível 2 = Ouro, Nível 3 = Platina).
         </p>
         <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-300">
-                <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">ID do Catálogo</th>
                 <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">Nível</th>
                 <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">Nome</th>
-                <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">Item de Desbloqueio</th>
+                <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">Catálogo</th>
+                <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">Moeda</th>
+                <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">Nome da Moeda</th>
+                <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700">Item Desbloqueio</th>
                 <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700">Visível</th>
               </tr>
             </thead>
@@ -322,14 +276,13 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
                 .sort((a, b) => a.levelNumber - b.levelNumber)
                 .map((level) => (
                   <tr key={level.catalogId} className="border-b border-gray-200 last:border-b-0">
-                    <td className="py-3 px-2 text-sm text-gray-900">{level.catalogId}</td>
                     <td className="py-3 px-2">
                       <input
                         type="number"
                         value={level.levelNumber}
                         onChange={(e) => handleLevelChange(level.catalogId, 'levelNumber', parseInt(e.target.value) || 0)}
                         min="0"
-                        className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm text-gray-900 bg-white"
+                        className="w-16 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm text-gray-900 bg-white"
                       />
                     </td>
                     <td className="py-3 px-2">
@@ -341,12 +294,35 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                       />
                     </td>
+                    <td className="py-3 px-2 text-xs text-gray-600">{level.catalogId}</td>
+                    <td className="py-3 px-2">
+                      <select
+                        value={level.currencyId}
+                        onChange={(e) => handleLevelChange(level.catalogId, 'currencyId', e.target.value)}
+                        className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm text-gray-900 bg-white"
+                      >
+                        {availablePoints.map(point => (
+                          <option key={point._id} value={point._id}>
+                            {point._id}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="py-3 px-2">
+                      <input
+                        type="text"
+                        value={level.currencyName}
+                        onChange={(e) => handleLevelChange(level.catalogId, 'currencyName', e.target.value)}
+                        placeholder="Ex: Moedas"
+                        className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                      />
+                    </td>
                     <td className="py-3 px-2">
                       <input
                         type="text"
                         value={level.unlockItemId || ''}
                         onChange={(e) => handleLevelChange(level.catalogId, 'unlockItemId', e.target.value)}
-                        placeholder="Ex: E6F0O5f (opcional)"
+                        placeholder="Opcional"
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                       />
                     </td>
