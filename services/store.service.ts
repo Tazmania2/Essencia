@@ -65,8 +65,6 @@ export class StoreService {
 
       // Transform raw config to StoreConfiguration interface
       const config: StoreConfiguration = {
-        currencyId: rawConfig.currencyId || DEFAULT_STORE_CONFIG.currencyId,
-        currencyName: rawConfig.currencyName || DEFAULT_STORE_CONFIG.currencyName,
         grayOutLocked: rawConfig.grayOutLocked ?? DEFAULT_STORE_CONFIG.grayOutLocked,
         levels: rawConfig.levels || DEFAULT_STORE_CONFIG.levels
       };
@@ -146,8 +144,6 @@ export class StoreService {
     
     // Return a deep copy to prevent mutations
     return {
-      currencyId: DEFAULT_STORE_CONFIG.currencyId,
-      currencyName: DEFAULT_STORE_CONFIG.currencyName,
       grayOutLocked: DEFAULT_STORE_CONFIG.grayOutLocked,
       levels: DEFAULT_STORE_CONFIG.levels.map(level => ({ ...level }))
     };
@@ -162,16 +158,6 @@ export class StoreService {
   public validateConfiguration(config: StoreConfiguration): boolean {
     try {
       // Check required fields exist
-      if (!config.currencyId || typeof config.currencyId !== 'string') {
-        secureLogger.log('⚠️ Invalid currencyId in configuration');
-        return false;
-      }
-
-      if (!config.currencyName || typeof config.currencyName !== 'string') {
-        secureLogger.log('⚠️ Invalid currencyName in configuration');
-        return false;
-      }
-
       if (typeof config.grayOutLocked !== 'boolean') {
         secureLogger.log('⚠️ Invalid grayOutLocked in configuration');
         return false;
@@ -201,6 +187,16 @@ export class StoreService {
 
         if (typeof level.visible !== 'boolean') {
           secureLogger.log(`⚠️ Invalid visible flag in level: ${JSON.stringify(level)}`);
+          return false;
+        }
+
+        if (!level.currencyId || typeof level.currencyId !== 'string') {
+          secureLogger.log(`⚠️ Invalid currencyId in level: ${JSON.stringify(level)}`);
+          return false;
+        }
+
+        if (!level.currencyName || typeof level.currencyName !== 'string') {
+          secureLogger.log(`⚠️ Invalid currencyName in level: ${JSON.stringify(level)}`);
           return false;
         }
       }

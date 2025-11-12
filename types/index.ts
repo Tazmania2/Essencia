@@ -489,12 +489,12 @@ export interface LevelConfiguration {
   levelName: string;
   visible: boolean;
   unlockItemId?: string; // Virtual good item ID required to unlock this level
+  currencyId: string; // Currency ID for this level (e.g., 'coins', 'gold', 'plat')
+  currencyName: string; // Display name for the currency (e.g., 'Moedas', 'Ouro', 'Platina')
 }
 
 export interface StoreConfiguration {
   _id?: string;
-  currencyId: string;
-  currencyName: string;
   grayOutLocked: boolean;
   levels: LevelConfiguration[];
   current?: boolean;
@@ -504,8 +504,6 @@ export interface StoreConfiguration {
 
 // Default Store Configuration
 export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
-  currencyId: 'coins',
-  currencyName: 'Moedas',
   grayOutLocked: false,
   levels: [
     {
@@ -514,6 +512,8 @@ export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
       levelName: 'Nível 1',
       visible: true,
       unlockItemId: 'E6F0O5f', // Unlock item for level 1
+      currencyId: 'coins',
+      currencyName: 'Moedas',
     },
     {
       catalogId: 'loja_de_recompensas_2',
@@ -521,6 +521,8 @@ export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
       levelName: 'Nível 2',
       visible: true,
       unlockItemId: undefined, // No unlock requirement for level 2
+      currencyId: 'gold',
+      currencyName: 'Ouro',
     },
     {
       catalogId: 'loja_de_recompensas_3',
@@ -528,6 +530,8 @@ export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
       levelName: 'Nível 3',
       visible: true,
       unlockItemId: undefined, // No unlock requirement for level 3
+      currencyId: 'plat',
+      currencyName: 'Platina',
     },
     {
       catalogId: 'backend_tools',
@@ -535,6 +539,8 @@ export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
       levelName: 'Internal',
       visible: false,
       unlockItemId: undefined,
+      currencyId: 'coins',
+      currencyName: 'Moedas',
     },
   ],
 };

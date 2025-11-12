@@ -9,7 +9,6 @@ interface ItemGridProps {
   levelConfig: LevelConfiguration[];
   onItemClick: (item: VirtualGoodItem) => void;
   grayOutLocked: boolean;
-  currencyName: string;
   playerCatalogItems: Record<string, number>;
 }
 
@@ -18,7 +17,6 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
   levelConfig,
   onItemClick,
   grayOutLocked,
-  currencyName,
   playerCatalogItems,
 }) => {
   
@@ -89,7 +87,7 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
                   key={item._id}
                   item={item}
                   levelName={level.levelName}
-                  currencyName={currencyName}
+                  currencyName={level.currencyName}
                   grayedOut={shouldGrayOut}
                   onClick={() => onItemClick(item)}
                 />
