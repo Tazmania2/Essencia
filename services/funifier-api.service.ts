@@ -852,6 +852,220 @@ export class FunifierApiService {
       throw errorHandlerService.handleFunifierError(error, 'check_all_players_virtual_goods_cleared');
     }
   }
+
+  // ==================== STORE OPERATIONS ====================
+
+  /**
+   * Get virtual goods items from Funifier API
+   * @returns Array of virtual goods items
+   */
+  public async getVirtualGoodsItems(): Promise<any[]> {
+    try {
+      const response = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/virtualgoods/item`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'get_virtual_goods_items');
+    }
+  }
+
+  /**
+   * Get catalogs from Funifier API
+   * @returns Array of catalogs
+   */
+  public async getCatalogs(): Promise<any[]> {
+    try {
+      const response = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/virtualgoods/catalog`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'get_catalogs');
+    }
+  }
+
+  /**
+   * Get points from Funifier API
+   * @returns Array of point types
+   */
+  public async getPoints(): Promise<any[]> {
+    try {
+      const response = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/point`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'get_points');
+    }
+  }
+
+  /**
+   * Get store configuration from store__c custom collection
+   * Fetches only the configuration marked as current using aggregate
+   * @returns Store configuration object or null if not found
+   */
+  public async getStoreConfig(): Promise<any> {
+    try {
+      // Use aggregate to filter for current configuration
+      const response = await axios.post<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c/aggregate`,
+        [
+          { "$match": { "current": true } },
+          { "$limit": 1 }
+        ],
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      // Return the current configuration if it exists
+      if (response.data && response.data.length > 0) {
+        return response.data[0];
+      }
+
+      // If no current config found, try to get any config and mark it as current
+      const allConfigsResponse = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      if (allConfigsResponse.data && allConfigsResponse.data.length > 0) {
+        // Mark the first one as current
+        const firstConfig = allConfigsResponse.data[0];
+        firstConfig.current = true;
+        await this.updateStoreConfig(firstConfig._id, firstConfig);
+        return firstConfig;
+      }
+
+      return null;
+    } catch (error) {
+      // If collection doesn't exist or is empty, return null instead of throwing
+      if (axios.isAxiosError(error) && (error.response?.status === 404 || error.response?.status === 400)) {
+        return null;
+      }
+      throw errorHandlerService.handleFunifierError(error, 'get_store_config');
+    }
+  }
+
+  /**
+   * Get all store configurations from store__c custom collection
+   * @returns Array of all store configurations
+   */
+  public async getAllStoreConfigs(): Promise<any[]> {
+    try {
+      const response = await axios.get<any[]>(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+
+      return response.data || [];
+    } catch (error) {
+      // If collection doesn't exist or is empty, return empty array
+      if (axios.isAxiosError(error) && (error.response?.status === 404 || error.response?.status === 400)) {
+        return [];
+      }
+      throw errorHandlerService.handleFunifierError(error, 'get_all_store_configs');
+    }
+  }
+
+  /**
+   * Update store configuration in store__c custom collection
+   * Uses PUT /database/store__c with the complete object (including _id) in the body
+   * @param configId Configuration ID to update
+   * @param config Complete configuration object (must include all fields)
+   */
+  public async updateStoreConfig(configId: string, config: any): Promise<void> {
+    try {
+      await axios.put(
+        `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+        {
+          ...config,
+          _id: configId
+        },
+        {
+          headers: this.getBasicAuthHeader(),
+          timeout: 15000,
+        }
+      );
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'update_store_config');
+    }
+  }
+
+  /**
+   * Save store configuration to store__c custom collection
+   * Marks all existing configs as not current and the new one as current
+   * @param config Store configuration object to save
+   */
+  public async saveStoreConfig(config: any): Promise<void> {
+    try {
+      // First, get all existing configurations
+      const existingConfigs = await this.getAllStoreConfigs();
+
+      // Check if this is an update to an existing config
+      const isUpdate = config._id && existingConfigs.some(c => c._id === config._id);
+
+      // Mark all existing configs as not current (except the one being updated)
+      for (const existingConfig of existingConfigs) {
+        if (existingConfig.current && existingConfig._id !== config._id) {
+          await this.updateStoreConfig(existingConfig._id, {
+            ...existingConfig,
+            current: false
+          });
+        }
+      }
+
+      if (isUpdate) {
+        // Update existing configuration
+        await this.updateStoreConfig(config._id, {
+          ...config,
+          current: true,
+          updatedAt: new Date().toISOString()
+        });
+      } else {
+        // Create new configuration (remove _id if present to let Funifier generate it)
+        const { _id, ...configWithoutId } = config;
+        await axios.post(
+          `${FUNIFIER_CONFIG.BASE_URL}/database/store__c`,
+          {
+            ...configWithoutId,
+            current: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            headers: this.getBasicAuthHeader(),
+            timeout: 15000,
+          }
+        );
+      }
+    } catch (error) {
+      throw errorHandlerService.handleFunifierError(error, 'save_store_config');
+    }
+  }
 }
 
 // Export singleton instance

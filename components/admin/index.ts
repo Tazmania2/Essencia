@@ -5,3 +5,4 @@ export { AdminBreadcrumb } from './AdminBreadcrumb';
 export { AdminSectionHeader } from './AdminSectionHeader';
 export { PlayerSelector } from './PlayerSelector';
 export { DataExport } from './DataExport';
+export { StoreConfigPanel } from './StoreConfigPanel';

@@ -55,21 +55,21 @@ function DashboardContent() {
     );
   }
 
+  // If team selection modal is showing, show waiting message and prevent dashboard rendering
+  if (showTeamSelection) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-boticario-pink mx-auto mb-4"></div>
+          <p className="text-gray-600 mb-2">Aguardando seleção de equipe...</p>
+          <p className="text-sm text-gray-500">Por favor, selecione uma equipe no modal que apareceu.</p>
+        </div>
+      </div>
+    );
+  }
+
   // Check if user has selected a valid team for dashboard access
   if (!selectedTeam || selectedTeam === 'ADMIN') {
-    // If team selection modal is showing, show waiting message
-    if (showTeamSelection) {
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-boticario-pink mx-auto mb-4"></div>
-            <p className="text-gray-600 mb-2">Aguardando seleção de equipe...</p>
-            <p className="text-sm text-gray-500">Por favor, selecione uma equipe no modal que apareceu.</p>
-          </div>
-        </div>
-      );
-    }
-    
     // User doesn't have valid team access
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
