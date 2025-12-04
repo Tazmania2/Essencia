@@ -58,16 +58,20 @@ function AdminPlayersContent() {
         funifierDatabaseService.getCollectionData()
       ]);
 
-      // Filter out players without valid IDs to prevent bugs
+      // Filter out players without valid IDs or names to prevent bugs
       const validPlayers = allPlayers.filter(player => {
         if (!player._id || player._id.trim() === '') {
           console.warn('Skipping player with invalid/empty ID:', player);
           return false;
         }
+        if (!player.name || player.name.trim() === '') {
+          console.warn('Skipping player with invalid/empty name:', player._id, player);
+          return false;
+        }
         return true;
       });
 
-      console.log(`Loaded ${allPlayers.length} players, ${validPlayers.length} have valid IDs`);
+      console.log(`Loaded ${allPlayers.length} players, ${validPlayers.length} have valid IDs and names`);
 
       // Create a map of player reports for quick lookup
       const playerReports = reportData.reduce((acc, report) => {
@@ -128,11 +132,18 @@ function AdminPlayersContent() {
 
   // Filter players based on search and team filter
   const filteredPlayers = players.filter(player => {
-    const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         player._id.toLowerCase().includes(searchTerm.toLowerCase());
+    // Safely handle undefined/null name and _id fields
+    const playerName = player.name || '';
+    const playerId = player._id || '';
+    const searchLower = searchTerm.toLowerCase();
+    
+    const matchesSearch = playerName.toLowerCase().includes(searchLower) ||
+                         playerId.toLowerCase().includes(searchLower);
     
     const matchesTeam = teamFilter === 'all' || 
-                       player.teamNames.some(team => team.toLowerCase().includes(teamFilter.toLowerCase()));
+                       (player.teamNames || []).some(team => 
+                         (team || '').toLowerCase().includes(teamFilter.toLowerCase())
+                       );
 
     return matchesSearch && matchesTeam;
   });
@@ -429,7 +440,7 @@ function AdminPlayersContent() {
                             ) : (
                               <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
                                 <span className="text-sm font-medium text-gray-700">
-                                  {player.name.charAt(0).toUpperCase()}
+                                  {(player.name || '?').charAt(0).toUpperCase()}
                                 </span>
                               </div>
                             )}
