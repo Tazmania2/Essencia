@@ -88,6 +88,7 @@ export const ItemGrid: React.FC<ItemGridProps> = ({
                   item={item}
                   levelName={level.levelName}
                   currencyName={level.currencyName}
+                  levelNumber={level.levelNumber}
                   grayedOut={shouldGrayOut}
                   onClick={() => onItemClick(item)}
                 />

@@ -7,6 +7,7 @@ interface ItemCardProps {
   item: VirtualGoodItem;
   levelName: string;
   currencyName: string;
+  levelNumber?: number;
   isLocked?: boolean;
   grayedOut?: boolean;
   onClick: () => void;
@@ -16,6 +17,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   item,
   levelName,
   currencyName,
+  levelNumber = 1,
   isLocked = false,
   grayedOut = false,
   onClick,
@@ -34,8 +36,19 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     return null;
   };
 
+  // Get currency emoji based on level: Margaridas (🌼), Orquídeas (🌸), Lótus (🪷)
+  const getCurrencyEmoji = (): string => {
+    switch (levelNumber) {
+      case 1: return '🌼';
+      case 2: return '🌸';
+      case 3: return '🪷';
+      default: return '🌼';
+    }
+  };
+
   const price = getPrice();
   const imageUrl = getImageUrl();
+  const currencyEmoji = getCurrencyEmoji();
 
   return (
     <div
@@ -106,7 +119,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           pt-2 border-t border-gray-100
         `}>
           <div className="flex items-center space-x-1">
-            <span className="text-xl md:text-2xl">💰</span>
+            <span className="text-xl md:text-2xl">{currencyEmoji}</span>
             <div>
               <div className={`
                 font-bold text-base md:text-lg

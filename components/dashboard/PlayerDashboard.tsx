@@ -7,6 +7,7 @@ import { CycleCard } from './CycleCard';
 import { GoalCard } from './GoalCard';
 import { GoalDetailsAccordion } from './GoalDetailsAccordion';
 import { QuickActions } from './QuickActions';
+import { MiniCarteira } from './MiniCarteira';
 
 interface QuickAction {
   icon: string;
@@ -157,6 +158,9 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
       <DashboardHeader playerName={playerName} />
       
       <main className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Mini Carteira - Compact wallet display */}
+        <MiniCarteira playerId={playerId} className="w-fit ml-auto" />
+
         {/* Pontos e Status */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <PointsCard points={totalPoints} isUnlocked={!pointsLocked} />

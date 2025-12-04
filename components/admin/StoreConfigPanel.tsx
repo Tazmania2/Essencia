@@ -86,7 +86,7 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
         levelName: catalog.catalog || `Nível ${existingLevels.length + index + 1}`,
         visible: false,
         currencyId: 'coins',
-        currencyName: 'Moedas'
+        currencyName: 'Margaridas'
       };
     });
   };
@@ -256,7 +256,7 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">📚 Configuração de Catálogos e Moedas</h3>
         <p className="text-sm text-gray-600 mb-3">
-          Configure cada nível com sua moeda específica e item de desbloqueio. Cada nível pode usar uma moeda diferente (ex: Nível 1 = Moedas, Nível 2 = Ouro, Nível 3 = Platina).
+          Configure cada nível com sua moeda específica e item de desbloqueio. Cada nível pode usar uma moeda diferente (ex: Nível 1 = Margaridas 🌼, Nível 2 = Orquídeas 🌸, Nível 3 = Lótus 🪷).
         </p>
         <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
           <table className="w-full">
@@ -313,7 +313,7 @@ export const StoreConfigPanel: React.FC<StoreConfigPanelProps> = ({ onClose }) =
                         type="text"
                         value={level.currencyName}
                         onChange={(e) => handleLevelChange(level.catalogId, 'currencyName', e.target.value)}
-                        placeholder="Ex: Moedas"
+                        placeholder="Ex: Margaridas"
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                       />
                     </td>

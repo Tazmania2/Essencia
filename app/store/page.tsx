@@ -277,7 +277,8 @@ function StorefrontContent() {
                 .sort((a, b) => a.levelNumber - b.levelNumber)
                 .map((level) => {
                   const balance = playerBalances[level.currencyId] || 0;
-                  const currencyEmoji = level.levelNumber === 1 ? '💰' : level.levelNumber === 2 ? '🥇' : '💎';
+                  // Updated emojis: Margaridas (🌼), Orquídeas (🌸), Lótus (🪷)
+                  const currencyEmoji = level.levelNumber === 1 ? '🌼' : level.levelNumber === 2 ? '🌸' : '🪷';
                   
                   return (
                     <div
@@ -357,7 +358,8 @@ function StorefrontContent() {
       <ItemModal
         item={selectedItem}
         levelName={getSelectedItemLevel()?.levelName || ''}
-        currencyName={getSelectedItemLevel()?.currencyName || 'Moedas'}
+        currencyName={getSelectedItemLevel()?.currencyName || 'Margaridas'}
+        levelNumber={getSelectedItemLevel()?.levelNumber || 1}
         isOpen={isModalOpen}
         onClose={handleModalClose}
       />

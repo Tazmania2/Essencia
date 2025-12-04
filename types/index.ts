@@ -502,6 +502,13 @@ export interface StoreConfiguration {
   updatedAt?: string;
 }
 
+// Currency tier configuration
+export const CURRENCY_TIERS = {
+  MARGARIDAS: { id: 'coins', name: 'Margaridas', emoji: '🌼', threshold: 50 },
+  ORQUIDEAS: { id: 'gold', name: 'Orquídeas', emoji: '🌸', threshold: 75 },
+  LOTUS: { id: 'plat', name: 'Lótus', emoji: '🪷', threshold: 100 },
+} as const;
+
 // Default Store Configuration
 export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
   grayOutLocked: false,
@@ -513,7 +520,7 @@ export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
       visible: true,
       unlockItemId: 'E6F0O5f', // Unlock item for level 1
       currencyId: 'coins',
-      currencyName: 'Moedas',
+      currencyName: 'Margaridas',
     },
     {
       catalogId: 'loja_de_recompensas_2',
@@ -522,7 +529,7 @@ export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
       visible: true,
       unlockItemId: undefined, // No unlock requirement for level 2
       currencyId: 'gold',
-      currencyName: 'Ouro',
+      currencyName: 'Orquídeas',
     },
     {
       catalogId: 'loja_de_recompensas_3',
@@ -531,7 +538,7 @@ export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
       visible: true,
       unlockItemId: undefined, // No unlock requirement for level 3
       currencyId: 'plat',
-      currencyName: 'Platina',
+      currencyName: 'Lótus',
     },
     {
       catalogId: 'backend_tools',
@@ -540,7 +547,7 @@ export const DEFAULT_STORE_CONFIG: StoreConfiguration = {
       visible: false,
       unlockItemId: undefined,
       currencyId: 'coins',
-      currencyName: 'Moedas',
+      currencyName: 'Margaridas',
     },
   ],
 };
