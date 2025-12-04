@@ -111,6 +111,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out flex-shrink-0
     ${isOpen ? 'translate-x-0' : '-translate-x-full'}
     lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-30 lg:z-auto
+    flex flex-col h-full max-h-screen
   `;
 
   return (
@@ -156,8 +157,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2">
+      {/* Navigation - scrollable on mobile */}
+      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
         <div className="mb-6">
           <h2 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
             Navegação Principal
@@ -206,8 +207,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         })}
       </nav>
 
-      {/* Sidebar Footer */}
-      <div className="px-4 py-4 border-t border-gray-200">
+      {/* Sidebar Footer - fixed at bottom */}
+      <div className="px-4 py-4 border-t border-gray-200 flex-shrink-0">
         <button
           onClick={logout}
           className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors group"
