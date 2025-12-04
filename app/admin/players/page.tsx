@@ -58,18 +58,31 @@ function AdminPlayersContent() {
         funifierDatabaseService.getCollectionData()
       ]);
 
+      // Filter out players without valid IDs to prevent bugs
+      const validPlayers = allPlayers.filter(player => {
+        if (!player._id || player._id.trim() === '') {
+          console.warn('Skipping player with invalid/empty ID:', player);
+          return false;
+        }
+        return true;
+      });
+
+      console.log(`Loaded ${allPlayers.length} players, ${validPlayers.length} have valid IDs`);
+
       // Create a map of player reports for quick lookup
       const playerReports = reportData.reduce((acc, report) => {
-        if (!acc[report.playerId]) {
-          acc[report.playerId] = [];
+        if (report.playerId && report.playerId.trim() !== '') {
+          if (!acc[report.playerId]) {
+            acc[report.playerId] = [];
+          }
+          acc[report.playerId].push(report);
         }
-        acc[report.playerId].push(report);
         return acc;
       }, {} as Record<string, any[]>);
 
       // Enrich player data with additional information
       const enrichedPlayers: PlayerWithData[] = await Promise.all(
-        allPlayers.map(async (player) => {
+        validPlayers.map(async (player) => {
           try {
             // Get player status for team and points info
             const status = await funifierApiService.getPlayerStatus(player._id);
