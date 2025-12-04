@@ -84,7 +84,9 @@ export const GoalCard: React.FC<GoalCardProps> = ({
       <ProgressBar 
         percentage={percentage} 
         height={progressHeight}
-        className="mb-2"
+        className={isPrimary ? "mb-8" : "mb-2"}
+        showTierMarkers={isPrimary}
+        isPrimary={isPrimary}
       />
       
       {/* Enhanced detailed information */}

@@ -17,5 +17,4 @@ export { CarteiraIVDashboard } from './CarteiraIVDashboard';
 export { ERDashboard } from './ERDashboard';
 export { DebugDashboard } from './DebugDashboard';
 export { RefreshButton } from './RefreshButton';
-export { TierMilestoneIndicator } from './TierMilestoneIndicator';
 export { MiniCarteira } from './MiniCarteira';

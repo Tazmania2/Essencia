@@ -7,7 +7,6 @@ import { CycleCard } from './CycleCard';
 import { GoalCard } from './GoalCard';
 import { GoalDetailsAccordion } from './GoalDetailsAccordion';
 import { QuickActions } from './QuickActions';
-import { TierMilestoneIndicator } from './TierMilestoneIndicator';
 import { MiniCarteira } from './MiniCarteira';
 
 interface QuickAction {
@@ -186,9 +185,6 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
             unit={primaryGoal.unit}
             daysRemaining={primaryGoal.daysRemaining}
           />
-
-          {/* Tier Milestone Indicator - Shows 50%, 75%, 100% tier progress */}
-          <TierMilestoneIndicator percentage={primaryGoal.percentage} />
 
           {/* Metas Secundárias */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
